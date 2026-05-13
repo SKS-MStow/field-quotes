@@ -848,7 +848,7 @@ window.MockReview = (function () {
     }
   }
 
-  return { start, exportMarkdown, reset };
+  return { start, exportHtml, exportMarkdown, reset };
 })();
 
 document.addEventListener('DOMContentLoaded', () => window.MockReview.start());
