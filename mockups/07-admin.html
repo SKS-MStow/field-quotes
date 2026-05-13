@@ -437,9 +437,14 @@
       b.addEventListener('click', () => showTab(b.getAttribute('data-tab')));
     });
 
-    // Hash-based deep link
-    const startTab = (location.hash || '#products').replace('#', '');
-    showTab(tabs[startTab] ? startTab : 'products');
+    // Hash-based deep link — also handle hash changes so sidebar links
+    // between admin sub-tabs work without needing a page reload.
+    function tabFromHash() {
+      const t = (location.hash || '#products').replace('#', '');
+      return tabs[t] ? t : 'products';
+    }
+    showTab(tabFromHash());
+    window.addEventListener('hashchange', () => showTab(tabFromHash()));
   </script>
 </body>
 </html>
