@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Output Preview — SKS Quotes</title>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Symbols+Outlined" rel="stylesheet">
+  <link rel="stylesheet" href="../shared/theme.css">
+  <link rel="stylesheet" href="css/mockups.css">
+  <style>
+    .tab-bar { display: flex; gap: 4px; margin-bottom: 16px; padding: 4px; background: var(--surface-inset); border-radius: var(--radius-md); width: fit-content; }
+    .tab-bar button { background: transparent; border: none; padding: 7px 14px; border-radius: var(--radius-sm); font-size: 12px; color: var(--text-secondary); cursor: pointer; font-family: var(--font-body); font-weight: 500; display: flex; align-items: center; gap: 5px; }
+    .tab-bar button.active { background: var(--surface-white); color: var(--text-primary); box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
+
+    .toolbar { display: flex; gap: 8px; margin-bottom: 14px; padding: 10px 14px; background: var(--surface-card); border: 1px solid var(--border); border-radius: var(--radius-md); align-items: center; flex-wrap: wrap; }
+    .toolbar .grow { flex: 1; }
+    .toolbar .opt { display: flex; gap: 6px; align-items: center; font-size: 12px; color: var(--text-secondary); }
+
+    .doc-cover {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 30px;
+      margin-bottom: 28px;
+    }
+    .doc-cover .logo-block { font-family: var(--font-heading); font-weight: 700; font-size: 22px; color: #2d2d2a; }
+    .doc-cover .logo-block .tag { color: #888; font-size: 11px; font-weight: 500; letter-spacing: 0.05em; text-transform: uppercase; margin-top: 4px; }
+    .doc-cover .meta { font-size: 12px; color: #444; }
+    .doc-cover .meta div { padding: 3px 0; }
+    .doc-cover .meta .l { color: #888; font-size: 10px; text-transform: uppercase; letter-spacing: 0.05em; }
+    .doc-cover .meta .v { color: #2d2d2a; font-weight: 600; }
+
+    .doc-section-h { font-family: var(--font-heading); font-size: 13px; font-weight: 600; color: #666; text-transform: uppercase; letter-spacing: 0.07em; margin: 18px 0 6px; }
+
+    .doc-area-title { font-family: var(--font-heading); font-size: 15px; font-weight: 600; color: #2d2d2a; margin: 18px 0 4px; }
+    .doc-area-meta  { font-size: 11px; color: #888; margin-bottom: 6px; }
+
+    .summary-final { margin-top: 18px; max-width: 380px; margin-left: auto; }
+    .summary-final .row { display: flex; justify-content: space-between; padding: 5px 0; font-size: 12.5px; }
+    .summary-final .row.grand { border-top: 2px solid #2d2d2a; padding-top: 10px; margin-top: 8px; font-family: var(--font-heading); font-weight: 700; font-size: 14px; }
+
+    .pc-note { background: #fce4ec; color: #6a2034; padding: 6px 10px; font-size: 11px; border-radius: 3px; margin-top: 4px; display: inline-block; }
+
+    /* Internal cost sheet view */
+    .sheet-tabs { display: flex; gap: 4px; margin-bottom: 12px; }
+    .sheet-tabs button { background: var(--surface-inset); border: 1px solid var(--border); padding: 6px 12px; font-size: 12px; cursor: pointer; font-family: var(--font-body); border-radius: var(--radius-sm); color: var(--text-secondary); }
+    .sheet-tabs button.active { background: var(--surface-white); border-color: var(--accent-primary); color: var(--text-primary); font-weight: 600; }
+
+    .internal-table { width: 100%; border-collapse: collapse; font-size: 11.5px; background: var(--surface-white); }
+    .internal-table th { background: var(--surface-inset); padding: 8px 10px; text-align: left; font-size: 10px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-muted); border-bottom: 1px solid var(--border); position: sticky; top: 0; }
+    .internal-table td { padding: 7px 10px; border-bottom: 1px solid var(--border-light); vertical-align: top; }
+    .internal-table tr.section td { background: var(--surface-inset); font-weight: 600; color: var(--text-primary); padding: 6px 10px; font-size: 11px; }
+    .internal-table .right { text-align: right; font-variant-numeric: tabular-nums; }
+  </style>
+</head>
+<body data-page="new-quote">
+  <main id="content" class="content">
+
+    <div class="tab-bar">
+      <button class="active" data-tab="client"><span class="material-symbols-outlined">description</span> Client Quote (.docx)</button>
+      <button data-tab="internal"><span class="material-symbols-outlined">table_chart</span> Internal Cost Sheet (.xlsx)</button>
+    </div>
+
+    <!-- Toolbar -->
+    <div class="toolbar">
+      <div class="opt"><span class="material-symbols-outlined" style="font-size:16px;">visibility</span> Preview only — final PDF/Excel generated on Download</div>
+      <div class="grow"></div>
+      <button class="btn btn-secondary"><span class="material-symbols-outlined">file_download</span> Download .docx</button>
+      <button class="btn btn-secondary"><span class="material-symbols-outlined">file_download</span> Download .xlsx</button>
+      <button class="btn btn-secondary"><span class="material-symbols-outlined">picture_as_pdf</span> Download .pdf</button>
+      <button class="btn btn-primary" id="email-btn"><span class="material-symbols-outlined">forward_to_inbox</span> Email to client</button>
+    </div>
+
+    <!-- Client document view -->
+    <div id="tab-client">
+      <div class="doc-page" id="client-doc"></div>
+    </div>
+
+    <!-- Internal sheet view -->
+    <div id="tab-internal" hidden>
+      <div class="sheet-tabs" id="sheet-tabs">
+        <button class="active" data-sheet="summary">Summary</button>
+        <button data-sheet="bom">Full BOM</button>
+        <button data-sheet="services">Services</button>
+        <button data-sheet="labour">Labour Detail</button>
+      </div>
+      <div id="sheet-host" style="background:var(--surface-white);border:1px solid var(--border);border-radius:var(--radius-md);overflow:auto;max-height:70vh;"></div>
+    </div>
+
+    <!-- Wizard footer -->
+    <div class="wizard-footer">
+      <a class="btn btn-secondary" href="05-review.html"><span class="material-symbols-outlined">arrow_back</span> Back to review</a>
+      <div class="totals-mini"><span>Total inc-GST: <b id="f-total">$0</b></span></div>
+      <div class="nav">
+        <button class="btn btn-secondary" id="save-exit"><span class="material-symbols-outlined">save</span> Save as draft</button>
+        <button class="btn btn-primary" id="issue-btn"><span class="material-symbols-outlined">send</span> Issue quote</button>
+      </div>
+    </div>
+  </main>
+
+  <script src="js/mock-data.js"></script>
+  <script src="js/mock-state.js"></script>
+  <script src="js/mock-ui.js"></script>
+  <script src="js/mock-shell.js"></script>
+  <script>
+    MockShell.mount({
+      title: 'Output Preview',
+      subtitle: 'Step 5 of 5 · Preview, download, or issue',
+      actionsHtml: `<a class="btn btn-secondary" href="01-quote-list.html"><span class="material-symbols-outlined">close</span> Close</a>`
+    });
+
+    const quote = MockState.getCurrentQuote();
+    if (!quote) { location.href = '01-quote-list.html'; }
+    const totals = MockState.quoteTotal(quote);
+
+    // -------- Client document view --------
+    function renderClientDoc() {
+      const showModels = true; // would be from options on review page
+      const itemiseLabour = false;
+      const expandPkgs = true;
+
+      let html = `
+        <div class="doc-cover">
+          <div>
+            <div class="logo-block">SKS Technologies<div class="tag">Audio Visual Quotation</div></div>
+            <div style="margin-top:16px;">
+              <div style="font-family:var(--font-heading);font-size:18px;font-weight:600;color:#2d2d2a;">${quote.client.name || '[Client name]'}</div>
+              ${quote.client.address ? `<div style="color:#666;font-size:12px;margin-top:2px;">${quote.client.address}</div>` : ''}
+              ${quote.client.contact ? `<div style="margin-top:10px;font-size:12px;"><b>Attention:</b> ${quote.client.contact}</div>` : ''}
+              ${quote.client.email ? `<div style="font-size:12px;color:#666;">${quote.client.email}</div>` : ''}
+            </div>
+          </div>
+          <div class="meta">
+            <div><span class="l">Quote No.</span><div class="v">${quote.number} — Rev ${quote.revision}</div></div>
+            <div style="margin-top:8px;"><span class="l">Date</span><div class="v">${MockUI.fmtDate(quote.createdAt)}</div></div>
+            <div style="margin-top:8px;"><span class="l">Valid Until</span><div class="v">${MockUI.fmtDate(quote.validUntil)}</div></div>
+            <div style="margin-top:8px;"><span class="l">Prepared By</span><div class="v">${quote.preparedBy}</div></div>
+            <div style="margin-top:8px;"><span class="l">Project</span><div class="v">${quote.project.name || '—'}</div></div>
+          </div>
+        </div>
+
+        <div class="doc-section-h">Executive Summary</div>
+        <p style="font-size:12.5px;line-height:1.6;color:#333;">${buildScopeSummary()}</p>
+      `;
+
+      // Areas
+      if (quote.areas.length > 0) {
+        html += `<div class="doc-section-h">Scope by Area</div>`;
+        quote.areas.forEach(a => {
+          const t = MockState.areaTotals(a, quote);
+          html += `
+            <div class="doc-area-title">${a.name}</div>
+            <div class="doc-area-meta">${a.lines.length} item${a.lines.length === 1 ? '' : 's'}</div>
+            <table>
+              <thead>
+                <tr>
+                  <th style="width:30%;">Description</th>
+                  ${showModels ? '<th style="width:18%;">Model</th>' : ''}
+                  <th class="right" style="width:60px;">Qty</th>
+                  <th style="width:60px;">Unit</th>
+                  <th class="right" style="width:90px;">Total</th>
+                </tr>
+              </thead>
+              <tbody>`;
+          a.lines.forEach(l => {
+            const t = MockState.lineTotals(l, a, quote);
+            const tags = (l.isSupplyOnly ? ' <span class="pc-note">SUPPLY ONLY</span>' : '') + (l.isProvisional ? ' <span class="pc-note">PC SUM</span>' : '');
+            html += `<tr>
+              <td>${l.description}${tags}</td>
+              ${showModels ? `<td>${l.manufacturer} ${l.model}</td>` : ''}
+              <td class="right">${l.qty}</td>
+              <td>${l.unit}</td>
+              <td class="right">${MockUI.fmtMoney(t.sellTotal)}</td>
+            </tr>`;
+          });
+          html += `</tbody></table>`;
+          html += `<div style="text-align:right;font-size:12px;margin-top:4px;color:#555;">Area subtotal: <b style="color:#2d2d2a;">${MockUI.fmtMoney(t.materialsSell + t.labourSell)}</b></div>`;
+        });
+      }
+
+      // Services
+      const includedSvcs = quote.services.filter(s => s.included);
+      if (includedSvcs.length > 0) {
+        html += `<div class="doc-section-h">Services &amp; Installation</div>
+          <table>
+            <thead><tr><th>Service</th><th class="right" style="width:70px;">Qty</th><th style="width:70px;">Unit</th><th class="right" style="width:100px;">Total</th></tr></thead>
+            <tbody>`;
+        includedSvcs.forEach(sv => {
+          const sellEach = sv.rate / (1 - (sv.marginPct / 100));
+          const sell = (sv.qty || 0) * (isFinite(sellEach) ? sellEach : sv.rate);
+          html += `<tr><td>${sv.name}</td><td class="right">${sv.qty}</td><td>${sv.unit}</td><td class="right">${MockUI.fmtMoney(sell)}</td></tr>`;
+        });
+        html += `</tbody></table>`;
+      }
+
+      // Pricing summary
+      html += `
+        <div class="doc-section-h">Pricing Summary</div>
+        <div class="summary-final">
+          <div class="row"><span>Materials</span><span>${MockUI.fmtMoney(totals.materialsSell)}</span></div>
+          <div class="row"><span>Labour</span><span>${MockUI.fmtMoney(totals.labourSell)}</span></div>
+          <div class="row"><span>Services &amp; Installation</span><span>${MockUI.fmtMoney(totals.servicesSell)}</span></div>
+          <div class="row"><span>Subtotal (ex-GST)</span><span>${MockUI.fmtMoney(totals.sellExGST)}</span></div>
+          <div class="row"><span>GST (10%)</span><span>${MockUI.fmtMoney(totals.gst)}</span></div>
+          <div class="row grand"><span>TOTAL (inc-GST)</span><span>${MockUI.fmtMoney(totals.incGST)}</span></div>
+        </div>
+      `;
+
+      // Notes to client
+      if (quote.notesToClient) {
+        html += `<div class="doc-section-h">Notes</div><p style="font-size:12.5px;line-height:1.55;color:#333;">${quote.notesToClient}</p>`;
+      }
+
+      // Exclusions
+      if (quote.exclusions.length > 0) {
+        html += `<div class="doc-section-h">Exclusions &amp; Assumptions</div><ul style="font-size:12px;color:#333;line-height:1.55;margin-left:18px;">`;
+        quote.exclusions.forEach(e => { html += `<li>${e}</li>`; });
+        html += `</ul>`;
+      }
+
+      // Terms
+      html += `<div class="doc-section-h">Terms &amp; Conditions</div><pre style="white-space:pre-wrap;font:inherit;font-size:11.5px;color:#444;line-height:1.55;">${quote.terms || MockData.standardTerms}</pre>`;
+
+      // Footer
+      html += `
+        <div style="margin-top:30px;padding-top:14px;border-top:1px solid #ddd;display:flex;justify-content:space-between;font-size:10px;color:#888;">
+          <span>SKS Technologies Pty Ltd · ABN 12 345 678 901</span>
+          <span>0427 102 113 · info@skstechnologies.com.au · skstechnologies.com.au</span>
+        </div>`;
+
+      document.getElementById('client-doc').innerHTML = html;
+    }
+
+    function buildScopeSummary() {
+      const areaNames = quote.areas.map(a => a.name).filter(Boolean);
+      const project = quote.project.name || 'project';
+      const client = quote.client.name || 'the client';
+      if (areaNames.length === 0) {
+        return `SKS Technologies is pleased to provide this quotation to ${client} for the ${project}. This proposal covers the supply, installation and commissioning of all equipment and services itemised below.`;
+      }
+      const last = areaNames.pop();
+      const list = areaNames.length > 0 ? `${areaNames.join(', ')} and ${last}` : last;
+      return `SKS Technologies is pleased to provide this quotation to ${client} for the ${project}. The proposed scope covers the supply, installation, commissioning and handover of audio-visual systems across the following spaces: ${list}. Each area has been individually scoped — see breakdowns below for the products, services and assumptions specific to that space.`;
+    }
+
+    // -------- Internal cost sheet --------
+    function renderSheet(tab) {
+      const host = document.getElementById('sheet-host');
+      if (tab === 'summary') {
+        host.innerHTML = `
+          <table class="internal-table">
+            <thead><tr><th>Item</th><th class="right">Cost</th><th class="right">Sell</th><th class="right">Margin $</th><th class="right">Margin %</th></tr></thead>
+            <tbody>
+              ${quote.areas.map(a => {
+                const t = MockState.areaTotals(a, quote);
+                const margin = t.materialsSell - t.materialsCost;
+                const mpct = t.materialsSell > 0 ? (margin / t.materialsSell) * 100 : 0;
+                return `<tr><td>${a.name} (materials)</td><td class="right">${MockUI.fmtMoneyCents(t.materialsCost)}</td><td class="right">${MockUI.fmtMoneyCents(t.materialsSell)}</td><td class="right">${MockUI.fmtMoneyCents(margin)}</td><td class="right">${MockUI.fmtPct(mpct)}</td></tr>`;
+              }).join('')}
+              <tr class="section"><td colspan="5">Subtotals</td></tr>
+              <tr><td>All materials</td><td class="right">${MockUI.fmtMoneyCents(totals.materialsCost)}</td><td class="right">${MockUI.fmtMoneyCents(totals.materialsSell)}</td><td class="right">${MockUI.fmtMoneyCents(totals.materialsSell - totals.materialsCost)}</td><td class="right">${MockUI.fmtPct(totals.materialsSell > 0 ? ((totals.materialsSell - totals.materialsCost) / totals.materialsSell) * 100 : 0)}</td></tr>
+              <tr><td>Labour (${MockUI.fmtHours(totals.labourHours)})</td><td class="right">—</td><td class="right">${MockUI.fmtMoneyCents(totals.labourSell)}</td><td class="right">—</td><td class="right">—</td></tr>
+              <tr><td>Services</td><td class="right">${MockUI.fmtMoneyCents(totals.servicesCost)}</td><td class="right">${MockUI.fmtMoneyCents(totals.servicesSell)}</td><td class="right">${MockUI.fmtMoneyCents(totals.servicesSell - totals.servicesCost)}</td><td class="right">—</td></tr>
+              <tr class="section"><td colspan="5">Grand totals</td></tr>
+              <tr><td><b>Sell (ex-GST)</b></td><td class="right">${MockUI.fmtMoneyCents(totals.costTotal)}</td><td class="right"><b>${MockUI.fmtMoneyCents(totals.sellExGST)}</b></td><td class="right">${MockUI.fmtMoneyCents(totals.margin)}</td><td class="right">${MockUI.fmtPct(totals.marginPct)}</td></tr>
+              <tr><td><b>GST</b></td><td class="right"></td><td class="right">${MockUI.fmtMoneyCents(totals.gst)}</td><td class="right"></td><td class="right"></td></tr>
+              <tr><td><b>Total inc-GST</b></td><td class="right"></td><td class="right"><b>${MockUI.fmtMoneyCents(totals.incGST)}</b></td><td class="right"></td><td class="right"></td></tr>
+            </tbody>
+          </table>`;
+      } else if (tab === 'bom') {
+        let html = `<table class="internal-table"><thead><tr>
+            <th>Area</th><th>Cat</th><th>Brand</th><th>Model</th><th>Description</th>
+            <th class="right">Qty</th><th class="right">Cost</th><th class="right">Margin %</th><th class="right">Sell each</th><th class="right">Sell total</th><th class="right">Labour hr</th>
+          </tr></thead><tbody>`;
+        quote.areas.forEach(a => {
+          html += `<tr class="section"><td colspan="11">${a.name}</td></tr>`;
+          a.lines.forEach(l => {
+            const t = MockState.lineTotals(l, a, quote);
+            const eff = MockState.effectiveMargin(l, a, quote);
+            html += `<tr>
+              <td>${a.name}</td><td>${l.cat}</td><td>${l.manufacturer}</td><td>${l.model}</td>
+              <td>${l.description}</td>
+              <td class="right">${l.qty}</td><td class="right">${MockUI.fmtMoneyCents(l.costPrice)}</td>
+              <td class="right">${eff}%</td><td class="right">${MockUI.fmtMoneyCents(t.sellEach)}</td><td class="right">${MockUI.fmtMoneyCents(t.sellTotal)}</td>
+              <td class="right">${MockUI.fmtHours(t.labourTotalHrs)}</td>
+            </tr>`;
+          });
+        });
+        html += `</tbody></table>`;
+        host.innerHTML = html;
+      } else if (tab === 'services') {
+        let html = `<table class="internal-table"><thead><tr><th>Service</th><th>Category</th><th>Unit</th><th class="right">Qty</th><th class="right">Cost rate</th><th class="right">Margin %</th><th class="right">Sell total</th></tr></thead><tbody>`;
+        quote.services.filter(s => s.included).forEach(s => {
+          const sellEach = s.rate / (1 - (s.marginPct / 100));
+          const sell = (s.qty || 0) * (isFinite(sellEach) ? sellEach : s.rate);
+          html += `<tr><td>${s.name}</td><td>${s.category}</td><td>${s.unit}</td><td class="right">${s.qty}</td><td class="right">${MockUI.fmtMoneyCents(s.rate)}</td><td class="right">${s.marginPct}%</td><td class="right">${MockUI.fmtMoneyCents(sell)}</td></tr>`;
+        });
+        html += `</tbody></table>`;
+        host.innerHTML = html;
+      } else if (tab === 'labour') {
+        // Aggregate hours by trade
+        const trades = {};
+        quote.areas.forEach(a => a.lines.forEach(l => {
+          if (l.isSupplyOnly) return;
+          const trade = l.labourTrade || 'AV Tech';
+          const hrs = (l.labourHours || 0) * (l.qty || 0);
+          trades[trade] = (trades[trade] || 0) + hrs;
+        }));
+        let html = `<table class="internal-table"><thead><tr><th>Trade</th><th class="right">Total hours</th><th class="right">Rate / hr</th><th class="right">Sell total</th></tr></thead><tbody>`;
+        Object.entries(trades).forEach(([trade, hrs]) => {
+          const rate = MockData.rateForTrade(trade);
+          html += `<tr><td>${trade}</td><td class="right">${MockUI.fmtHours(hrs)}</td><td class="right">${MockUI.fmtMoneyCents(rate)}</td><td class="right">${MockUI.fmtMoneyCents(hrs * rate)}</td></tr>`;
+        });
+        html += `<tr class="section"><td colspan="4">By area</td></tr>`;
+        quote.areas.forEach(a => {
+          const t = MockState.areaTotals(a, quote);
+          html += `<tr><td>${a.name}</td><td class="right">${MockUI.fmtHours(t.labourHours)}</td><td class="right">—</td><td class="right">${MockUI.fmtMoneyCents(t.labourSell)}</td></tr>`;
+        });
+        html += `</tbody></table>`;
+        host.innerHTML = html;
+      }
+    }
+
+    // -------- Tab switching --------
+    document.querySelectorAll('.tab-bar button').forEach(b => {
+      b.addEventListener('click', () => {
+        document.querySelectorAll('.tab-bar button').forEach(x => x.classList.remove('active'));
+        b.classList.add('active');
+        const which = b.getAttribute('data-tab');
+        document.getElementById('tab-client').hidden = which !== 'client';
+        document.getElementById('tab-internal').hidden = which !== 'internal';
+        if (which === 'internal') renderSheet('summary');
+      });
+    });
+    document.querySelectorAll('.sheet-tabs button').forEach(b => {
+      b.addEventListener('click', () => {
+        document.querySelectorAll('.sheet-tabs button').forEach(x => x.classList.remove('active'));
+        b.classList.add('active');
+        renderSheet(b.getAttribute('data-sheet'));
+      });
+    });
+
+    // -------- Footer --------
+    document.getElementById('f-total').textContent = MockUI.fmtMoney(totals.incGST);
+    document.getElementById('save-exit').addEventListener('click', () => { MockUI.toast('Saved as draft', 'success'); setTimeout(() => location.href = '01-quote-list.html', 500); });
+    document.getElementById('issue-btn').addEventListener('click', () => {
+      MockUI.confirmAction('Issue this quote? Once issued, further changes will create a new revision (Rev B).', () => {
+        const cur = MockState.getCurrentQuote();
+        cur.status = 'issued';
+        MockState.updateQuote(cur.id, cur);
+        MockUI.toast('Quote issued', 'success');
+        setTimeout(() => location.href = '01-quote-list.html', 600);
+      });
+    });
+    document.getElementById('email-btn').addEventListener('click', () => MockUI.toast('Mockup only — would open a draft email with the quote attached'));
+
+    renderClientDoc();
+  </script>
+</body>
+</html>

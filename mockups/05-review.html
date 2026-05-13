@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Review — SKS Quotes</title>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Symbols+Outlined" rel="stylesheet">
+  <link rel="stylesheet" href="../shared/theme.css">
+  <link rel="stylesheet" href="css/mockups.css">
+  <style>
+    .review-layout { display: grid; grid-template-columns: 1fr 320px; gap: 18px; }
+    @media (max-width: 1100px) { .review-layout { grid-template-columns: 1fr; } }
+
+    .warning-card { background: var(--status-warning-bg); border: 1px solid #f3e1a4; border-radius: var(--radius-md); padding: 10px 14px; margin-bottom: 12px; font-size: 13px; color: #6b5a0a; display: flex; gap: 10px; }
+    .warning-card .material-symbols-outlined { color: var(--status-warning); }
+    .warning-card ul { margin: 4px 0 0 18px; }
+
+    .summary-block { background: var(--surface-card); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 16px 20px; margin-bottom: 14px; }
+    .summary-block h3 { font-family: var(--font-heading); font-size: 14px; font-weight: 600; color: var(--text-primary); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 12px; }
+
+    .area-summary-row { display: grid; grid-template-columns: 1fr auto auto; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--border-light); align-items: center; }
+    .area-summary-row:last-child { border-bottom: none; }
+    .area-summary-row .name { font-weight: 500; }
+    .area-summary-row .name .sub { color: var(--text-muted); font-size: 11px; }
+    .area-summary-row .count { font-size: 12px; color: var(--text-muted); }
+    .area-summary-row .total { font-family: var(--font-heading); font-weight: 600; }
+
+    .ex-row { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--border-light); }
+    .ex-row:last-child { border-bottom: none; }
+    .ex-row input[type=checkbox] { transform: scale(1.1); }
+    .ex-row .text { flex: 1; font-size: 12.5px; }
+    .ex-row .text input { width: 100%; border: 1px solid transparent; background: transparent; padding: 4px 6px; border-radius: 4px; font: inherit; color: inherit; }
+    .ex-row .text input:hover { border-color: var(--border); background: var(--surface-white); }
+    .ex-row .text input:focus { border-color: var(--accent-primary); background: var(--surface-white); outline: none; }
+
+    .toggle-options { display: flex; gap: 14px; flex-wrap: wrap; padding: 10px 0; font-size: 12px; }
+    .toggle-options label { display: flex; gap: 6px; align-items: center; cursor: pointer; color: var(--text-secondary); }
+
+    .totals-final { font-family: var(--font-heading); }
+    .totals-final .row { display: flex; justify-content: space-between; padding: 6px 0; font-size: 13px; }
+    .totals-final .row .l { color: var(--text-secondary); font-weight: 500; }
+    .totals-final .row .v { color: var(--text-primary); font-weight: 600; font-variant-numeric: tabular-nums; }
+    .totals-final .grand { border-top: 2px solid var(--accent-primary); padding-top: 10px; margin-top: 8px; font-size: 18px; font-weight: 700; }
+    .totals-final .grand .v { font-size: 22px; }
+  </style>
+</head>
+<body data-page="new-quote">
+  <main id="content" class="content">
+    <!-- Stepper -->
+    <div class="stepper">
+      <div class="step done"><span class="num">1</span> Mode</div>
+      <div class="step done"><span class="num">2</span> Client &amp; Project</div>
+      <div class="step done"><span class="num">3</span> Build</div>
+      <div class="step active"><span class="num">4</span> Review</div>
+      <div class="step"><span class="num">5</span> Generate</div>
+    </div>
+
+    <div id="warnings-host"></div>
+
+    <div class="review-layout">
+
+      <div>
+        <!-- Areas summary -->
+        <div class="summary-block">
+          <h3>Areas</h3>
+          <div id="areas-summary-host"></div>
+        </div>
+
+        <!-- Services summary -->
+        <div class="summary-block">
+          <h3>Services &amp; Installation</h3>
+          <div id="services-summary-host"></div>
+        </div>
+
+        <!-- Cost / margin breakdown -->
+        <div class="summary-block">
+          <h3>Cost &amp; margin breakdown</h3>
+          <div id="cost-breakdown"></div>
+        </div>
+
+        <!-- Notes to client -->
+        <div class="summary-block">
+          <h3>Notes to client</h3>
+          <textarea id="notes-to-client" style="width:100%;min-height:60px;border:1px solid var(--border-input);border-radius:var(--radius-md);padding:10px;font:inherit;font-size:13px;background:var(--surface-white);" placeholder="Optional message shown on the client document (e.g. 'Pricing assumes works completed in one mobilisation…')"></textarea>
+        </div>
+
+        <!-- Exclusions -->
+        <div class="summary-block">
+          <h3>Exclusions <span style="font-weight:400;color:var(--text-muted);font-size:11px;text-transform:none;letter-spacing:0;">(shown on client document)</span></h3>
+          <div id="exclusions-host"></div>
+          <div style="margin-top:10px;display:flex;gap:8px;">
+            <button class="btn btn-secondary btn-sm" id="add-exclusion"><span class="material-symbols-outlined">add</span> Add exclusion</button>
+            <button class="btn btn-secondary btn-sm" id="suggest-exclusions"><span class="material-symbols-outlined">auto_awesome</span> Suggest more</button>
+          </div>
+        </div>
+
+        <!-- Terms -->
+        <div class="summary-block">
+          <h3>Terms &amp; conditions</h3>
+          <textarea id="terms-text" style="width:100%;min-height:160px;border:1px solid var(--border-input);border-radius:var(--radius-md);padding:10px 12px;font:inherit;font-size:12px;background:var(--surface-white);"></textarea>
+          <div style="margin-top:8px;color:var(--text-muted);font-size:11px;">Loaded from the SKS standard template — edit inline if needed.</div>
+        </div>
+
+        <!-- Output options -->
+        <div class="summary-block">
+          <h3>Output options</h3>
+          <div class="toggle-options">
+            <label><input type="checkbox" id="opt-show-models" checked> Show model numbers on client doc</label>
+            <label><input type="checkbox" id="opt-itemise-labour"> Itemise labour per area (vs lump sum)</label>
+            <label><input type="checkbox" id="opt-expand-pkgs"> Expand package groups</label>
+            <label><input type="checkbox" id="opt-contingency"> Add contingency line</label>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right rail: totals & actions -->
+      <aside>
+        <div class="margin-panel">
+          <h3 style="font-family:var(--font-heading);font-size:13px;font-weight:600;color:var(--text-primary);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:10px;">Final totals</h3>
+
+          <div style="font-size:11px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px;">Global margin</div>
+          <div class="global-margin-row" style="display:flex;gap:10px;align-items:center;">
+            <input type="range" id="global-margin" min="0" max="60" step="1" style="flex:1;">
+            <span id="global-margin-val" style="font-family:var(--font-heading);font-weight:700;font-size:18px;min-width:50px;text-align:right;">25%</span>
+          </div>
+
+          <hr style="border:none;border-top:1px solid var(--border-light);margin:14px 0;">
+
+          <div class="totals-final">
+            <div class="row"><span class="l">Materials</span><span class="v" id="t-materials">$0</span></div>
+            <div class="row"><span class="l">Labour</span><span class="v" id="t-labour">$0</span></div>
+            <div class="row"><span class="l">Services</span><span class="v" id="t-services">$0</span></div>
+            <div class="row"><span class="l">Margin (overall)</span><span class="v" id="t-margin-pct">0%</span></div>
+            <div class="row"><span class="l">Subtotal (ex-GST)</span><span class="v" id="t-sell">$0</span></div>
+            <div class="row"><span class="l">GST (10%)</span><span class="v" id="t-gst">$0</span></div>
+            <div class="row grand"><span class="l">Total inc-GST</span><span class="v" id="t-total">$0</span></div>
+          </div>
+
+          <hr style="border:none;border-top:1px solid var(--border-light);margin:14px 0;">
+
+          <div style="display:flex;flex-direction:column;gap:8px;">
+            <button class="btn btn-primary" id="generate-outputs" style="justify-content:center;"><span class="material-symbols-outlined">description</span> Generate outputs</button>
+            <button class="btn btn-secondary" id="preview-doc" style="justify-content:center;"><span class="material-symbols-outlined">preview</span> Preview client document</button>
+            <button class="btn btn-secondary" id="issue-quote" style="justify-content:center;"><span class="material-symbols-outlined">send</span> Mark as Issued</button>
+          </div>
+        </div>
+      </aside>
+    </div>
+
+    <!-- Wizard footer -->
+    <div class="wizard-footer">
+      <a class="btn btn-secondary" href="04-area-builder.html"><span class="material-symbols-outlined">arrow_back</span> Back to builder</a>
+      <div class="totals-mini"><span>Total: <b id="f-total">$0</b></span></div>
+      <div class="nav">
+        <button class="btn btn-secondary" id="save-exit"><span class="material-symbols-outlined">save</span> Save &amp; close</button>
+        <button class="btn btn-primary" id="continue"><span class="material-symbols-outlined">description</span> Generate outputs</button>
+      </div>
+    </div>
+  </main>
+
+  <script src="js/mock-data.js"></script>
+  <script src="js/mock-state.js"></script>
+  <script src="js/mock-ui.js"></script>
+  <script src="js/mock-shell.js"></script>
+  <script>
+    MockShell.mount({
+      title: 'Review Quote',
+      subtitle: 'Step 4 of 5 · Final check before output',
+      actionsHtml: `<a class="btn btn-secondary" href="01-quote-list.html"><span class="material-symbols-outlined">close</span> Cancel</a>`
+    });
+
+    let quote = MockState.getCurrentQuote();
+    if (!quote) { location.href = '01-quote-list.html'; }
+
+    // -------- Warnings --------
+    function renderWarnings() {
+      const q = MockState.getCurrentQuote();
+      const issues = [];
+      q.areas.forEach(a => {
+        if (a.lines.length === 0) issues.push(`Area "${a.name}" has no products`);
+        a.lines.forEach(l => {
+          if (!l.qty || l.qty < 1) issues.push(`"${l.model}" in ${a.name} has qty < 1`);
+        });
+      });
+      q.services.filter(s => s.included).forEach(s => {
+        if (s.rate === 0 && s.category !== 'Expense' && s.name !== 'Travel & Accommodation') issues.push(`Service "${s.name}" has a $0 rate`);
+      });
+      const host = document.getElementById('warnings-host');
+      if (issues.length === 0) {
+        host.innerHTML = `<div class="warning-card" style="background:var(--status-success-bg);border-color:#bfdfc1;color:#235724;"><span class="material-symbols-outlined" style="color:var(--status-success);">check_circle</span><div><b>Looks good</b> — no issues detected. Ready to generate outputs.</div></div>`;
+      } else {
+        host.innerHTML = `<div class="warning-card"><span class="material-symbols-outlined">warning</span><div><b>${issues.length} issue${issues.length === 1 ? '' : 's'} to review</b><ul>${issues.map(i => `<li>${i}</li>`).join('')}</ul></div></div>`;
+      }
+    }
+
+    // -------- Areas summary --------
+    function renderAreasSummary() {
+      const q = MockState.getCurrentQuote();
+      const host = document.getElementById('areas-summary-host');
+      if (q.areas.length === 0) { host.innerHTML = '<div style="color:var(--text-muted);font-size:12px;">No areas in this quote.</div>'; return; }
+      host.innerHTML = q.areas.map(a => {
+        const t = MockState.areaTotals(a, q);
+        const total = t.materialsSell + t.labourSell;
+        return `<div class="area-summary-row">
+          <div class="name">${a.name}<div class="sub">${a.lines.length} item${a.lines.length === 1 ? '' : 's'} · ${MockUI.fmtHours(t.labourHours)} labour</div></div>
+          <div class="count">${MockUI.fmtMoney(t.materialsSell)} materials</div>
+          <div class="total">${MockUI.fmtMoney(total)}</div>
+        </div>`;
+      }).join('');
+    }
+
+    // -------- Services summary --------
+    function renderServicesSummary() {
+      const q = MockState.getCurrentQuote();
+      const included = q.services.filter(s => s.included);
+      const host = document.getElementById('services-summary-host');
+      if (included.length === 0) { host.innerHTML = '<div style="color:var(--text-muted);font-size:12px;">No services included.</div>'; return; }
+      host.innerHTML = included.map(s => {
+        const sellEach = s.rate / (1 - (s.marginPct / 100));
+        const sell = (s.qty || 0) * (isFinite(sellEach) ? sellEach : s.rate);
+        return `<div class="area-summary-row">
+          <div class="name">${s.name}<div class="sub">${s.qty} × ${MockUI.fmtMoney(s.rate)} / ${s.unit} · ${s.marginPct}% margin</div></div>
+          <div></div>
+          <div class="total">${MockUI.fmtMoney(sell)}</div>
+        </div>`;
+      }).join('');
+    }
+
+    // -------- Cost breakdown --------
+    function renderCostBreakdown() {
+      const q = MockState.getCurrentQuote();
+      const t = MockState.quoteTotal(q);
+      const host = document.getElementById('cost-breakdown');
+      host.innerHTML = `
+        <div class="area-summary-row"><div class="name">Materials cost</div><div></div><div class="total">${MockUI.fmtMoney(t.materialsCost)}</div></div>
+        <div class="area-summary-row"><div class="name">Materials sell <div class="sub">Margin: ${MockUI.fmtMoney(t.materialsSell - t.materialsCost)} (${t.materialsSell > 0 ? Math.round(((t.materialsSell - t.materialsCost) / t.materialsSell) * 100) : 0}%)</div></div><div></div><div class="total">${MockUI.fmtMoney(t.materialsSell)}</div></div>
+        <div class="area-summary-row"><div class="name">Labour sell <div class="sub">${MockUI.fmtHours(t.labourHours)} total</div></div><div></div><div class="total">${MockUI.fmtMoney(t.labourSell)}</div></div>
+        <div class="area-summary-row"><div class="name">Services sell <div class="sub">cost: ${MockUI.fmtMoney(t.servicesCost)}</div></div><div></div><div class="total">${MockUI.fmtMoney(t.servicesSell)}</div></div>
+        <div class="area-summary-row" style="border-top:2px solid var(--border);"><div class="name"><b>Total margin $</b></div><div></div><div class="total">${MockUI.fmtMoney(t.margin)}</div></div>
+        <div class="area-summary-row"><div class="name"><b>Overall margin %</b></div><div></div><div class="total">${MockUI.fmtPct(t.marginPct)}</div></div>
+      `;
+    }
+
+    // -------- Exclusions --------
+    function renderExclusions() {
+      const q = MockState.getCurrentQuote();
+      const host = document.getElementById('exclusions-host');
+      host.innerHTML = q.exclusions.map((ex, i) => `
+        <div class="ex-row">
+          <input type="checkbox" checked data-ex-idx="${i}">
+          <div class="text"><input value="${ex.replace(/"/g, '&quot;')}" data-ex-edit="${i}"></div>
+          <button class="icon-btn danger" data-ex-rm="${i}"><span class="material-symbols-outlined">delete_outline</span></button>
+        </div>
+      `).join('');
+      host.querySelectorAll('[data-ex-edit]').forEach(input => {
+        input.addEventListener('input', () => {
+          const i = parseInt(input.getAttribute('data-ex-edit'));
+          const cur = MockState.getCurrentQuote();
+          cur.exclusions[i] = input.value;
+          MockState.updateQuote(cur.id, cur);
+        });
+      });
+      host.querySelectorAll('[data-ex-rm]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const i = parseInt(btn.getAttribute('data-ex-rm'));
+          const cur = MockState.getCurrentQuote();
+          cur.exclusions.splice(i, 1);
+          MockState.updateQuote(cur.id, cur);
+          renderExclusions();
+        });
+      });
+    }
+    document.getElementById('add-exclusion').addEventListener('click', () => {
+      const text = prompt('New exclusion:', 'Any exclusion text…');
+      if (!text) return;
+      const cur = MockState.getCurrentQuote();
+      cur.exclusions.push(text);
+      MockState.updateQuote(cur.id, cur);
+      renderExclusions();
+    });
+    document.getElementById('suggest-exclusions').addEventListener('click', () => {
+      const cur = MockState.getCurrentQuote();
+      // Add any from library that aren't already in the list (UI-only "AI suggest")
+      const remaining = MockData.exclusionsLibrary.filter(x => !cur.exclusions.includes(x));
+      if (remaining.length === 0) { MockUI.toast('All library exclusions already added'); return; }
+      const next = remaining[0];
+      cur.exclusions.push(next);
+      MockState.updateQuote(cur.id, cur);
+      renderExclusions();
+      MockUI.toast('Added suggested exclusion');
+    });
+
+    // -------- Terms + notes-to-client --------
+    document.getElementById('terms-text').value = quote.terms || MockData.standardTerms;
+    document.getElementById('terms-text').addEventListener('input', e => {
+      const cur = MockState.getCurrentQuote();
+      cur.terms = e.target.value;
+      MockState.updateQuote(cur.id, cur);
+    });
+    document.getElementById('notes-to-client').value = quote.notesToClient || '';
+    document.getElementById('notes-to-client').addEventListener('input', e => {
+      const cur = MockState.getCurrentQuote();
+      cur.notesToClient = e.target.value;
+      MockState.updateQuote(cur.id, cur);
+    });
+
+    // -------- Totals + margin slider --------
+    const slider = document.getElementById('global-margin');
+    const sliderVal = document.getElementById('global-margin-val');
+    slider.value = quote.globalMarginPct;
+    sliderVal.textContent = quote.globalMarginPct + '%';
+    slider.addEventListener('input', () => {
+      sliderVal.textContent = slider.value + '%';
+      MockState.updateQuote(quote.id, { globalMarginPct: parseFloat(slider.value) });
+      renderTotals();
+      renderCostBreakdown();
+      renderAreasSummary();
+    });
+
+    function renderTotals() {
+      const t = MockState.quoteTotal(MockState.getCurrentQuote());
+      document.getElementById('t-materials').textContent  = MockUI.fmtMoney(t.materialsSell);
+      document.getElementById('t-labour').textContent     = MockUI.fmtMoney(t.labourSell);
+      document.getElementById('t-services').textContent   = MockUI.fmtMoney(t.servicesSell);
+      document.getElementById('t-margin-pct').textContent = MockUI.fmtPct(t.marginPct);
+      document.getElementById('t-sell').textContent       = MockUI.fmtMoney(t.sellExGST);
+      document.getElementById('t-gst').textContent        = MockUI.fmtMoney(t.gst);
+      document.getElementById('t-total').textContent      = MockUI.fmtMoney(t.incGST);
+      document.getElementById('f-total').textContent      = MockUI.fmtMoney(t.incGST);
+    }
+
+    // -------- Buttons --------
+    document.getElementById('continue').addEventListener('click', () => location.href = '06-output-preview.html');
+    document.getElementById('generate-outputs').addEventListener('click', () => location.href = '06-output-preview.html');
+    document.getElementById('preview-doc').addEventListener('click', () => location.href = '06-output-preview.html');
+    document.getElementById('issue-quote').addEventListener('click', () => {
+      MockUI.confirmAction('Mark this quote as Issued? Once issued, further changes create a new revision (Rev B).', () => {
+        const cur = MockState.getCurrentQuote();
+        cur.status = 'issued';
+        MockState.updateQuote(cur.id, cur);
+        MockUI.toast('Quote issued', 'success');
+        setTimeout(() => location.href = '01-quote-list.html', 600);
+      });
+    });
+    document.getElementById('save-exit').addEventListener('click', () => {
+      MockUI.toast('Saved as draft', 'success');
+      setTimeout(() => location.href = '01-quote-list.html', 500);
+    });
+
+    // -------- Render --------
+    function renderAll() {
+      renderWarnings();
+      renderAreasSummary();
+      renderServicesSummary();
+      renderCostBreakdown();
+      renderExclusions();
+      renderTotals();
+    }
+    renderAll();
+  </script>
+</body>
+</html>
