@@ -155,50 +155,50 @@
         <button class="btn btn-primary" id="continue"><span class="material-symbols-outlined">arrow_forward</span> Continue to Review</button>
       </div>
     </div>
-  </main>
 
-  <!-- Product picker drawer -->
-  <div class="drawer-backdrop" id="drawer-backdrop"></div>
-  <div class="drawer" id="product-drawer">
-    <div class="drawer-head">
-      <span class="material-symbols-outlined" style="color:var(--accent-primary);">inventory_2</span>
-      <h3>Add product</h3>
-      <button class="icon-btn" id="drawer-close"><span class="material-symbols-outlined">close</span></button>
-    </div>
-    <div class="drawer-body">
-      <div class="filters-row" style="margin-bottom:10px;">
-        <select id="filter-cat" class="form-input"><option value="">All categories</option></select>
-        <select id="filter-sub" class="form-input"><option value="">All subcategories</option></select>
+    <!-- Product picker drawer (inside #content so MockShell.mount preserves it) -->
+    <div class="drawer-backdrop" id="drawer-backdrop"></div>
+    <div class="drawer" id="product-drawer">
+      <div class="drawer-head">
+        <span class="material-symbols-outlined" style="color:var(--accent-primary);">inventory_2</span>
+        <h3>Add product</h3>
+        <button class="icon-btn" id="drawer-close"><span class="material-symbols-outlined">close</span></button>
       </div>
-      <div class="filters-row" style="margin-bottom:10px;">
-        <select id="filter-mfr" class="form-input"><option value="">All brands</option></select>
-        <div class="search-wrap" style="max-width:none;">
-          <span class="material-symbols-outlined">search</span>
-          <input id="filter-search" type="text" class="form-input" placeholder="Search description or part no…">
+      <div class="drawer-body">
+        <div class="filters-row" style="margin-bottom:10px;">
+          <select id="filter-cat" class="form-input"><option value="">All categories</option></select>
+          <select id="filter-sub" class="form-input"><option value="">All subcategories</option></select>
+        </div>
+        <div class="filters-row" style="margin-bottom:10px;">
+          <select id="filter-mfr" class="form-input"><option value="">All brands</option></select>
+          <div class="search-wrap" style="max-width:none;">
+            <span class="material-symbols-outlined">search</span>
+            <input id="filter-search" type="text" class="form-input" placeholder="Search description or part no…">
+          </div>
+        </div>
+        <div id="product-results"></div>
+      </div>
+      <div class="drawer-foot">
+        <span id="drawer-area-label" style="font-size:12px;color:var(--text-muted);"></span>
+        <button class="btn btn-secondary btn-sm" id="drawer-done">Done</button>
+      </div>
+    </div>
+
+    <!-- Package picker modal -->
+    <div class="modal-bg" id="pkg-modal">
+      <div class="modal">
+        <div class="modal-head">
+          <span class="material-symbols-outlined" style="color:var(--accent-primary);">layers</span>
+          <h3>Apply package</h3>
+          <button class="icon-btn" id="pkg-close"><span class="material-symbols-outlined">close</span></button>
+        </div>
+        <div class="modal-body" id="pkg-list"></div>
+        <div class="modal-foot">
+          <button class="btn btn-secondary" id="pkg-cancel">Cancel</button>
         </div>
       </div>
-      <div id="product-results"></div>
     </div>
-    <div class="drawer-foot">
-      <span id="drawer-area-label" style="font-size:12px;color:var(--text-muted);"></span>
-      <button class="btn btn-secondary btn-sm" id="drawer-done">Done</button>
-    </div>
-  </div>
-
-  <!-- Package picker modal -->
-  <div class="modal-bg" id="pkg-modal">
-    <div class="modal">
-      <div class="modal-head">
-        <span class="material-symbols-outlined" style="color:var(--accent-primary);">layers</span>
-        <h3>Apply package</h3>
-        <button class="icon-btn" id="pkg-close"><span class="material-symbols-outlined">close</span></button>
-      </div>
-      <div class="modal-body" id="pkg-list"></div>
-      <div class="modal-foot">
-        <button class="btn btn-secondary" id="pkg-cancel">Cancel</button>
-      </div>
-    </div>
-  </div>
+  </main>
 
   <script src="js/mock-data.js"></script>
   <script src="js/mock-state.js"></script>
