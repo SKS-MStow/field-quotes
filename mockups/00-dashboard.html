@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Dashboard — SKS Quotes</title>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Symbols+Outlined" rel="stylesheet">
+  <link rel="stylesheet" href="../shared/theme.css">
+  <link rel="stylesheet" href="css/mockups.css">
+  <style>
+    .greeting h1 { font-family: var(--font-heading); font-size: 22px; font-weight: 600; color: var(--text-primary); margin-bottom: 4px; }
+    .greeting p { color: var(--text-secondary); font-size: 14px; margin-bottom: 18px; }
+
+    .dash-grid { display: grid; grid-template-columns: 1.4fr 1fr; gap: 18px; }
+    @media (max-width: 1100px) { .dash-grid { grid-template-columns: 1fr; } }
+
+    .panel-card { background: var(--surface-card); border: 1px solid var(--border); border-radius: var(--radius-lg); margin-bottom: 16px; overflow: hidden; }
+    .panel-card .head { padding: 14px 16px 8px; display: flex; align-items: center; justify-content: space-between; }
+    .panel-card .head h3 { font-family: var(--font-heading); font-size: 13px; font-weight: 600; color: var(--text-primary); text-transform: uppercase; letter-spacing: 0.06em; }
+    .panel-card .head a { font-size: 12px; color: var(--accent-primary); font-weight: 600; }
+    .panel-card .body { padding: 4px 16px 14px; }
+
+    /* Activity feed */
+    .activity-item { display: flex; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--border-light); align-items: flex-start; }
+    .activity-item:last-child { border-bottom: none; }
+    .activity-icon { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .activity-icon.success { background: var(--status-success-bg); color: var(--status-success); }
+    .activity-icon.info    { background: var(--status-info-bg);    color: var(--status-info); }
+    .activity-icon.warn    { background: var(--status-warning-bg); color: var(--status-warning); }
+    .activity-icon.danger  { background: var(--status-danger-bg);  color: var(--status-danger); }
+    .activity-icon.accent  { background: var(--status-accent-bg);  color: var(--status-accent); }
+    .activity-icon .material-symbols-outlined { font-size: 18px; }
+    .activity-body { flex: 1; min-width: 0; }
+    .activity-body .text { font-size: 13px; color: var(--text-primary); }
+    .activity-body .text b { font-weight: 600; }
+    .activity-body .text a { color: var(--accent-primary); }
+    .activity-body .time { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+
+    /* Pipeline chart */
+    .chart { display: grid; grid-template-columns: repeat(12, 1fr); gap: 8px; align-items: end; padding: 8px 4px 4px; min-height: 140px; }
+    .chart .bar { background: linear-gradient(180deg, var(--accent-primary) 0%, #555550 100%); border-radius: 4px 4px 0 0; position: relative; transition: all 0.18s; }
+    .chart .bar:hover { filter: brightness(1.1); }
+    .chart .bar.future { background: var(--border); }
+    .chart .bar .v { position: absolute; top: -18px; left: 50%; transform: translateX(-50%); font-family: var(--font-heading); font-size: 10px; font-weight: 600; color: var(--text-secondary); white-space: nowrap; }
+    .chart-labels { display: grid; grid-template-columns: repeat(12, 1fr); gap: 8px; padding: 6px 4px 0; }
+    .chart-labels .lbl { text-align: center; font-size: 10px; color: var(--text-muted); font-weight: 600; text-transform: uppercase; }
+    .chart-labels .lbl.current { color: var(--accent-primary); }
+
+    /* Quick actions */
+    .qa-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .qa { padding: 12px; border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--surface-card); cursor: pointer; transition: all 0.12s; display: flex; gap: 10px; align-items: center; text-decoration: none; color: inherit; }
+    .qa:hover { border-color: var(--accent-primary); transform: translateY(-1px); }
+    .qa .material-symbols-outlined { color: var(--accent-primary); }
+    .qa .lbl { font-size: 12px; font-weight: 500; }
+
+    /* Expiring soon list */
+    .expiring-row { display: flex; align-items: center; padding: 9px 0; border-bottom: 1px solid var(--border-light); gap: 10px; cursor: pointer; }
+    .expiring-row:last-child { border-bottom: none; }
+    .expiring-row:hover { background: rgba(0,0,0,0.02); margin: 0 -16px; padding: 9px 16px; }
+    .expiring-row .info { flex: 1; min-width: 0; }
+    .expiring-row .info .num { font-family: var(--font-heading); font-weight: 600; font-size: 12.5px; color: var(--text-primary); }
+    .expiring-row .info .client { font-size: 11.5px; color: var(--text-secondary); margin-top: 1px; }
+    .expiring-row .days { font-family: var(--font-heading); font-size: 12px; font-weight: 600; padding: 3px 8px; border-radius: 4px; white-space: nowrap; }
+    .expiring-row .days.urgent { background: var(--status-danger-bg); color: var(--status-danger); }
+    .expiring-row .days.soon { background: var(--status-warning-bg); color: var(--status-warning); }
+
+    .top-client-row { display: flex; align-items: center; padding: 9px 0; border-bottom: 1px solid var(--border-light); }
+    .top-client-row:last-child { border-bottom: none; }
+    .top-client-row .nm { flex: 1; font-size: 13px; color: var(--text-primary); }
+    .top-client-row .meta { font-size: 11px; color: var(--text-muted); margin-top: 1px; }
+    .top-client-row .v { font-family: var(--font-heading); font-weight: 600; font-size: 13px; color: var(--text-primary); white-space: nowrap; }
+  </style>
+</head>
+<body data-page="dashboard">
+  <main id="content" class="content">
+
+    <div class="greeting">
+      <h1 id="greeting">Welcome back, Mark</h1>
+      <p id="greeting-sub">Here's what's happening with your quotes today.</p>
+    </div>
+
+    <!-- KPI strip -->
+    <div class="kpi-grid" id="kpi-host"></div>
+
+    <div class="dash-grid">
+      <!-- Left column -->
+      <div>
+        <!-- Pipeline chart -->
+        <div class="panel-card">
+          <div class="head">
+            <h3>Pipeline by month</h3>
+            <span style="font-size:11px;color:var(--text-muted);">Issued + accepted (sell ex-GST)</span>
+          </div>
+          <div class="body">
+            <div class="chart" id="chart"></div>
+            <div class="chart-labels" id="chart-labels"></div>
+          </div>
+        </div>
+
+        <!-- Activity feed -->
+        <div class="panel-card">
+          <div class="head">
+            <h3>Recent activity</h3>
+            <a href="#">View all</a>
+          </div>
+          <div class="body" id="activity-host"></div>
+        </div>
+      </div>
+
+      <!-- Right column -->
+      <div>
+        <!-- Quick actions -->
+        <div class="panel-card">
+          <div class="head"><h3>Quick actions</h3></div>
+          <div class="body">
+            <div class="qa-grid">
+              <a class="qa" href="02-mode-select.html"><span class="material-symbols-outlined">add_circle</span><div class="lbl">New quote</div></a>
+              <a class="qa" href="01-quote-list.html?filter=draft"><span class="material-symbols-outlined">edit_note</span><div class="lbl">Continue a draft</div></a>
+              <a class="qa" href="07-admin.html#products"><span class="material-symbols-outlined">inventory_2</span><div class="lbl">Browse catalogue</div></a>
+              <a class="qa" href="07-admin.html#packages"><span class="material-symbols-outlined">layers</span><div class="lbl">Manage packages</div></a>
+              <a class="qa" href="01-quote-list.html?filter=issued"><span class="material-symbols-outlined">send</span><div class="lbl">View issued</div></a>
+              <a class="qa" href="08-settings.html"><span class="material-symbols-outlined">tune</span><div class="lbl">Settings</div></a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Expiring soon -->
+        <div class="panel-card">
+          <div class="head"><h3>Expiring soon</h3><span style="font-size:11px;color:var(--text-muted);">Issued, &lt; 14 days</span></div>
+          <div class="body" id="expiring-host"></div>
+        </div>
+
+        <!-- Top clients -->
+        <div class="panel-card">
+          <div class="head"><h3>Top clients</h3><span style="font-size:11px;color:var(--text-muted);">By quote value</span></div>
+          <div class="body" id="top-clients-host"></div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <script src="js/mock-data.js"></script>
+  <script src="js/mock-state.js"></script>
+  <script src="js/mock-ui.js"></script>
+  <script src="js/mock-shell.js"></script>
+  <script>
+    MockShell.mount({
+      title: 'Dashboard',
+      subtitle: new Intl.DateTimeFormat('en-AU', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }).format(new Date()),
+      actionsHtml: `<a class="btn btn-primary" href="02-mode-select.html"><span class="material-symbols-outlined">add</span> New Quote</a>`
+    });
+
+    const quotes = MockState.getQuotes();
+
+    // -------- KPIs --------
+    function renderKpis() {
+      const openPipeline = quotes.filter(q => q.status === 'issued').reduce((s, q) => s + (q.value || 0), 0);
+      const draftCount = quotes.filter(q => q.status === 'draft').length;
+      const wonFy = quotes.filter(q => q.status === 'accepted').reduce((s, q) => s + (q.value || 0), 0);
+      const decided = quotes.filter(q => ['accepted','declined'].includes(q.status));
+      const winRate = decided.length ? Math.round((decided.filter(q => q.status === 'accepted').length / decided.length) * 100) : 0;
+      document.getElementById('kpi-host').innerHTML = `
+        <div class="kpi"><div class="kpi-label">Open Pipeline</div><div class="kpi-value">${MockUI.fmtMoney(openPipeline)}</div><div class="kpi-sub">${quotes.filter(q=>q.status==='issued').length} issued, awaiting decision</div></div>
+        <div class="kpi"><div class="kpi-label">Drafts in Progress</div><div class="kpi-value">${draftCount}</div><div class="kpi-sub">Continue where you left off</div></div>
+        <div class="kpi"><div class="kpi-label">Won this FY</div><div class="kpi-value">${MockUI.fmtMoney(wonFy)}</div><div class="kpi-sub">${quotes.filter(q=>q.status==='accepted').length} quote${quotes.filter(q=>q.status==='accepted').length === 1 ? '' : 's'} accepted</div></div>
+        <div class="kpi"><div class="kpi-label">Win Rate</div><div class="kpi-value">${winRate}%</div><div class="kpi-sub">Last 12 months</div></div>
+      `;
+    }
+
+    // -------- Pipeline chart (12 months) --------
+    function renderChart() {
+      const today = new Date();
+      const months = [];
+      for (let i = 11; i >= 0; i--) {
+        const d = new Date(today.getFullYear(), today.getMonth() - i, 1);
+        months.push({ key: d.toISOString().slice(0,7), label: d.toLocaleDateString('en-AU', { month: 'short' }), total: 0, isCurrent: i === 0 });
+      }
+      quotes.filter(q => ['issued','accepted','revised'].includes(q.status) && q.createdAt).forEach(q => {
+        const k = q.createdAt.slice(0,7);
+        const m = months.find(mm => mm.key === k);
+        if (m) m.total += q.value || 0;
+      });
+      const max = Math.max(...months.map(m => m.total), 1);
+      document.getElementById('chart').innerHTML = months.map(m => {
+        const h = Math.max(4, Math.round((m.total / max) * 130));
+        return `<div class="bar${m.isCurrent ? '' : (m.total === 0 ? ' future' : '')}" style="height:${h}px;" title="${m.label}: ${MockUI.fmtMoney(m.total)}">${m.total > 0 ? `<span class="v">${MockUI.fmtMoney(m.total).replace('$','$').replace(',000','k').replace(/\$(\d+)k/, '$$$1k')}</span>` : ''}</div>`;
+      }).join('');
+      document.getElementById('chart-labels').innerHTML = months.map(m => `<div class="lbl${m.isCurrent ? ' current' : ''}">${m.label}</div>`).join('');
+    }
+
+    // -------- Activity feed --------
+    function renderActivity() {
+      // Build activity items from quote history (synthesized from sampleQuote dates + statuses)
+      const acts = [];
+      quotes.forEach(q => {
+        const dt = new Date(q.createdAt);
+        if (q.status === 'accepted') {
+          acts.push({ when: q.createdAt, icon: 'check_circle', kind: 'success', text: `<b>${q.client.name}</b> accepted <a href="#" data-open="${q.id}">${q.number}</a> · <b>${MockUI.fmtMoney(q.value)}</b>` });
+        } else if (q.status === 'declined') {
+          acts.push({ when: q.createdAt, icon: 'cancel', kind: 'danger', text: `<b>${q.client.name}</b> declined <a href="#" data-open="${q.id}">${q.number}</a>` });
+        } else if (q.status === 'issued') {
+          acts.push({ when: q.createdAt, icon: 'send', kind: 'info', text: `Issued <a href="#" data-open="${q.id}">${q.number}</a> to <b>${q.client.name}</b> · ${MockUI.fmtMoney(q.value)}` });
+        } else if (q.status === 'expired') {
+          acts.push({ when: q.validUntil || q.createdAt, icon: 'schedule', kind: 'warn', text: `<a href="#" data-open="${q.id}">${q.number}</a> for <b>${q.client.name}</b> expired without decision` });
+        } else if (q.status === 'revised') {
+          acts.push({ when: q.createdAt, icon: 'history', kind: 'accent', text: `Revised <a href="#" data-open="${q.id}">${q.number}</a> for <b>${q.client.name}</b> (Rev ${q.revision})` });
+        } else if (q.status === 'draft') {
+          acts.push({ when: q.createdAt, icon: 'edit', kind: 'info', text: `Started draft <a href="#" data-open="${q.id}">${q.number}</a> for <b>${q.client.name || 'new client'}</b>` });
+        }
+      });
+      acts.sort((a,b) => (b.when || '').localeCompare(a.when || ''));
+      const top = acts.slice(0, 8);
+      document.getElementById('activity-host').innerHTML = top.map(a => `
+        <div class="activity-item">
+          <div class="activity-icon ${a.kind}"><span class="material-symbols-outlined">${a.icon}</span></div>
+          <div class="activity-body">
+            <div class="text">${a.text}</div>
+            <div class="time">${MockUI.fmtDate(a.when)}</div>
+          </div>
+        </div>`).join('');
+      document.querySelectorAll('[data-open]').forEach(el => {
+        el.addEventListener('click', e => {
+          e.preventDefault();
+          const id = el.getAttribute('data-open');
+          MockState.setCurrentQuote(id);
+          const q = MockState.getQuote(id);
+          location.href = q.status === 'draft' ? '04-area-builder.html' : '06-output-preview.html';
+        });
+      });
+    }
+
+    // -------- Expiring soon --------
+    function renderExpiring() {
+      const today = new Date();
+      const cutoff = new Date(today); cutoff.setDate(cutoff.getDate() + 14);
+      const soon = quotes.filter(q => q.status === 'issued' && q.validUntil)
+        .map(q => ({ q, days: Math.ceil((new Date(q.validUntil) - today) / 86400000) }))
+        .filter(x => x.days >= 0 && x.days <= 30)
+        .sort((a, b) => a.days - b.days);
+      const host = document.getElementById('expiring-host');
+      if (soon.length === 0) {
+        host.innerHTML = `<div style="color:var(--text-muted);font-size:12px;padding:6px 0;">No issued quotes expiring in the next 30 days.</div>`;
+        return;
+      }
+      host.innerHTML = soon.slice(0, 5).map(({ q, days }) => `
+        <div class="expiring-row" data-open-row="${q.id}">
+          <div class="info">
+            <div class="num">${q.number} <span style="color:var(--text-muted);font-weight:500;">· ${MockUI.fmtMoney(q.value)}</span></div>
+            <div class="client">${q.client.name} · ${q.project.name}</div>
+          </div>
+          <div class="days ${days <= 7 ? 'urgent' : 'soon'}">${days === 0 ? 'today' : days === 1 ? '1 day' : days + ' days'}</div>
+        </div>
+      `).join('');
+      host.querySelectorAll('[data-open-row]').forEach(el => {
+        el.addEventListener('click', () => {
+          const id = el.getAttribute('data-open-row');
+          MockState.setCurrentQuote(id);
+          location.href = '06-output-preview.html';
+        });
+      });
+    }
+
+    // -------- Top clients --------
+    function renderTopClients() {
+      const totals = {};
+      quotes.forEach(q => {
+        const name = q.client.name || 'Unknown';
+        totals[name] = totals[name] || { name, total: 0, count: 0 };
+        totals[name].total += q.value || 0;
+        totals[name].count += 1;
+      });
+      const top = Object.values(totals).sort((a, b) => b.total - a.total).slice(0, 5);
+      document.getElementById('top-clients-host').innerHTML = top.map(c => `
+        <div class="top-client-row">
+          <div style="flex:1;">
+            <div class="nm">${c.name}</div>
+            <div class="meta">${c.count} quote${c.count === 1 ? '' : 's'}</div>
+          </div>
+          <div class="v">${MockUI.fmtMoney(c.total)}</div>
+        </div>`).join('');
+    }
+
+    // Greeting based on time of day
+    const hr = new Date().getHours();
+    const part = hr < 12 ? 'morning' : hr < 18 ? 'afternoon' : 'evening';
+    document.getElementById('greeting').textContent = `Good ${part}, Mark`;
+
+    renderKpis();
+    renderChart();
+    renderActivity();
+    renderExpiring();
+    renderTopClients();
+  </script>
+</body>
+</html>

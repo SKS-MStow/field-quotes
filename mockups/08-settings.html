@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Settings — SKS Quotes</title>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Symbols+Outlined" rel="stylesheet">
+  <link rel="stylesheet" href="../shared/theme.css">
+  <link rel="stylesheet" href="css/mockups.css">
+  <style>
+    .settings-layout { display: grid; grid-template-columns: 220px 1fr; gap: 18px; max-width: 1100px; }
+    @media (max-width: 800px) { .settings-layout { grid-template-columns: 1fr; } }
+    .settings-nav { background: var(--surface-card); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 6px; height: fit-content; position: sticky; top: 12px; }
+    .settings-nav a { display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-radius: var(--radius-sm); font-size: 13px; color: var(--text-secondary); text-decoration: none; }
+    .settings-nav a:hover { background: rgba(0,0,0,0.04); }
+    .settings-nav a.active { background: var(--accent-primary); color: white; }
+    .settings-nav a .material-symbols-outlined { font-size: 18px; }
+    .settings-body .panel { padding: 20px 24px; }
+    .integration-row { display: flex; align-items: center; gap: 14px; padding: 14px 0; border-bottom: 1px solid var(--border-light); }
+    .integration-row:last-child { border-bottom: none; }
+    .integration-row .logo { width: 40px; height: 40px; border-radius: 8px; background: var(--surface-inset); display: flex; align-items: center; justify-content: center; font-family: var(--font-heading); font-weight: 700; font-size: 14px; color: var(--text-secondary); flex-shrink: 0; }
+    .integration-row .body { flex: 1; min-width: 0; }
+    .integration-row .body h4 { font-family: var(--font-heading); font-size: 13.5px; font-weight: 600; }
+    .integration-row .body .desc { font-size: 12px; color: var(--text-muted); }
+    .toggle-switch { position: relative; width: 36px; height: 20px; background: var(--border-input); border-radius: 10px; cursor: pointer; transition: background 0.15s; }
+    .toggle-switch::after { content: ''; position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; background: white; border-radius: 50%; transition: transform 0.15s; }
+    .toggle-switch.on { background: var(--accent-primary); }
+    .toggle-switch.on::after { transform: translateX(16px); }
+
+    .field-row { display: grid; grid-template-columns: 1fr 220px; gap: 14px; padding: 12px 0; border-bottom: 1px solid var(--border-light); align-items: center; }
+    .field-row:last-child { border-bottom: none; }
+    .field-row .lbl h4 { font-family: var(--font-heading); font-size: 13px; font-weight: 600; color: var(--text-primary); }
+    .field-row .lbl .desc { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+    .field-row .val { display: flex; gap: 6px; align-items: center; justify-content: flex-end; }
+    .field-row .val input, .field-row .val select { width: 100%; }
+
+    .danger-card { background: #fff7f5; border: 1px solid #efb1a3; border-radius: var(--radius-md); padding: 14px 16px; }
+    .danger-card h4 { font-family: var(--font-heading); font-size: 13px; font-weight: 600; color: var(--status-danger); }
+    .danger-card p { font-size: 12px; color: var(--text-secondary); margin: 4px 0 8px; }
+
+    .cat-margin-row { display: grid; grid-template-columns: 1fr 90px; gap: 12px; padding: 8px 0; border-bottom: 1px solid var(--border-light); align-items: center; font-size: 13px; }
+    .cat-margin-row:last-child { border-bottom: none; }
+    .cat-margin-row .nm { color: var(--text-primary); }
+    .cat-margin-row input { text-align: right; padding: 5px 8px; font-size: 13px; border: 1px solid var(--border-input); border-radius: var(--radius-sm); width: 100%; background: var(--surface-white); font-family: var(--font-body); }
+  </style>
+</head>
+<body data-page="settings">
+  <main id="content" class="content">
+
+    <div class="settings-layout">
+      <!-- Sub-nav -->
+      <nav class="settings-nav" id="settings-nav">
+        <a data-section="margin" class="active" href="#margin"><span class="material-symbols-outlined">percent</span> Margin defaults</a>
+        <a data-section="labour" href="#labour"><span class="material-symbols-outlined">engineering</span> Labour rates</a>
+        <a data-section="prefs" href="#prefs"><span class="material-symbols-outlined">person</span> Preferences</a>
+        <a data-section="numbering" href="#numbering"><span class="material-symbols-outlined">tag</span> Numbering &amp; tax</a>
+        <a data-section="integrations" href="#integrations"><span class="material-symbols-outlined">link</span> Integrations</a>
+        <a data-section="users" href="#users"><span class="material-symbols-outlined">group</span> Users &amp; roles</a>
+        <a data-section="about" href="#about"><span class="material-symbols-outlined">info</span> About / Demo</a>
+      </nav>
+
+      <div class="settings-body" id="settings-body"></div>
+    </div>
+
+  </main>
+
+  <script src="js/mock-data.js"></script>
+  <script src="js/mock-state.js"></script>
+  <script src="js/mock-ui.js"></script>
+  <script src="js/mock-shell.js"></script>
+  <script>
+    MockShell.mount({
+      title: 'Settings',
+      subtitle: 'Defaults, integrations and preferences',
+      actionsHtml: `<a class="btn btn-secondary" href="00-dashboard.html"><span class="material-symbols-outlined">arrow_back</span> Back to dashboard</a>`
+    });
+
+    const sections = {
+      margin: () => `
+        <div class="panel">
+          <div class="panel-header"><h3>Margin defaults</h3><span class="sub">Set the global default plus per-category overrides. Estimators can override per quote.</span></div>
+          <div class="field-row">
+            <div class="lbl"><h4>Global default margin</h4><div class="desc">Applied to every product line unless overridden per category, area, or line</div></div>
+            <div class="val">
+              <input type="number" min="0" max="80" value="25" class="form-input" id="opt-margin"> <span style="color:var(--text-muted);font-size:13px;">%</span>
+            </div>
+          </div>
+          <div class="field-row">
+            <div class="lbl"><h4>Default services margin</h4><div class="desc">Applied to PM, commissioning, programming, etc.</div></div>
+            <div class="val">
+              <input type="number" min="0" max="80" value="25" class="form-input"> <span style="color:var(--text-muted);font-size:13px;">%</span>
+            </div>
+          </div>
+          <div class="field-row">
+            <div class="lbl"><h4>Labour line margin</h4><div class="desc">Per labour-hour markup on top of trade rate. Usually 0% (rate already loaded).</div></div>
+            <div class="val">
+              <input type="number" min="0" max="40" value="0" class="form-input"> <span style="color:var(--text-muted);font-size:13px;">%</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-header"><h3>Per-category margin overrides</h3><span class="sub">Defaults per product category</span></div>
+          ${MockData.categories.map(c => {
+            const def = ({ 'Cabling & Pathways': 40, 'Consumables': 35, 'Mounts & Structural': 30 })[c.name] || 25;
+            return `<div class="cat-margin-row"><div class="nm">${c.name}</div><div><input type="number" value="${def}" min="0" max="80"></div></div>`;
+          }).join('')}
+          <div style="margin-top:12px;display:flex;gap:6px;"><button class="btn btn-primary btn-sm">Save</button><button class="btn btn-secondary btn-sm">Revert to defaults</button></div>
+        </div>
+      `,
+
+      labour: () => `
+        <div class="panel">
+          <div class="panel-header"><h3>Labour rates per trade</h3><span class="sub">Loaded sell rate (ex-GST). Cost is folded into rate; no separate margin applied to labour by default.</span></div>
+          ${Object.entries(MockData.labourRates).map(([trade, rate]) => `
+            <div class="field-row">
+              <div class="lbl"><h4>${trade}</h4><div class="desc">Per-hour billing rate</div></div>
+              <div class="val">$ <input type="number" value="${rate}" min="0" step="5" class="form-input"></div>
+            </div>
+          `).join('')}
+          <div style="margin-top:12px;color:var(--text-muted);font-size:12px;"><span class="material-symbols-outlined" style="font-size:14px;vertical-align:middle;">info</span> Labour <i>defaults</i> (hours per product subcategory) are managed separately under <a href="07-admin.html#labour" style="color:var(--accent-primary);">Library → Labour Defaults</a>.</div>
+        </div>
+      `,
+
+      prefs: () => `
+        <div class="panel">
+          <div class="panel-header"><h3>My preferences</h3></div>
+          <div class="field-row">
+            <div class="lbl"><h4>Default "Prepared by"</h4><div class="desc">Auto-filled on every new quote you create</div></div>
+            <div class="val"><input type="text" value="Mark Stowell" class="form-input"></div>
+          </div>
+          <div class="field-row">
+            <div class="lbl"><h4>Default validity</h4><div class="desc">How long a quote is valid for, from issue date</div></div>
+            <div class="val"><input type="number" value="30" min="1" max="180" class="form-input"> <span style="color:var(--text-muted);font-size:13px;">days</span></div>
+          </div>
+          <div class="field-row">
+            <div class="lbl"><h4>Default landing page</h4><div class="desc">Where you land after sign-in</div></div>
+            <div class="val"><select class="form-input"><option>Dashboard</option><option>All Quotes</option><option>Drafts</option></select></div>
+          </div>
+          <div class="field-row">
+            <div class="lbl"><h4>Email notifications</h4><div class="desc">When a quote is accepted, declined, or expires</div></div>
+            <div class="val"><div class="toggle-switch on" onclick="this.classList.toggle('on')"></div></div>
+          </div>
+          <div class="field-row">
+            <div class="lbl"><h4>Browser notifications</h4><div class="desc">Show a popup when collaborators comment on your quotes</div></div>
+            <div class="val"><div class="toggle-switch" onclick="this.classList.toggle('on')"></div></div>
+          </div>
+        </div>
+      `,
+
+      numbering: () => `
+        <div class="panel">
+          <div class="panel-header"><h3>Quote numbering</h3></div>
+          <div class="field-row">
+            <div class="lbl"><h4>Number format</h4><div class="desc">Tokens: <code>YYYY</code> · <code>####</code></div></div>
+            <div class="val"><input type="text" value="SKS-YYYY-####" class="form-input"></div>
+          </div>
+          <div class="field-row">
+            <div class="lbl"><h4>Next sequence number</h4><div class="desc">Resets each year on 1 July (FY)</div></div>
+            <div class="val"><input type="number" value="49" class="form-input"></div>
+          </div>
+          <div class="field-row">
+            <div class="lbl"><h4>Revision letters</h4><div class="desc">Each re-issue increments. Rev A is locked on issue.</div></div>
+            <div class="val"><select class="form-input"><option>A, B, C…</option><option>1, 2, 3…</option></select></div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-header"><h3>Tax</h3></div>
+          <div class="field-row">
+            <div class="lbl"><h4>GST rate</h4><div class="desc">Applied as a separate line on client documents</div></div>
+            <div class="val"><input type="number" value="10" class="form-input" step="0.5"> <span style="color:var(--text-muted);font-size:13px;">%</span></div>
+          </div>
+          <div class="field-row">
+            <div class="lbl"><h4>ABN</h4><div class="desc">Shown on every client document footer</div></div>
+            <div class="val"><input type="text" value="12 345 678 901" class="form-input"></div>
+          </div>
+        </div>
+      `,
+
+      integrations: () => `
+        <div class="panel">
+          <div class="panel-header"><h3>Integrations</h3><span class="sub">Connect to other systems SKS uses</span></div>
+          <div class="integration-row">
+            <div class="logo">SP</div>
+            <div class="body"><h4>Simpro</h4><div class="desc">Push approved quotes to Simpro as a new job. Map SKS product codes to Simpro catalogue IDs.</div></div>
+            <button class="btn btn-secondary btn-sm">Connect</button>
+          </div>
+          <div class="integration-row">
+            <div class="logo">X</div>
+            <div class="body"><h4>Xero</h4><div class="desc">Sync accepted quotes as draft invoices. Push line items with project tracking.</div></div>
+            <button class="btn btn-secondary btn-sm">Connect</button>
+          </div>
+          <div class="integration-row">
+            <div class="logo">DT</div>
+            <div class="body"><h4>D-Tools SI</h4><div class="desc">Import projects and product catalog updates from D-Tools.</div></div>
+            <button class="btn btn-secondary btn-sm">Connect</button>
+          </div>
+          <div class="integration-row">
+            <div class="logo" style="background:var(--status-success-bg);color:var(--status-success);">FA</div>
+            <div class="body"><h4>Field Apps suite</h4><div class="desc">Already connected. Shares users, projects, and supplier catalogue with the management dashboard, expense claims and commissioning reports.</div></div>
+            <span class="badge badge-success">Connected</span>
+          </div>
+          <div class="integration-row">
+            <div class="logo">@</div>
+            <div class="body"><h4>Email (Microsoft 365)</h4><div class="desc">Send quotes directly from the app. Already connected via field-api.</div></div>
+            <span class="badge badge-success">Connected</span>
+          </div>
+        </div>
+      `,
+
+      users: () => `
+        <div class="panel">
+          <div class="panel-header"><h3>Users &amp; roles</h3><span class="sub">Who can do what</span></div>
+          <div class="table-wrap">
+            <table class="data-table">
+              <thead><tr><th>User</th><th>Role</th><th>Last active</th><th class="right"></th></tr></thead>
+              <tbody>
+                <tr><td><div style="font-weight:500;">Steven Carmichael</div><div style="font-size:11px;color:var(--text-muted);">steven@skstechnologies.com.au</div></td><td><span class="badge badge-accent">Admin</span></td><td>Today, 9:14am</td><td class="right"><button class="icon-btn"><span class="material-symbols-outlined">edit</span></button></td></tr>
+                <tr><td><div style="font-weight:500;">Mark Stowell</div><div style="font-size:11px;color:var(--text-muted);">mark@skstechnologies.com.au</div></td><td><span class="badge badge-info">Estimator</span></td><td>Today, 10:42am</td><td class="right"><button class="icon-btn"><span class="material-symbols-outlined">edit</span></button></td></tr>
+                <tr><td><div style="font-weight:500;">Sales Coordinator</div><div style="font-size:11px;color:var(--text-muted);">sales@skstechnologies.com.au</div></td><td><span class="badge badge-muted">Viewer</span></td><td>Yesterday</td><td class="right"><button class="icon-btn"><span class="material-symbols-outlined">edit</span></button></td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div style="margin-top:12px;"><button class="btn btn-primary btn-sm"><span class="material-symbols-outlined">add</span> Invite user</button></div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-header"><h3>Approval workflow</h3><span class="sub">Quotes above a threshold need manager review before issue</span></div>
+          <div class="field-row">
+            <div class="lbl"><h4>Manager review threshold</h4><div class="desc">Quotes over this value require approval before they can be issued</div></div>
+            <div class="val">$ <input type="number" value="50000" class="form-input"></div>
+          </div>
+          <div class="field-row">
+            <div class="lbl"><h4>Approver</h4><div class="desc">Notified when a quote needs review</div></div>
+            <div class="val"><select class="form-input"><option>Steven Carmichael</option></select></div>
+          </div>
+        </div>
+      `,
+
+      about: () => `
+        <div class="panel">
+          <div class="panel-header"><h3>About this mockup</h3></div>
+          <p style="color:var(--text-secondary);font-size:13px;line-height:1.6;">
+            Interactive mockup for the SKS quoting tool — part of the field apps suite at
+            <a href="https://fieldapps.verdalecres.xyz" style="color:var(--accent-primary);">fieldapps.verdalecres.xyz</a>.
+            Visually matches the management dashboard so widgets and patterns can port between apps.
+            All data is in your browser only — no backend yet.
+          </p>
+          <div style="margin-top:12px;font-size:12px;color:var(--text-muted);">
+            Source: <code>github.com/SKS-MStow/field-quotes</code>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-header"><h3>Demo data</h3></div>
+          <div class="danger-card">
+            <h4>Reset demo data</h4>
+            <p>Clears any quote you've been editing and re-seeds the sample catalogue, suppliers, and example quotes. Use this if the mockup gets into a weird state.</p>
+            <button class="btn btn-secondary btn-sm" id="reset-btn"><span class="material-symbols-outlined">restart_alt</span> Reset all demo data</button>
+          </div>
+        </div>
+      `
+    };
+
+    function showSection(name) {
+      const section = sections[name] || sections.margin;
+      document.getElementById('settings-body').innerHTML = section();
+      document.querySelectorAll('#settings-nav a').forEach(a => a.classList.toggle('active', a.getAttribute('data-section') === name));
+      history.replaceState(null, '', '#' + name);
+
+      // Wire reset button if present
+      const resetBtn = document.getElementById('reset-btn');
+      if (resetBtn) {
+        resetBtn.addEventListener('click', () => {
+          MockUI.confirmAction('Reset all demo data and re-seed sample quotes?', () => {
+            MockState.reset();
+            MockUI.toast('Demo data reset', 'success');
+            setTimeout(() => location.href = '00-dashboard.html', 600);
+          });
+        });
+      }
+    }
+
+    document.querySelectorAll('#settings-nav a').forEach(a => {
+      a.addEventListener('click', e => { e.preventDefault(); showSection(a.getAttribute('data-section')); });
+    });
+
+    const startSection = (location.hash || '#margin').replace('#', '');
+    showSection(sections[startSection] ? startSection : 'margin');
+  </script>
+</body>
+</html>

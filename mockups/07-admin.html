@@ -55,9 +55,10 @@
     <div class="tab-bar" id="tab-bar">
       <button data-tab="products" class="active"><span class="material-symbols-outlined">inventory_2</span> Products</button>
       <button data-tab="suppliers"><span class="material-symbols-outlined">store</span> Suppliers</button>
-      <button data-tab="categories"><span class="material-symbols-outlined">category</span> Categories &amp; Labour</button>
+      <button data-tab="categories"><span class="material-symbols-outlined">category</span> Categories</button>
       <button data-tab="packages"><span class="material-symbols-outlined">layers</span> Packages</button>
       <button data-tab="services"><span class="material-symbols-outlined">build</span> Services</button>
+      <button data-tab="labour"><span class="material-symbols-outlined">engineering</span> Labour Defaults</button>
       <button data-tab="exclusions"><span class="material-symbols-outlined">rule</span> Exclusions</button>
       <button data-tab="terms"><span class="material-symbols-outlined">gavel</span> Terms</button>
     </div>
@@ -211,6 +212,10 @@
     function renderCategories() {
       const cats = MockData.categories;
       return `
+        <div class="filters-row">
+          <div style="flex:1;font-size:13px;color:var(--text-secondary);">The category tree drives the product picker drilldown (Category → Subcategory → Brand → Product).</div>
+          <button class="btn btn-primary btn-sm"><span class="material-symbols-outlined">add</span> Add category</button>
+        </div>
         <div class="cat-tree">
           <div class="cat-list" id="cat-list">
             ${cats.map((c, i) => `
@@ -222,29 +227,79 @@
           </div>
           <div class="sub-list" id="sub-list"></div>
         </div>
-        <div style="margin-top:10px;display:flex;gap:6px;">
-          <button class="btn btn-secondary btn-sm"><span class="material-symbols-outlined">add</span> Add category</button>
-          <button class="btn btn-secondary btn-sm"><span class="material-symbols-outlined">edit</span> Reorder</button>
-        </div>
       `;
     }
     function renderSubList(catIdx) {
       const cat = MockData.categories[catIdx];
       const host = document.getElementById('sub-list');
+      const productCount = MockData.products.filter(p => p.cat === cat.name).length;
       host.innerHTML = `
-        <h3 style="font-family:var(--font-heading);font-size:14px;font-weight:600;color:var(--text-primary);margin-bottom:8px;">${cat.name}</h3>
-        <div style="font-size:11px;color:var(--text-muted);margin-bottom:10px;">Subcategories with their default labour allocation</div>
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+          <h3 style="font-family:var(--font-heading);font-size:14px;font-weight:600;color:var(--text-primary);flex:1;">${cat.name}</h3>
+          <span style="font-size:11px;color:var(--text-muted);">${productCount} product${productCount === 1 ? '' : 's'}</span>
+        </div>
+        <div style="font-size:11px;color:var(--text-muted);margin-bottom:10px;">Subcategories within ${cat.name}</div>
         ${cat.subs.map(s => {
-          const lab = MockData.labourForSub(s);
+          const n = MockData.products.filter(p => p.sub === s).length;
           return `<div class="sub-row">
             <div class="name">${s}</div>
-            <div class="labour-info">${lab.hours} hr · ${lab.trade}</div>
-            <button class="icon-btn" title="Edit labour default"><span class="material-symbols-outlined">edit</span></button>
+            <div class="labour-info">${n} product${n === 1 ? '' : 's'}</div>
+            <button class="icon-btn" title="Rename"><span class="material-symbols-outlined">edit</span></button>
           </div>`;
         }).join('')}
+        <div style="margin-top:10px;"><button class="btn btn-secondary btn-sm"><span class="material-symbols-outlined">add</span> Add subcategory</button></div>
       `;
       document.querySelectorAll('#cat-list .cat-row').forEach(el => el.classList.remove('active'));
       document.querySelector(`#cat-list .cat-row[data-cat-idx="${catIdx}"]`).classList.add('active');
+    }
+
+    function renderLabour() {
+      // Group labour defaults by category for readable display
+      const rowsByCat = {};
+      MockData.categories.forEach(c => {
+        c.subs.forEach(s => {
+          const lab = MockData.labourForSub(s);
+          rowsByCat[c.name] = rowsByCat[c.name] || [];
+          rowsByCat[c.name].push({ sub: s, ...lab });
+        });
+      });
+
+      return `
+        <div class="filters-row">
+          <div style="flex:1;font-size:13px;color:var(--text-secondary);">Default install hours per product subcategory. Auto-applied when an estimator adds a product to an area; can be overridden per line.</div>
+          <select class="form-input">
+            <option>All categories</option>
+            ${MockData.categories.map(c => `<option>${c.name}</option>`).join('')}
+          </select>
+          <button class="btn btn-primary btn-sm"><span class="material-symbols-outlined">add</span> Add labour rule</button>
+        </div>
+        <div class="table-wrap">
+          <div class="table-scroll">
+            <table class="data-table">
+              <thead><tr><th>Subcategory</th><th>Trade</th><th class="right">Hours per unit</th><th class="right">Rate / hr</th><th>Task description</th><th class="right"></th></tr></thead>
+              <tbody>
+                ${Object.entries(rowsByCat).map(([cat, rows]) => `
+                  <tr><td colspan="6" style="background:var(--surface-inset);font-weight:600;font-size:11px;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.04em;padding:8px 14px;">${cat}</td></tr>
+                  ${rows.map(r => `
+                    <tr>
+                      <td><div style="font-weight:500;">${r.sub}</div></td>
+                      <td><span class="badge badge-muted">${r.trade}</span></td>
+                      <td class="right num">${r.hours}</td>
+                      <td class="right num">${MockUI.fmtMoneyCents(MockData.rateForTrade(r.trade))}</td>
+                      <td><div style="font-size:11.5px;color:var(--text-secondary);">${r.task}</div></td>
+                      <td class="right"><button class="icon-btn"><span class="material-symbols-outlined">edit</span></button></td>
+                    </tr>
+                  `).join('')}
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div style="margin-top:10px;color:var(--text-muted);font-size:11.5px;">
+          <span class="material-symbols-outlined" style="font-size:14px;vertical-align:middle;">info</span>
+          Labour <i>rates</i> per trade are managed under <a href="08-settings.html#labour" style="color:var(--accent-primary);">Settings → Labour rates</a>.
+        </div>
+      `;
     }
 
     function renderPackages() {
@@ -346,6 +401,7 @@
       categories: { render: renderCategories, page: 'admin-cats',       wire: wireCategories },
       packages:   { render: renderPackages,   page: 'admin-pkgs' },
       services:   { render: renderServices,   page: 'admin-services' },
+      labour:     { render: renderLabour,     page: 'admin-labour' },
       exclusions: { render: renderExclusions, page: 'admin-exclusions' },
       terms:      { render: renderTerms,      page: 'admin-terms' }
     };

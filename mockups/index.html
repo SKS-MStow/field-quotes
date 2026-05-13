@@ -36,10 +36,10 @@
         These mockups visually match the existing <code>/management</code> app (same sidebar, fonts, badges, mobile nav) and share a fake catalogue + state via localStorage, so you can click from one screen to the next as if it were the real app.
       </p>
       <p>
-        <b>Suggested path:</b> Start at the quote list → "New Quote" → pick Large → fill in client info (or use "demo text") → build areas (add products, apply packages, edit margins) → review → output preview.
+        <b>Suggested path:</b> open the Dashboard → click into one of the populated example quotes (sample data is pre-seeded so you can see what a built quote looks like) → or click "+ New Quote" to start from scratch and walk through mode select → client info → area builder → review → output.
       </p>
       <div class="cta">
-        <a class="btn btn-primary" href="01-quote-list.html"><span class="material-symbols-outlined">play_arrow</span> Start the demo</a>
+        <a class="btn btn-primary" href="00-dashboard.html"><span class="material-symbols-outlined">play_arrow</span> Start the demo</a>
         <a class="btn btn-secondary" href="02-mode-select.html"><span class="material-symbols-outlined">add</span> Skip to "New Quote"</a>
         <a class="btn btn-secondary" href="07-admin.html"><span class="material-symbols-outlined">tune</span> Admin panel</a>
       </div>
@@ -50,11 +50,18 @@
     </div>
 
     <div class="screens">
+      <a class="screen-card" href="00-dashboard.html">
+        <div class="num">0</div>
+        <div>
+          <h3>Dashboard (home)</h3>
+          <div class="desc">KPIs · pipeline by month · recent activity · expiring quotes · quick actions.</div>
+        </div>
+      </a>
       <a class="screen-card" href="01-quote-list.html">
         <div class="num">1</div>
         <div>
           <h3>Quote list</h3>
-          <div class="desc">Landing page · table of all quotes, KPIs, filters, search, click into a quote.</div>
+          <div class="desc">Table of all quotes · filters / search / sort · click any row to open it.</div>
         </div>
       </a>
       <a class="screen-card" href="02-mode-select.html">
@@ -92,11 +99,18 @@
           <div class="desc">Client-facing quote document + internal cost sheet (with multiple tabs).</div>
         </div>
       </a>
-      <a class="screen-card" href="07-admin.html" style="grid-column:1/-1;">
+      <a class="screen-card" href="07-admin.html">
         <div class="num">7</div>
         <div>
           <h3>Admin panel</h3>
-          <div class="desc">Products, suppliers, categories &amp; labour defaults, packages, services, exclusions, terms.</div>
+          <div class="desc">Products, suppliers, categories, packages, services, labour defaults, exclusions, terms.</div>
+        </div>
+      </a>
+      <a class="screen-card" href="08-settings.html">
+        <div class="num">8</div>
+        <div>
+          <h3>Settings</h3>
+          <div class="desc">Margin defaults, labour rates, integrations, users &amp; roles, numbering.</div>
         </div>
       </a>
     </div>
