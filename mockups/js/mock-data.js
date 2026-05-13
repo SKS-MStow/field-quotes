@@ -270,6 +270,12 @@ SKS Technologies Pty Ltd · ABN 12 345 678 901`;
   // Pre-seeded existing quotes (so the quote list has data to show)
   // -------------------------------------------------------------
   const sampleQuotes = [
+    { id:'q_2026_0048', number:'SKS-2026-0048', revision:'A', status:'draft',    mode:'large', preparedBy:'Mark Stowell', createdAt:'2026-05-14', validUntil:'2026-06-13', value:0,
+      client:{ name:'Adelaide City Council', contact:'Procurement Office', email:'procurement@cityofadelaide.sa.gov.au', phone:'(08) 8203 7203', address:'25 Pirie St, Adelaide SA 5000' },
+      project:{ name:'Town Hall — meeting room refresh', address:'Adelaide Town Hall, King William St' } },
+    { id:'q_2026_0047', number:'SKS-2026-0047', revision:'A', status:'draft',    mode:'large', preparedBy:'Mark Stowell', createdAt:'2026-05-13', validUntil:'2026-06-12', value:0,
+      client:{ name:'North Adelaide Plains Golf Club', contact:'Glen Adams', email:'glen@napgc.com.au', phone:'(08) 8523 1144', address:'Two Wells Rd, Two Wells SA' },
+      project:{ name:'Clubhouse AV refresh — Level 1', address:'NAPGC Clubhouse' } },
     { id:'q_2026_0046', number:'SKS-2026-0046', revision:'B', status:'issued',   mode:'large', preparedBy:'Mark Stowell', createdAt:'2026-05-12', validUntil:'2026-06-11', value:58940,
       client:{ name:'Verdale Cres Pty Ltd', contact:'John Verdale', email:'john@verdalecres.com.au', phone:'(08) 8123 4567', address:'12 Verdale Cres, Glenelg SA 5045' },
       project:{ name:'Boardroom MTR upgrade', address:'12 Verdale Cres, Glenelg SA 5045' } },
@@ -300,6 +306,222 @@ SKS Technologies Pty Ltd · ABN 12 345 678 901`;
   ];
 
   // -------------------------------------------------------------
+  // Seed content for sample quotes — lets the demo show realistic
+  // populated quotes the moment you click into them. Each entry is
+  // { areas: [{name, type, notes, lines: [{productId, qty, ...}]}],
+  //   services: { serviceId: { qty, rate, marginPct } },
+  //   globalMarginPct?, exclusions? }
+  // -------------------------------------------------------------
+  const seedSpecs = {
+    // ----- Drafts (in progress) -----
+    q_2026_0048: {
+      globalMarginPct: 25,
+      areas: [
+        { name: 'Meeting Room A', type: 'Meeting Room', notes: 'Boardroom-style, 8–12 ppl, premium fitout', lines: [
+          { productId: 'p_011', qty: 1 }, { productId: 'p_071', qty: 1 },
+          { productId: 'p_030', qty: 1 }, { productId: 'p_031', qty: 1 },
+          { productId: 'p_080', qty: 2 }, { productId: 'p_051', qty: 2 }
+        ]},
+        { name: 'Meeting Room B', type: 'Meeting Room', notes: 'Smaller huddle, 4–6 ppl — products TBD', lines: [] },
+        { name: 'Reception', type: 'Reception', notes: 'Single signage display behind front desk', lines: [
+          { productId: 'p_010', qty: 1 }, { productId: 'p_070', qty: 1 }
+        ]}
+      ],
+      services: { 's_pm': { qty: 16 }, 's_comm': { qty: 6 }, 's_prog': { qty: 8 }, 's_docs': {}, 's_freight': { rate: 320 } }
+    },
+    q_2026_0047: {
+      globalMarginPct: 30,
+      areas: [
+        { name: 'Clubhouse Bistro', type: 'Hospitality', notes: 'Background music + 4x sports displays', lines: [
+          { productId: 'p_010', qty: 4 }, { productId: 'p_070', qty: 4 },
+          { productId: 'p_001', qty: 8 }, { productId: 'p_004', qty: 1 },
+          { productId: 'p_002', qty: 1 }
+        ]},
+        { name: 'Function Room', type: 'Function', notes: '120-person events space, projection + portable PA', lines: [
+          { productId: 'p_014', qty: 1 }, { productId: 'p_015', qty: 1 },
+          { productId: 'p_001', qty: 6 }, { productId: 'p_004', qty: 1 },
+          { productId: 'p_007', qty: 4, lineNote: 'Surface-mount perimeter speakers' }
+        ]}
+      ],
+      services: { 's_pm': { qty: 32 }, 's_comm': { qty: 12 }, 's_prog': { qty: 12 }, 's_docs': {}, 's_freight': { rate: 480 }, 's_travel': { rate: 600 } }
+    },
+
+    // ----- Issued / Accepted / etc. -----
+    q_2026_0046: {
+      areas: [{
+        name: 'Level 3 Boardroom', type: 'Boardroom',
+        notes: '12-person table, single 75" display end of room, ceiling capture for hybrid meetings',
+        lines: [
+          { productId: 'p_011', qty: 1, packageId: 'pkg_boardroom_mtr' },
+          { productId: 'p_071', qty: 1, packageId: 'pkg_boardroom_mtr' },
+          { productId: 'p_030', qty: 1, packageId: 'pkg_boardroom_mtr' },
+          { productId: 'p_031', qty: 1, packageId: 'pkg_boardroom_mtr' },
+          { productId: 'p_005', qty: 1, packageId: 'pkg_boardroom_mtr' },
+          { productId: 'p_001', qty: 4, packageId: 'pkg_boardroom_mtr' },
+          { productId: 'p_004', qty: 1, packageId: 'pkg_boardroom_mtr' },
+          { productId: 'p_020', qty: 1, packageId: 'pkg_boardroom_mtr' },
+          { productId: 'p_021', qty: 1, packageId: 'pkg_boardroom_mtr' },
+          { productId: 'p_050', qty: 1, packageId: 'pkg_boardroom_mtr' },
+          { productId: 'p_051', qty: 3 }, { productId: 'p_080', qty: 4 }
+        ]
+      }],
+      services: { 's_pm': { qty: 16 }, 's_comm': { qty: 8 }, 's_prog': { qty: 12 }, 's_docs': {}, 's_freight': { rate: 280 } }
+    },
+
+    q_2026_0045: {
+      globalMarginPct: 18,
+      areas: [{
+        name: 'Stepney Warehouse — Supply Only', type: 'Supply',
+        notes: 'Customer collects from warehouse. No installation, no commissioning.',
+        lines: [
+          { productId: 'p_010', qty: 4, isSupplyOnly: true },
+          { productId: 'p_070', qty: 4, isSupplyOnly: true },
+          { productId: 'p_030', qty: 2, isSupplyOnly: true },
+          { productId: 'p_001', qty: 12, isSupplyOnly: true },
+          { productId: 'p_080', qty: 8, isSupplyOnly: true }
+        ]
+      }],
+      services: { 's_freight': { rate: 380 } }
+    },
+
+    q_2026_0044: {
+      areas: [
+        { name: 'Classroom 1 — STEM Lab', type: 'Classroom', notes: '30 students, interactive front-of-room', lines: [
+          { productId: 'p_013', qty: 1 }, { productId: 'p_071', qty: 1 },
+          { productId: 'p_001', qty: 4 }, { productId: 'p_004', qty: 1 },
+          { productId: 'p_023', qty: 1 }, { productId: 'p_080', qty: 2 }, { productId: 'p_050', qty: 1 }
+        ]},
+        { name: 'Classroom 2', type: 'Classroom', notes: '28 students', lines: [
+          { productId: 'p_013', qty: 1 }, { productId: 'p_071', qty: 1 },
+          { productId: 'p_001', qty: 4 }, { productId: 'p_004', qty: 1 }, { productId: 'p_023', qty: 1 }, { productId: 'p_080', qty: 2 }
+        ]},
+        { name: 'Classroom 3', type: 'Classroom', notes: '28 students', lines: [
+          { productId: 'p_013', qty: 1 }, { productId: 'p_071', qty: 1 },
+          { productId: 'p_001', qty: 4 }, { productId: 'p_004', qty: 1 }, { productId: 'p_023', qty: 1 }, { productId: 'p_080', qty: 2 }
+        ]},
+        { name: 'Classroom 4', type: 'Classroom', notes: '28 students', lines: [
+          { productId: 'p_013', qty: 1 }, { productId: 'p_071', qty: 1 },
+          { productId: 'p_001', qty: 4 }, { productId: 'p_004', qty: 1 }, { productId: 'p_023', qty: 1 }, { productId: 'p_080', qty: 2 }
+        ]},
+        { name: 'Library — AV Pods + Signage', type: 'Library', notes: 'Open-plan library with 3 AV pods and perimeter signage displays', lines: [
+          { productId: 'p_010', qty: 3 }, { productId: 'p_070', qty: 3 },
+          { productId: 'p_001', qty: 8, lineNote: 'Background music and announcements' },
+          { productId: 'p_004', qty: 1 }, { productId: 'p_002', qty: 1 },
+          { productId: 'p_022', qty: 4 }, { productId: 'p_040', qty: 1 },
+          { productId: 'p_050', qty: 2 }, { productId: 'p_080', qty: 6 }
+        ]}
+      ],
+      services: { 's_pm': { qty: 60 }, 's_super': { qty: 4 }, 's_comm': { qty: 24 }, 's_prog': { qty: 16 }, 's_docs': {}, 's_train': { qty: 6 }, 's_travel': { rate: 1200 }, 's_freight': { rate: 850 } }
+    },
+
+    q_2026_0043: {
+      areas: [{
+        name: 'Pre-function Foyer — Digital Signage', type: 'Signage',
+        notes: '4x wall-mounted 55" displays, NVX-distributed content, single CMS source',
+        lines: [
+          { productId: 'p_010', qty: 4 }, { productId: 'p_070', qty: 4 },
+          { productId: 'p_022', qty: 4 }, { productId: 'p_040', qty: 1 }, { productId: 'p_080', qty: 4 }
+        ]
+      }],
+      services: { 's_pm': { qty: 8 }, 's_comm': { qty: 4 }, 's_prog': { qty: 4 }, 's_freight': { rate: 240 } }
+    },
+
+    q_2026_0042: {
+      areas: [{
+        name: 'Engineering — Lecture Theatre 2', type: 'Lecture Theatre',
+        notes: '90 seats. Recorded lectures (ceiling array mics for capture). Lectern + handheld for Q&A.',
+        lines: [
+          { productId: 'p_013', qty: 1 }, { productId: 'p_071', qty: 1 },
+          { productId: 'p_014', qty: 1, lineNote: 'Front-projection backup for room half-darkened' },
+          { productId: 'p_015', qty: 1 },
+          { productId: 'p_005', qty: 2 }, { productId: 'p_001', qty: 12 },
+          { productId: 'p_004', qty: 1 }, { productId: 'p_002', qty: 1 },
+          { productId: 'p_020', qty: 1 }, { productId: 'p_021', qty: 1 },
+          { productId: 'p_022', qty: 4 }, { productId: 'p_040', qty: 1 },
+          { productId: 'p_050', qty: 2 }, { productId: 'p_080', qty: 4 }
+        ]
+      }],
+      services: { 's_pm': { qty: 24 }, 's_comm': { qty: 12 }, 's_prog': { qty: 16 }, 's_docs': {}, 's_train': { qty: 4 }, 's_freight': { rate: 480 } }
+    },
+
+    q_2026_0041: {
+      mode: 'quick',
+      areas: [{
+        name: 'Pro Shop', type: 'Retail',
+        notes: 'Wall-mounted display above counter, looped course/score content from a media player',
+        lines: [
+          { productId: 'p_010', qty: 1 }, { productId: 'p_070', qty: 1 }
+        ]
+      }],
+      services: { 's_freight': { rate: 180 } }
+    },
+
+    q_2026_0040: {
+      areas: [
+        { name: 'Box A', type: 'Corporate Box', notes: '20-seat corporate box, premium fitout', lines: [
+          { productId: 'p_011', qty: 2 }, { productId: 'p_071', qty: 2 },
+          { productId: 'p_030', qty: 1 }, { productId: 'p_005', qty: 1 },
+          { productId: 'p_001', qty: 6 }, { productId: 'p_004', qty: 1 }, { productId: 'p_002', qty: 1 },
+          { productId: 'p_020', qty: 1 }, { productId: 'p_021', qty: 1 },
+          { productId: 'p_022', qty: 2 }, { productId: 'p_040', qty: 1 }
+        ]},
+        { name: 'Box B', type: 'Corporate Box', notes: 'Identical fitout to Box A', lines: [
+          { productId: 'p_011', qty: 2 }, { productId: 'p_071', qty: 2 },
+          { productId: 'p_030', qty: 1 }, { productId: 'p_005', qty: 1 },
+          { productId: 'p_001', qty: 6 }, { productId: 'p_004', qty: 1 }, { productId: 'p_002', qty: 1 },
+          { productId: 'p_020', qty: 1 }, { productId: 'p_021', qty: 1 },
+          { productId: 'p_022', qty: 2 }, { productId: 'p_040', qty: 1 }
+        ]},
+        { name: 'Box C', type: 'Corporate Box', notes: 'Identical fitout to Box A', lines: [
+          { productId: 'p_011', qty: 2 }, { productId: 'p_071', qty: 2 },
+          { productId: 'p_030', qty: 1 }, { productId: 'p_005', qty: 1 },
+          { productId: 'p_001', qty: 6 }, { productId: 'p_004', qty: 1 }, { productId: 'p_002', qty: 1 },
+          { productId: 'p_020', qty: 1 }, { productId: 'p_021', qty: 1 },
+          { productId: 'p_022', qty: 2 }, { productId: 'p_040', qty: 1 }
+        ]},
+        { name: 'Box D', type: 'Corporate Box', notes: 'Identical fitout to Box A', lines: [
+          { productId: 'p_011', qty: 2 }, { productId: 'p_071', qty: 2 },
+          { productId: 'p_030', qty: 1 }, { productId: 'p_005', qty: 1 },
+          { productId: 'p_001', qty: 6 }, { productId: 'p_004', qty: 1 }, { productId: 'p_002', qty: 1 },
+          { productId: 'p_020', qty: 1 }, { productId: 'p_021', qty: 1 },
+          { productId: 'p_022', qty: 2 }, { productId: 'p_040', qty: 1 }
+        ]}
+      ],
+      services: { 's_pm': { qty: 80 }, 's_super': { qty: 5 }, 's_comm': { qty: 32 }, 's_prog': { qty: 24 }, 's_docs': {}, 's_travel': { rate: 2400 }, 's_ahw': { qty: 16 }, 's_freight': { rate: 1200 } }
+    },
+
+    q_2026_0039: {
+      mode: 'quick',
+      areas: [{
+        name: 'Theatre 4 — UC Variation', type: 'Theatre',
+        notes: 'Adding video conferencing peripherals to existing theatre, no new display required',
+        lines: [
+          { productId: 'p_030', qty: 1 }, { productId: 'p_031', qty: 1 }, { productId: 'p_033', qty: 2 }
+        ]
+      }],
+      services: { 's_comm': { qty: 4 }, 's_prog': { qty: 4 } }
+    },
+
+    q_2026_0038: {
+      areas: [
+        { name: 'Council Chamber', type: 'Chamber', notes: '24-seat horseshoe, broadcast-quality audio capture, recorded sessions', lines: [
+          { productId: 'p_012', qty: 1 }, { productId: 'p_071', qty: 1 },
+          { productId: 'p_005', qty: 4 }, { productId: 'p_001', qty: 8 },
+          { productId: 'p_004', qty: 2 }, { productId: 'p_002', qty: 1 },
+          { productId: 'p_032', qty: 1, lineNote: 'PTZ camera for broadcast capture' },
+          { productId: 'p_080', qty: 6 }, { productId: 'p_050', qty: 2 }
+        ]},
+        { name: 'Control Room', type: 'Control', notes: 'Rack room behind chamber, redundant control + UPS', lines: [
+          { productId: 'p_020', qty: 2 }, { productId: 'p_021', qty: 2 },
+          { productId: 'p_022', qty: 6 }, { productId: 'p_040', qty: 2 },
+          { productId: 'p_060', qty: 1 }
+        ]}
+      ],
+      services: { 's_pm': { qty: 50 }, 's_super': { qty: 3 }, 's_comm': { qty: 20 }, 's_prog': { qty: 24 }, 's_docs': {}, 's_travel': { rate: 800 }, 's_freight': { rate: 620 } }
+    }
+  };
+
+  // -------------------------------------------------------------
   // Helpers
   // -------------------------------------------------------------
   function productById(id)  { return products.find(p => p.id === id); }
@@ -309,7 +531,7 @@ SKS Technologies Pty Ltd · ABN 12 345 678 901`;
 
   return {
     suppliers, categories, products, labourDefaults, labourRates, services,
-    packages, exclusionsLibrary, standardTerms, sampleQuotes,
+    packages, exclusionsLibrary, standardTerms, sampleQuotes, seedSpecs,
     productById, supplierById, labourForSub, rateForTrade
   };
 })();

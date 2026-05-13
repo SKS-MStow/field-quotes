@@ -27,14 +27,102 @@ window.MockState = (function () {
   }
 
   function defaultState() {
+    const quotes = MockData.sampleQuotes.map(q => {
+      const quote = {
+        ...q,
+        areas: [],
+        services: MockData.services.filter(svc => svc.includedByDefault).map(svc => ({
+          id: uid('sv'), serviceId: svc.id, name: svc.name, category: svc.category,
+          unit: svc.unit, qty: svc.defaultQty, rate: svc.defaultRate, marginPct: svc.marginPct, included: true
+        })),
+        exclusions: [...MockData.exclusionsLibrary].slice(0, 6),
+        terms: MockData.standardTerms,
+        globalMarginPct: 25,
+        notesToClient: ''
+      };
+      // Apply seeded content if defined
+      const spec = MockData.seedSpecs && MockData.seedSpecs[q.id];
+      if (spec) materializeSeed(quote, spec);
+      // Recompute value from materialized lines (fall back to seeded value)
+      const t = quoteTotal(quote);
+      quote.value = t.sellExGST > 0 ? Math.round(t.sellExGST) : (q.value || 0);
+      return quote;
+    });
     return {
-      // List of all quotes (seeded from sampleQuotes on first load)
-      quotes: MockData.sampleQuotes.map(q => ({ ...q, areas: [], services: [], exclusions: [], terms: MockData.standardTerms, globalMarginPct: 25, notesToClient: '' })),
-      // The one currently being edited (or null)
+      quotes,
       currentQuoteId: null,
-      // Next number to allocate
-      nextQuoteSeq: 48
+      nextQuoteSeq: 49
     };
+  }
+
+  // Pure helper — populates a quote object in-place from a seed spec.
+  // No state side-effects, used during defaultState() construction.
+  function materializeSeed(quote, spec) {
+    if (spec.globalMarginPct !== undefined) quote.globalMarginPct = spec.globalMarginPct;
+    if (spec.mode) quote.mode = spec.mode;
+
+    (spec.areas || []).forEach(specArea => {
+      const area = {
+        id: uid('ar'),
+        name: specArea.name,
+        type: specArea.type || '',
+        notes: specArea.notes || '',
+        lines: []
+      };
+      (specArea.lines || []).forEach(specLine => {
+        const p = MockData.productById(specLine.productId);
+        if (!p) return;
+        const labour = MockData.labourForSub(p.sub);
+        area.lines.push({
+          id: uid('ln'),
+          productId: p.id,
+          description: p.desc,
+          model: p.mpn,
+          manufacturer: p.mfr,
+          cat: p.cat,
+          sub: p.sub,
+          qty: specLine.qty || 1,
+          unit: p.unit,
+          costPrice: p.cost,
+          marginPct: specLine.marginPct ?? null,
+          labourHours: specLine.labourHours ?? labour.hours,
+          labourTrade: labour.trade,
+          isSupplyOnly: !!specLine.isSupplyOnly,
+          isProvisional: !!specLine.isProvisional,
+          lineNote: specLine.lineNote || '',
+          packageId: specLine.packageId || null
+        });
+      });
+      quote.areas.push(area);
+    });
+
+    if (spec.services) {
+      Object.entries(spec.services).forEach(([sid, override]) => {
+        const def = MockData.services.find(s => s.id === sid);
+        if (!def) return;
+        const existing = quote.services.find(s => s.serviceId === sid);
+        if (existing) {
+          if (override.qty !== undefined) existing.qty = override.qty;
+          if (override.rate !== undefined) existing.rate = override.rate;
+          if (override.marginPct !== undefined) existing.marginPct = override.marginPct;
+          existing.included = true;
+        } else {
+          quote.services.push({
+            id: uid('sv'),
+            serviceId: def.id,
+            name: def.name,
+            category: def.category,
+            unit: def.unit,
+            qty: override.qty ?? def.defaultQty ?? 1,
+            rate: override.rate ?? def.defaultRate,
+            marginPct: override.marginPct ?? def.marginPct,
+            included: true
+          });
+        }
+      });
+    }
+
+    if (spec.exclusions) quote.exclusions = [...spec.exclusions];
   }
 
   function reset() {
