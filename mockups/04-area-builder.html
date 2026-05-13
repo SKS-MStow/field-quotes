@@ -214,7 +214,10 @@
 
     // -------- Load current quote --------
     let quote = MockState.getCurrentQuote();
-    if (!quote) { location.href = '02-mode-select.html'; }
+    if (!quote) {
+      location.href = '02-mode-select.html';
+      throw new Error('No active quote — redirecting to mode select');
+    }
 
     // Quick mode UI tweaks
     const isQuick = quote.mode === 'quick';

@@ -171,7 +171,10 @@
     });
 
     let quote = MockState.getCurrentQuote();
-    if (!quote) { location.href = '01-quote-list.html'; }
+    if (!quote) {
+      location.href = '01-quote-list.html';
+      throw new Error('No active quote — redirecting to list');
+    }
 
     // -------- Warnings --------
     function renderWarnings() {
