@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Client &amp; Project — SKS Quotes</title>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Symbols+Outlined" rel="stylesheet">
+  <link rel="stylesheet" href="../shared/theme.css">
+  <link rel="stylesheet" href="css/mockups.css">
+  <style>
+    .info-grid { display: grid; grid-template-columns: 1fr 360px; gap: 18px; align-items: start; }
+    @media (max-width: 1100px) { .info-grid { grid-template-columns: 1fr; } }
+    .ai-panel { background: var(--surface-card); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 16px; position: sticky; top: 12px; }
+    .ai-panel h3 { font-family: var(--font-heading); font-size: 14px; font-weight: 600; color: var(--text-primary); margin-bottom: 4px; display: flex; align-items: center; gap: 6px; }
+    .ai-panel .sub { font-size: 12px; color: var(--text-muted); margin-bottom: 12px; line-height: 1.4; }
+    .ai-panel textarea { width: 100%; min-height: 140px; border: 1px solid var(--border-input); border-radius: var(--radius-md); padding: 10px 12px; font: inherit; font-size: 12px; background: var(--surface-white); color: var(--text-primary); resize: vertical; }
+    .ai-suggest { padding: 10px 12px; background: var(--status-info-bg); border: 1px solid #c5cdf2; border-radius: var(--radius-md); margin-top: 10px; font-size: 12px; }
+    .ai-suggest h4 { font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--status-info); margin-bottom: 6px; }
+    .ai-suggest .row { display: flex; justify-content: space-between; padding: 3px 0; }
+    .ai-suggest .row .v { color: var(--text-primary); font-weight: 500; max-width: 200px; text-align: right; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .ai-actions { display: flex; gap: 6px; margin-top: 10px; }
+    .quote-meta { display: flex; gap: 18px; padding: 12px 16px; background: var(--surface-inset); border-radius: var(--radius-md); margin-bottom: 14px; flex-wrap: wrap; }
+    .quote-meta .mi { display: flex; flex-direction: column; gap: 2px; }
+    .quote-meta .mi .l { font-size: 10px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); font-weight: 600; }
+    .quote-meta .mi .v { font-size: 13px; color: var(--text-primary); font-weight: 600; font-family: var(--font-heading); }
+    .upload-row { display: flex; gap: 8px; align-items: center; padding: 10px 12px; border: 1px dashed var(--border-input); border-radius: var(--radius-md); cursor: pointer; transition: all 0.15s; }
+    .upload-row:hover { border-color: var(--accent-primary); background: var(--surface-inset); }
+    .upload-row .material-symbols-outlined { color: var(--text-muted); }
+    .upload-row .lbl { font-size: 12px; color: var(--text-secondary); }
+  </style>
+</head>
+<body data-page="new-quote">
+
+  <main id="content" class="content">
+    <!-- Stepper -->
+    <div class="stepper" id="stepper">
+      <div class="step done"><span class="num">1</span> Mode</div>
+      <div class="step active"><span class="num">2</span> Client &amp; Project</div>
+      <div class="step"><span class="num">3</span> <span id="step3-label">Build Areas</span></div>
+      <div class="step"><span class="num">4</span> Review</div>
+      <div class="step"><span class="num">5</span> Generate</div>
+    </div>
+
+    <!-- Quote meta strip -->
+    <div class="quote-meta" id="quote-meta"></div>
+
+    <div class="info-grid">
+
+      <div>
+        <!-- Client panel -->
+        <div class="panel">
+          <div class="panel-header">
+            <h3>Client</h3>
+            <span class="sub">Who the quote is going to</span>
+          </div>
+          <div class="field-grid">
+            <div class="field">
+              <label>Company name</label>
+              <input data-bind="client.name" type="text" placeholder="e.g. Verdale Cres Pty Ltd">
+            </div>
+            <div class="field">
+              <label>Contact name</label>
+              <input data-bind="client.contact" type="text" placeholder="e.g. John Verdale">
+            </div>
+            <div class="field">
+              <label>Contact phone</label>
+              <input data-bind="client.phone" type="tel" placeholder="(08) 8123 4567">
+            </div>
+            <div class="field">
+              <label>Contact email</label>
+              <input data-bind="client.email" type="email" placeholder="john@example.com">
+            </div>
+            <div class="field" style="grid-column: 1 / -1;">
+              <label>Client address</label>
+              <input data-bind="client.address" type="text" placeholder="12 Verdale Cres, Glenelg SA 5045">
+            </div>
+          </div>
+        </div>
+
+        <!-- Project panel -->
+        <div class="panel">
+          <div class="panel-header">
+            <h3>Project</h3>
+            <span class="sub">What and where</span>
+          </div>
+          <div class="field-grid">
+            <div class="field" style="grid-column: 1 / -1;">
+              <label>Project name</label>
+              <input data-bind="project.name" type="text" placeholder="e.g. Boardroom MTR upgrade">
+            </div>
+            <div class="field" style="grid-column: 1 / -1;">
+              <label>Site / project address</label>
+              <input data-bind="project.address" type="text" placeholder="Site address">
+            </div>
+            <div class="field">
+              <label>Internal reference</label>
+              <input data-bind="project.internalRef" type="text" placeholder="Optional job no.">
+            </div>
+            <div class="field">
+              <label>Head contractor</label>
+              <input data-bind="project.headContractor" type="text" placeholder="If applicable">
+            </div>
+            <div class="field" style="grid-column: 1 / -1;">
+              <label>Internal notes</label>
+              <textarea data-bind="project.notes" placeholder="Any internal notes about this project (never shown to client)"></textarea>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quote validity panel -->
+        <div class="panel">
+          <div class="panel-header">
+            <h3>Quote settings</h3>
+            <span class="sub">Defaults — adjustable</span>
+          </div>
+          <div class="field-grid">
+            <div class="field">
+              <label>Quote date</label>
+              <input data-bind="createdAt" type="date">
+            </div>
+            <div class="field">
+              <label>Valid until</label>
+              <input data-bind="validUntil" type="date">
+            </div>
+            <div class="field">
+              <label>Prepared by</label>
+              <input data-bind="preparedBy" type="text">
+            </div>
+            <div class="field">
+              <label>Status</label>
+              <input value="Draft" disabled>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Scope helper -->
+      <div>
+        <div class="ai-panel">
+          <h3><span class="material-symbols-outlined" style="font-size:18px;color:var(--status-info);">auto_awesome</span> Scope helper</h3>
+          <p class="sub">Paste a tender email or upload a scope document. We'll suggest client &amp; project details, room/area names, and likely products from the catalogue.</p>
+
+          <textarea id="ai-input" placeholder="Paste the email or scope text here…"></textarea>
+
+          <div class="upload-row" style="margin-top:8px;">
+            <span class="material-symbols-outlined">upload_file</span>
+            <span class="lbl">Or upload PDF / DOCX / image of scope</span>
+          </div>
+
+          <div class="ai-actions">
+            <button class="btn btn-primary" id="ai-extract"><span class="material-symbols-outlined">auto_awesome</span> Extract</button>
+            <button class="btn btn-secondary" id="ai-demo"><span class="material-symbols-outlined">science</span> Use demo text</button>
+          </div>
+
+          <div class="ai-suggest" id="ai-result" hidden>
+            <h4>Suggested fill</h4>
+            <div id="ai-rows"></div>
+            <div class="ai-actions">
+              <button class="btn btn-primary btn-sm" id="ai-apply"><span class="material-symbols-outlined">check</span> Apply all</button>
+              <button class="btn btn-secondary btn-sm" id="ai-dismiss">Dismiss</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Wizard footer -->
+    <div class="wizard-footer">
+      <a class="btn btn-secondary" href="02-mode-select.html"><span class="material-symbols-outlined">arrow_back</span> Back</a>
+      <div class="totals-mini"><span>Status: <b>Draft</b></span></div>
+      <div class="nav">
+        <button class="btn btn-secondary" id="save-exit"><span class="material-symbols-outlined">save</span> Save &amp; close</button>
+        <button class="btn btn-primary" id="continue"><span class="material-symbols-outlined">arrow_forward</span> Continue</button>
+      </div>
+    </div>
+  </main>
+
+  <script src="js/mock-data.js"></script>
+  <script src="js/mock-state.js"></script>
+  <script src="js/mock-ui.js"></script>
+  <script src="js/mock-shell.js"></script>
+  <script>
+    MockShell.mount({
+      title: 'Client & Project',
+      subtitle: 'Step 2 of 5 · Capture client and project info',
+      actionsHtml: `<a class="btn btn-secondary" href="01-quote-list.html"><span class="material-symbols-outlined">close</span> Cancel</a>`
+    });
+
+    // -------- Load current quote --------
+    let quote = MockState.getCurrentQuote();
+    if (!quote) {
+      // If user lands here without picking a mode, default to Large
+      quote = MockState.newQuote('large');
+    }
+
+    // Adjust step label for mode
+    document.getElementById('step3-label').textContent = quote.mode === 'quick' ? 'Build Scope' : 'Build Areas';
+
+    // Render meta strip
+    function renderMeta() {
+      const q = MockState.getCurrentQuote();
+      document.getElementById('quote-meta').innerHTML = `
+        <div class="mi"><span class="l">Quote #</span><span class="v">${q.number}</span></div>
+        <div class="mi"><span class="l">Revision</span><span class="v">Rev ${q.revision}</span></div>
+        <div class="mi"><span class="l">Mode</span><span class="v">${q.mode === 'quick' ? 'Quick' : 'Large'}</span></div>
+        <div class="mi"><span class="l">Status</span><span class="v">Draft</span></div>
+        <div class="mi"><span class="l">Prepared by</span><span class="v">${q.preparedBy}</span></div>
+      `;
+    }
+    renderMeta();
+
+    // -------- Bind inputs to state --------
+    function getValue(obj, path) {
+      return path.split('.').reduce((o, k) => (o ? o[k] : undefined), obj);
+    }
+    function setValue(obj, path, value) {
+      const parts = path.split('.');
+      const last = parts.pop();
+      const target = parts.reduce((o, k) => (o[k] = o[k] || {}), obj);
+      target[last] = value;
+    }
+
+    document.querySelectorAll('[data-bind]').forEach(input => {
+      const path = input.getAttribute('data-bind');
+      const v = getValue(quote, path);
+      if (v !== undefined && v !== null) input.value = v;
+      input.addEventListener('input', () => {
+        const cur = MockState.getCurrentQuote();
+        setValue(cur, path, input.value);
+        MockState.updateQuote(cur.id, cur);
+      });
+    });
+
+    // -------- Scope helper (demo extraction) --------
+    const demoEmail = `From: tim.bell@adelaide.edu.au
+To: estimates@skstechnologies.com.au
+Subject: AV upgrade quote — Lecture Theatre 2
+
+Hi team,
+
+We're looking to refresh the AV in our Engineering Lecture Theatre 2.
+Capacity is about 90 seats. We need:
+- A large display or projector + screen at the front
+- Ceiling mics for capture (lecture is recorded)
+- Lectern microphone, handheld for Q&A
+- Crestron control system to match the rest of the building
+- HDBaseT or NVX from lectern to display
+
+Project address: Engineering Building, North Terrace campus, University of Adelaide.
+Budget: aiming around $90-100k. Need quote by next Friday.
+
+Cheers,
+Tim Bell
+Project Manager — University of Adelaide
+0411 222 333`;
+
+    function doExtract(text) {
+      // Canned "AI" — just pulls things out of demoEmail with regex / heuristics
+      const suggestions = {
+        'client.name':    'University of Adelaide',
+        'client.contact': 'Tim Bell',
+        'client.email':   'tim.bell@adelaide.edu.au',
+        'client.phone':   '0411 222 333',
+        'client.address': 'North Terrace, Adelaide SA 5005',
+        'project.name':   'Engineering — Lecture Theatre 2 refresh',
+        'project.address':'Engineering Building, North Terrace campus, University of Adelaide',
+        'project.notes':  '90 seats. Recorded lectures (ceiling mics). Lectern + handheld mics. Budget ~$90-100k. Needed by next Friday.'
+      };
+      const labels = {
+        'client.name': 'Client',
+        'client.contact': 'Contact',
+        'client.email': 'Email',
+        'client.phone': 'Phone',
+        'client.address': 'Address',
+        'project.name': 'Project name',
+        'project.address': 'Project address',
+        'project.notes': 'Notes'
+      };
+      const rowsHtml = Object.entries(suggestions).map(([k, v]) =>
+        `<div class="row"><span>${labels[k]}</span><span class="v" title="${v}">${v}</span></div>`
+      ).join('');
+      document.getElementById('ai-rows').innerHTML = rowsHtml;
+      document.getElementById('ai-result').hidden = false;
+
+      // Wire apply / dismiss
+      document.getElementById('ai-apply').onclick = () => {
+        const cur = MockState.getCurrentQuote();
+        Object.entries(suggestions).forEach(([path, value]) => {
+          setValue(cur, path, value);
+          const el = document.querySelector(`[data-bind="${path}"]`);
+          if (el) el.value = value;
+        });
+        MockState.updateQuote(cur.id, cur);
+        document.getElementById('ai-result').hidden = true;
+        MockUI.toast('Suggestions applied', 'success');
+      };
+      document.getElementById('ai-dismiss').onclick = () => {
+        document.getElementById('ai-result').hidden = true;
+      };
+    }
+
+    document.getElementById('ai-demo').addEventListener('click', () => {
+      document.getElementById('ai-input').value = demoEmail;
+    });
+    document.getElementById('ai-extract').addEventListener('click', () => {
+      const text = document.getElementById('ai-input').value.trim();
+      if (!text) { MockUI.toast('Paste an email or scope first (try "Use demo text")', 'warn'); return; }
+      MockUI.toast('Extracting…');
+      setTimeout(() => doExtract(text), 600);
+    });
+
+    // -------- Footer nav --------
+    document.getElementById('continue').addEventListener('click', () => {
+      const cur = MockState.getCurrentQuote();
+      if (!cur.client.name) {
+        MockUI.toast('Client name is required to continue', 'warn');
+        return;
+      }
+      location.href = '04-area-builder.html';
+    });
+    document.getElementById('save-exit').addEventListener('click', () => {
+      MockUI.toast('Saved as draft', 'success');
+      setTimeout(() => location.href = '01-quote-list.html', 500);
+    });
+  </script>
+</body>
+</html>

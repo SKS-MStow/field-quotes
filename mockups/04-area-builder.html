@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Build Areas — SKS Quotes</title>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Symbols+Outlined" rel="stylesheet">
+  <link rel="stylesheet" href="../shared/theme.css">
+  <link rel="stylesheet" href="css/mockups.css">
+  <style>
+    .quote-meta { display: flex; gap: 18px; padding: 12px 16px; background: var(--surface-inset); border-radius: var(--radius-md); margin-bottom: 14px; flex-wrap: wrap; align-items: center; }
+    .quote-meta .mi { display: flex; flex-direction: column; gap: 2px; }
+    .quote-meta .mi .l { font-size: 10px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); font-weight: 600; }
+    .quote-meta .mi .v { font-size: 13px; color: var(--text-primary); font-weight: 600; font-family: var(--font-heading); }
+    .area-actions { display: flex; gap: 4px; margin-left: auto; }
+    .col-mfr { width: 110px; }
+    .col-model { width: 140px; }
+    .col-qty { width: 60px; }
+    .col-unit { width: 50px; }
+    .col-num { width: 80px; text-align: right; }
+    .col-actions { width: 80px; text-align: right; }
+    .pill-toggle { display: inline-flex; gap: 0; border: 1px solid var(--border-input); border-radius: var(--radius-md); overflow: hidden; }
+    .pill-toggle button { background: var(--surface-white); border: none; padding: 5px 10px; font-size: 11px; color: var(--text-secondary); cursor: pointer; font-family: var(--font-body); }
+    .pill-toggle button.active { background: var(--accent-primary); color: white; }
+    .col-cost, .col-margin { display: none; }
+    body.cost-view .col-cost, body.cost-view .col-margin { display: table-cell; }
+    body.cost-view .col-cost-h, body.cost-view .col-margin-h { display: table-cell; }
+
+    .services-table th, .services-table td { padding: 9px 12px; }
+    .services-row .name { font-weight: 500; color: var(--text-primary); }
+    .services-row .cat-tag { display: inline-block; padding: 1px 6px; background: var(--surface-inset); border-radius: 4px; font-size: 10px; color: var(--text-muted); margin-left: 6px; font-weight: 500; }
+
+    .empty-state { padding: 30px 20px; text-align: center; color: var(--text-muted); }
+    .empty-state .material-symbols-outlined { font-size: 32px; color: var(--border-hover); margin-bottom: 6px; }
+    .empty-state h4 { font-family: var(--font-heading); color: var(--text-secondary); margin: 4px 0; font-size: 14px; font-weight: 600; }
+
+    .package-card { padding: 12px 14px; border: 1px solid var(--border); border-radius: var(--radius-md); margin-bottom: 8px; cursor: pointer; background: var(--surface-card); transition: all 0.12s; }
+    .package-card:hover { border-color: var(--accent-primary); background: var(--surface-white); }
+    .package-card h5 { font-family: var(--font-heading); font-size: 13px; font-weight: 600; color: var(--text-primary); }
+    .package-card .meta { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+    .package-card .tags { margin-top: 4px; display: flex; gap: 4px; }
+    .package-card .tag { background: var(--surface-inset); color: var(--text-muted); padding: 1px 7px; font-size: 10px; border-radius: 4px; }
+
+    /* Modal */
+    .modal-bg { position: fixed; inset: 0; background: rgba(0,0,0,0.35); z-index: 300; display: none; align-items: center; justify-content: center; padding: 20px; }
+    .modal-bg.open { display: flex; }
+    .modal { background: var(--surface-bg); border-radius: var(--radius-lg); max-width: 520px; width: 100%; max-height: 80vh; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 20px 60px rgba(0,0,0,0.2); }
+    .modal-head { padding: 14px 18px; border-bottom: 1px solid var(--border); background: var(--surface-card); display: flex; align-items: center; }
+    .modal-head h3 { font-family: var(--font-heading); font-size: 16px; font-weight: 600; flex: 1; }
+    .modal-body { padding: 14px 18px; overflow-y: auto; flex: 1; }
+    .modal-foot { padding: 12px 18px; border-top: 1px solid var(--border); background: var(--surface-card); display: flex; justify-content: flex-end; gap: 8px; }
+
+    .global-margin-row { display: flex; align-items: center; gap: 10px; }
+    .global-margin-row .value { font-family: var(--font-heading); font-weight: 700; font-size: 18px; color: var(--text-primary); min-width: 50px; text-align: right; }
+
+    .add-line-cell { padding: 8px 10px; background: var(--surface-card); }
+    .add-line-cell button { background: transparent; border: 1px dashed var(--border-input); color: var(--text-secondary); padding: 6px 12px; border-radius: var(--radius-md); cursor: pointer; font-size: 12px; font-family: var(--font-body); display: inline-flex; align-items: center; gap: 4px; }
+    .add-line-cell button:hover { border-color: var(--accent-primary); color: var(--accent-primary); }
+  </style>
+</head>
+<body data-page="new-quote">
+
+  <main id="content" class="content">
+    <!-- Stepper -->
+    <div class="stepper">
+      <div class="step done"><span class="num">1</span> Mode</div>
+      <div class="step done"><span class="num">2</span> Client &amp; Project</div>
+      <div class="step active"><span class="num">3</span> <span id="step3-label">Build Areas</span></div>
+      <div class="step"><span class="num">4</span> Review</div>
+      <div class="step"><span class="num">5</span> Generate</div>
+    </div>
+
+    <!-- Quote meta strip -->
+    <div class="quote-meta" id="quote-meta"></div>
+
+    <div class="builder-layout">
+
+      <!-- Left: Areas -->
+      <div>
+        <div style="display:flex;gap:8px;align-items:center;margin-bottom:10px;">
+          <h2 style="font-family:var(--font-heading);font-size:16px;font-weight:600;color:var(--text-primary);flex:1;" id="builder-heading">Areas</h2>
+          <div class="pill-toggle">
+            <button data-view="sell" class="active">Sell view</button>
+            <button data-view="cost">Cost + margin</button>
+          </div>
+          <button class="btn btn-secondary btn-sm" id="add-area-btn"><span class="material-symbols-outlined">add</span> Add Area</button>
+        </div>
+
+        <div id="areas-host"></div>
+
+        <!-- Services section -->
+        <h3 class="section-h" style="margin-top:30px;">Services &amp; Installation</h3>
+        <div class="panel" style="padding:0;">
+          <div class="table-scroll">
+            <table class="data-table services-table">
+              <thead>
+                <tr>
+                  <th style="width:30px;"></th>
+                  <th>Service</th>
+                  <th style="width:80px;">Unit</th>
+                  <th class="right" style="width:70px;">Qty</th>
+                  <th class="right" style="width:90px;">Rate</th>
+                  <th class="right" style="width:80px;">Margin %</th>
+                  <th class="right" style="width:110px;">Sell</th>
+                </tr>
+              </thead>
+              <tbody id="services-host"></tbody>
+            </table>
+          </div>
+          <div style="padding:10px 14px;border-top:1px solid var(--border-light);background:var(--surface-card);">
+            <button class="btn btn-secondary btn-sm" id="add-service-btn"><span class="material-symbols-outlined">add</span> Add custom service</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: Margin / Totals panel -->
+      <aside>
+        <div class="margin-panel">
+          <h3 style="font-family:var(--font-heading);font-size:13px;font-weight:600;color:var(--text-primary);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:10px;">Margin &amp; Totals</h3>
+
+          <div style="font-size:11px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px;">Global margin</div>
+          <div class="global-margin-row">
+            <input type="range" id="global-margin" min="0" max="60" step="1" style="flex:1;">
+            <span class="value" id="global-margin-val">25%</span>
+          </div>
+          <button class="btn btn-secondary btn-sm" id="apply-all-margin" style="margin-top:6px;width:100%;justify-content:center;">Apply to all lines</button>
+
+          <hr style="border:none;border-top:1px solid var(--border-light);margin:14px 0;">
+
+          <div class="margin-row"><span class="lbl">Materials cost</span><span class="val num" id="t-mat-cost">$0</span></div>
+          <div class="margin-row"><span class="lbl">Materials sell</span><span class="val num" id="t-mat-sell">$0</span></div>
+          <div class="margin-row"><span class="lbl">Labour hours</span><span class="val num" id="t-lab-hrs">0</span></div>
+          <div class="margin-row"><span class="lbl">Labour sell</span><span class="val num" id="t-lab-sell">$0</span></div>
+          <div class="margin-row"><span class="lbl">Services</span><span class="val num" id="t-svc-sell">$0</span></div>
+          <div class="margin-row"><span class="lbl">Margin $</span><span class="val num" id="t-margin">$0</span></div>
+          <div class="margin-row"><span class="lbl">Margin %</span><span class="val num" id="t-margin-pct">0%</span></div>
+          <div class="margin-row"><span class="lbl">Sell (ex-GST)</span><span class="val lg num" id="t-sell">$0</span></div>
+          <div class="margin-row"><span class="lbl">GST (10%)</span><span class="val num" id="t-gst">$0</span></div>
+          <div class="margin-row"><span class="lbl"><b>Total inc-GST</b></span><span class="val lg num" id="t-total">$0</span></div>
+        </div>
+      </aside>
+    </div>
+
+    <!-- Wizard footer -->
+    <div class="wizard-footer">
+      <a class="btn btn-secondary" href="03-client-info.html"><span class="material-symbols-outlined">arrow_back</span> Back</a>
+      <div class="totals-mini"><span>Sell: <b id="f-sell">$0</b></span><span>Margin: <b id="f-margin">0%</b></span></div>
+      <div class="nav">
+        <button class="btn btn-secondary" id="save-exit"><span class="material-symbols-outlined">save</span> Save &amp; close</button>
+        <button class="btn btn-primary" id="continue"><span class="material-symbols-outlined">arrow_forward</span> Continue to Review</button>
+      </div>
+    </div>
+  </main>
+
+  <!-- Product picker drawer -->
+  <div class="drawer-backdrop" id="drawer-backdrop"></div>
+  <div class="drawer" id="product-drawer">
+    <div class="drawer-head">
+      <span class="material-symbols-outlined" style="color:var(--accent-primary);">inventory_2</span>
+      <h3>Add product</h3>
+      <button class="icon-btn" id="drawer-close"><span class="material-symbols-outlined">close</span></button>
+    </div>
+    <div class="drawer-body">
+      <div class="filters-row" style="margin-bottom:10px;">
+        <select id="filter-cat" class="form-input"><option value="">All categories</option></select>
+        <select id="filter-sub" class="form-input"><option value="">All subcategories</option></select>
+      </div>
+      <div class="filters-row" style="margin-bottom:10px;">
+        <select id="filter-mfr" class="form-input"><option value="">All brands</option></select>
+        <div class="search-wrap" style="max-width:none;">
+          <span class="material-symbols-outlined">search</span>
+          <input id="filter-search" type="text" class="form-input" placeholder="Search description or part no…">
+        </div>
+      </div>
+      <div id="product-results"></div>
+    </div>
+    <div class="drawer-foot">
+      <span id="drawer-area-label" style="font-size:12px;color:var(--text-muted);"></span>
+      <button class="btn btn-secondary btn-sm" id="drawer-done">Done</button>
+    </div>
+  </div>
+
+  <!-- Package picker modal -->
+  <div class="modal-bg" id="pkg-modal">
+    <div class="modal">
+      <div class="modal-head">
+        <span class="material-symbols-outlined" style="color:var(--accent-primary);">layers</span>
+        <h3>Apply package</h3>
+        <button class="icon-btn" id="pkg-close"><span class="material-symbols-outlined">close</span></button>
+      </div>
+      <div class="modal-body" id="pkg-list"></div>
+      <div class="modal-foot">
+        <button class="btn btn-secondary" id="pkg-cancel">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/mock-data.js"></script>
+  <script src="js/mock-state.js"></script>
+  <script src="js/mock-ui.js"></script>
+  <script src="js/mock-shell.js"></script>
+  <script>
+    // -------- Shell --------
+    MockShell.mount({
+      title: 'Build the Quote',
+      subtitle: 'Step 3 of 5 · Add areas, products, and services',
+      actionsHtml: `<a class="btn btn-secondary" href="01-quote-list.html"><span class="material-symbols-outlined">close</span> Cancel</a>`
+    });
+
+    // -------- Load current quote --------
+    let quote = MockState.getCurrentQuote();
+    if (!quote) { location.href = '02-mode-select.html'; }
+
+    // Quick mode UI tweaks
+    const isQuick = quote.mode === 'quick';
+    if (isQuick) {
+      document.getElementById('add-area-btn').style.display = 'none';
+      document.getElementById('builder-heading').textContent = 'Scope';
+      document.getElementById('step3-label').textContent = 'Build Scope';
+    }
+
+    // -------- Render quote meta --------
+    function renderMeta() {
+      const q = MockState.getCurrentQuote();
+      document.getElementById('quote-meta').innerHTML = `
+        <div class="mi"><span class="l">Quote #</span><span class="v">${q.number}</span></div>
+        <div class="mi"><span class="l">Client</span><span class="v">${q.client.name || '—'}</span></div>
+        <div class="mi"><span class="l">Project</span><span class="v">${q.project.name || '—'}</span></div>
+        <div class="mi"><span class="l">Mode</span><span class="v">${q.mode === 'quick' ? 'Quick' : 'Large'}</span></div>
+        <div class="mi"><span class="l">Status</span><span class="v">Draft</span></div>
+      `;
+    }
+
+    // -------- Render areas --------
+    function renderAreas() {
+      const q = MockState.getCurrentQuote();
+      const host = document.getElementById('areas-host');
+      if (q.areas.length === 0) {
+        host.innerHTML = `
+          <div class="area-card">
+            <div class="empty-state">
+              <span class="material-symbols-outlined">domain_add</span>
+              <h4>No areas yet</h4>
+              <div>Click <b>+ Add Area</b> above to start building. Each area is a named space (e.g. "Boardroom", "Reception") with its own products and notes.</div>
+            </div>
+          </div>`;
+        return;
+      }
+
+      host.innerHTML = q.areas.map((area, idx) => renderAreaCard(area, idx, q)).join('');
+
+      // Wire up per-area events
+      q.areas.forEach(area => wireAreaEvents(area.id));
+    }
+
+    function renderAreaCard(area, idx, q) {
+      // Group lines by packageId (consecutive same-package lines collapse under a header)
+      const linesHtml = renderLinesForArea(area, q);
+
+      return `
+        <div class="area-card" data-area-id="${area.id}">
+          <div class="area-head">
+            <input class="area-name" value="${area.name}" placeholder="Area name" data-area-input="${area.id}">
+            <span class="area-meta">${area.lines.length} item${area.lines.length === 1 ? '' : 's'} · ${MockUI.fmtMoney(MockState.areaTotals(area, q).materialsSell + MockState.areaTotals(area, q).labourSell)}</span>
+            <div class="area-actions">
+              <button class="icon-btn" title="Duplicate" data-dup="${area.id}"><span class="material-symbols-outlined">content_copy</span></button>
+              <button class="icon-btn" title="Move up"  data-up="${area.id}"><span class="material-symbols-outlined">arrow_upward</span></button>
+              <button class="icon-btn" title="Move down" data-down="${area.id}"><span class="material-symbols-outlined">arrow_downward</span></button>
+              <button class="icon-btn danger" title="Remove" data-rm-area="${area.id}"><span class="material-symbols-outlined">delete_outline</span></button>
+            </div>
+          </div>
+          <div class="area-body">
+            ${linesHtml}
+          </div>
+          <div class="area-foot">
+            <button class="btn btn-secondary btn-sm" data-add-line="${area.id}"><span class="material-symbols-outlined">add</span> Add Product</button>
+            <button class="btn btn-secondary btn-sm" data-add-pkg="${area.id}"><span class="material-symbols-outlined">layers</span> Apply Package</button>
+            <div style="flex:1;"></div>
+            <button class="btn btn-secondary btn-sm" data-notes="${area.id}" title="Internal notes"><span class="material-symbols-outlined">edit_note</span> Notes</button>
+          </div>
+        </div>`;
+    }
+
+    function renderLinesForArea(area, q) {
+      if (area.lines.length === 0) {
+        return `<div class="area-empty">No products yet — click <b>+ Add Product</b> below to start.</div>`;
+      }
+      let html = `
+        <div class="table-scroll">
+          <table class="lines" data-area-table="${area.id}">
+            <thead>
+              <tr>
+                <th class="col-mfr">Brand</th>
+                <th class="col-model">Model</th>
+                <th>Description</th>
+                <th class="col-qty">Qty</th>
+                <th class="col-unit">Unit</th>
+                <th class="col-num">Labour (hr)</th>
+                <th class="col-num col-cost col-cost-h" style="display:none;">Cost</th>
+                <th class="col-num col-margin col-margin-h" style="display:none;">Margin %</th>
+                <th class="col-num">Sell</th>
+                <th class="col-actions"></th>
+              </tr>
+            </thead>
+            <tbody>
+      `;
+
+      let lastPkg = null;
+      area.lines.forEach(line => {
+        // Package header row when packageId changes
+        if (line.packageId && line.packageId !== lastPkg) {
+          const pkg = MockData.packages.find(p => p.id === line.packageId);
+          html += `<tr class="line-pkg-header"><td colspan="10"><span class="material-symbols-outlined" style="font-size:14px;vertical-align:middle;">layers</span> ${pkg ? pkg.name : 'Package'}</td></tr>`;
+          lastPkg = line.packageId;
+        }
+        if (!line.packageId) lastPkg = null;
+
+        const t = MockState.lineTotals(line, area, q);
+        const effMargin = MockState.effectiveMargin(line, area, q);
+        const supplyTag = line.isSupplyOnly ? `<span class="line-flag supply">Supply only</span>` : '';
+        const provTag   = line.isProvisional ? `<span class="line-flag prov">Prov</span>` : '';
+
+        html += `
+          <tr data-line-row="${line.id}">
+            <td><div style="font-size:11px;color:var(--text-muted);font-weight:600;">${line.manufacturer}</div></td>
+            <td><div style="font-family:var(--font-heading);font-weight:500;font-size:12px;">${line.model}</div></td>
+            <td>
+              <div>${line.description}</div>
+              <div style="font-size:10px;color:var(--text-muted);margin-top:2px;">${line.cat} · ${line.sub} ${supplyTag} ${provTag}</div>
+            </td>
+            <td><input class="cell-input cell-num" type="number" min="0" step="1" value="${line.qty}" data-line-edit="${line.id}" data-field="qty"></td>
+            <td><div style="font-size:11px;color:var(--text-muted);">${line.unit}</div></td>
+            <td><input class="cell-input cell-num" type="number" min="0" step="0.1" value="${line.labourHours}" data-line-edit="${line.id}" data-field="labourHours" ${line.isSupplyOnly ? 'disabled' : ''}></td>
+            <td class="col-num col-cost" style="display:none;"><div class="num" style="color:var(--text-tertiary);">${MockUI.fmtMoney(line.costPrice)}</div></td>
+            <td class="col-num col-margin" style="display:none;"><input class="cell-input cell-num cell-narrow" type="number" min="0" max="90" step="1" value="${line.marginPct === null ? '' : line.marginPct}" placeholder="${q.globalMarginPct}" data-line-edit="${line.id}" data-field="marginPct" title="Leave blank to inherit (${effMargin}%)"></td>
+            <td><div class="num"><b>${MockUI.fmtMoney(t.sellTotal)}</b></div></td>
+            <td class="right">
+              <div style="display:inline-flex;gap:2px;">
+                <button class="icon-btn" title="Supply only" data-line-toggle="${line.id}" data-toggle="supply"><span class="material-symbols-outlined" style="color:${line.isSupplyOnly ? 'var(--status-warning)' : 'inherit'};">local_shipping</span></button>
+                <button class="icon-btn" title="Mark provisional" data-line-toggle="${line.id}" data-toggle="prov"><span class="material-symbols-outlined" style="color:${line.isProvisional ? 'var(--status-accent)' : 'inherit'};">help_outline</span></button>
+                <button class="icon-btn danger" title="Remove" data-line-remove="${line.id}"><span class="material-symbols-outlined">delete_outline</span></button>
+              </div>
+            </td>
+          </tr>
+        `;
+      });
+
+      html += `</tbody></table></div>`;
+      return html;
+    }
+
+    // -------- Wire area-card events --------
+    function wireAreaEvents(areaId) {
+      const q = MockState.getCurrentQuote();
+      const card = document.querySelector(`[data-area-id="${areaId}"]`);
+      if (!card) return;
+
+      // Rename
+      const nameInput = card.querySelector('[data-area-input]');
+      nameInput.addEventListener('input', e => {
+        MockState.updateArea(q.id, areaId, { name: e.target.value });
+      });
+
+      // Buttons
+      card.querySelector(`[data-rm-area="${areaId}"]`).addEventListener('click', () => {
+        MockUI.confirmAction(`Remove area "${nameInput.value}"?`, () => {
+          MockState.removeArea(q.id, areaId);
+          renderAll();
+        });
+      });
+      card.querySelector(`[data-dup="${areaId}"]`).addEventListener('click', () => {
+        MockState.duplicateArea(q.id, areaId);
+        renderAll();
+      });
+      card.querySelector(`[data-up="${areaId}"]`).addEventListener('click', () => {
+        moveArea(areaId, -1);
+      });
+      card.querySelector(`[data-down="${areaId}"]`).addEventListener('click', () => {
+        moveArea(areaId, +1);
+      });
+      card.querySelector(`[data-add-line="${areaId}"]`).addEventListener('click', () => openDrawer(areaId));
+      card.querySelector(`[data-add-pkg="${areaId}"]`).addEventListener('click', () => openPkgModal(areaId));
+      card.querySelector(`[data-notes="${areaId}"]`).addEventListener('click', () => {
+        const cur = MockState.getCurrentQuote().areas.find(a => a.id === areaId);
+        const notes = prompt('Internal notes / assumptions for this area (never shown to client):', cur.notes || '');
+        if (notes !== null) {
+          MockState.updateArea(q.id, areaId, { notes });
+          MockUI.toast('Notes saved');
+        }
+      });
+
+      // Line edits
+      card.querySelectorAll('[data-line-edit]').forEach(input => {
+        const lineId = input.getAttribute('data-line-edit');
+        const field = input.getAttribute('data-field');
+        input.addEventListener('input', () => {
+          let val;
+          if (field === 'marginPct') {
+            val = input.value === '' ? null : parseFloat(input.value);
+          } else {
+            val = parseFloat(input.value) || 0;
+          }
+          MockState.updateLine(q.id, areaId, lineId, { [field]: val });
+          renderTotals();
+          // Re-render just this row's sell column without re-rendering everything
+          const cur = MockState.getCurrentQuote().areas.find(a => a.id === areaId).lines.find(l => l.id === lineId);
+          const t = MockState.lineTotals(cur, MockState.getCurrentQuote().areas.find(a => a.id === areaId), MockState.getCurrentQuote());
+          const row = card.querySelector(`[data-line-row="${lineId}"]`);
+          if (row) row.querySelector('td:nth-last-child(2) b').textContent = MockUI.fmtMoney(t.sellTotal);
+        });
+      });
+      card.querySelectorAll('[data-line-toggle]').forEach(btn => {
+        const lineId = btn.getAttribute('data-line-toggle');
+        const toggle = btn.getAttribute('data-toggle');
+        btn.addEventListener('click', () => {
+          const cur = MockState.getCurrentQuote().areas.find(a => a.id === areaId).lines.find(l => l.id === lineId);
+          if (toggle === 'supply') {
+            MockState.updateLine(q.id, areaId, lineId, { isSupplyOnly: !cur.isSupplyOnly });
+          } else {
+            MockState.updateLine(q.id, areaId, lineId, { isProvisional: !cur.isProvisional });
+          }
+          renderAll();
+        });
+      });
+      card.querySelectorAll('[data-line-remove]').forEach(btn => {
+        const lineId = btn.getAttribute('data-line-remove');
+        btn.addEventListener('click', () => {
+          MockState.removeLine(q.id, areaId, lineId);
+          renderAll();
+        });
+      });
+    }
+
+    function moveArea(areaId, dir) {
+      const s = MockState.load();
+      const q = s.quotes.find(q => q.id === s.currentQuoteId);
+      const idx = q.areas.findIndex(a => a.id === areaId);
+      const target = idx + dir;
+      if (target < 0 || target >= q.areas.length) return;
+      const [a] = q.areas.splice(idx, 1);
+      q.areas.splice(target, 0, a);
+      MockState.save(s);
+      renderAll();
+    }
+
+    // -------- Add area --------
+    document.getElementById('add-area-btn').addEventListener('click', () => {
+      const cur = MockState.getCurrentQuote();
+      const name = prompt('Area name:', `Area ${cur.areas.length + 1}`);
+      if (!name) return;
+      MockState.addArea(cur.id, name);
+      renderAll();
+    });
+
+    // -------- Product picker drawer --------
+    let drawerAreaId = null;
+    function openDrawer(areaId) {
+      drawerAreaId = areaId;
+      const area = MockState.getCurrentQuote().areas.find(a => a.id === areaId);
+      document.getElementById('drawer-area-label').textContent = `Adding to: ${area.name}`;
+      populateFilters();
+      renderProductResults();
+      document.getElementById('drawer-backdrop').classList.add('open');
+      document.getElementById('product-drawer').classList.add('open');
+    }
+    function closeDrawer() {
+      document.getElementById('drawer-backdrop').classList.remove('open');
+      document.getElementById('product-drawer').classList.remove('open');
+      drawerAreaId = null;
+    }
+    document.getElementById('drawer-backdrop').addEventListener('click', closeDrawer);
+    document.getElementById('drawer-close').addEventListener('click', closeDrawer);
+    document.getElementById('drawer-done').addEventListener('click', closeDrawer);
+
+    function populateFilters() {
+      const catSel = document.getElementById('filter-cat');
+      const subSel = document.getElementById('filter-sub');
+      const mfrSel = document.getElementById('filter-mfr');
+      catSel.innerHTML = '<option value="">All categories</option>' + MockData.categories.map(c => `<option>${c.name}</option>`).join('');
+      subSel.innerHTML = '<option value="">All subcategories</option>';
+      const mfrs = [...new Set(MockData.products.map(p => p.mfr))].sort();
+      mfrSel.innerHTML = '<option value="">All brands</option>' + mfrs.map(m => `<option>${m}</option>`).join('');
+
+      catSel.onchange = () => {
+        const cat = MockData.categories.find(c => c.name === catSel.value);
+        subSel.innerHTML = '<option value="">All subcategories</option>' + (cat ? cat.subs.map(s => `<option>${s}</option>`).join('') : '');
+        renderProductResults();
+      };
+      subSel.onchange = renderProductResults;
+      mfrSel.onchange = renderProductResults;
+      document.getElementById('filter-search').oninput = renderProductResults;
+    }
+
+    function renderProductResults() {
+      const cat = document.getElementById('filter-cat').value;
+      const sub = document.getElementById('filter-sub').value;
+      const mfr = document.getElementById('filter-mfr').value;
+      const q = document.getElementById('filter-search').value.trim().toLowerCase();
+
+      let results = MockData.products;
+      if (cat) results = results.filter(p => p.cat === cat);
+      if (sub) results = results.filter(p => p.sub === sub);
+      if (mfr) results = results.filter(p => p.mfr === mfr);
+      if (q)   results = results.filter(p => (p.desc + ' ' + p.mpn + ' ' + p.mfr).toLowerCase().includes(q));
+
+      const host = document.getElementById('product-results');
+      if (results.length === 0) {
+        host.innerHTML = '<div class="empty-state"><span class="material-symbols-outlined">search_off</span><div>No products match those filters.</div></div>';
+        return;
+      }
+
+      host.innerHTML = results.map(p => `
+        <div class="product-result" data-add-pid="${p.id}">
+          <div>
+            <div class="pr-mfr">${p.mfr}</div>
+            <div class="pr-name">${p.mpn} — ${p.short}</div>
+            <div class="pr-desc">${p.desc}</div>
+            <div class="pr-cat">${p.cat} · ${p.sub}</div>
+          </div>
+          <div>
+            <div class="pr-price">${MockUI.fmtMoney(p.cost)}</div>
+            <div class="pr-cat" style="text-align:right;">cost / ${p.unit}</div>
+          </div>
+        </div>
+      `).join('');
+
+      host.querySelectorAll('[data-add-pid]').forEach(el => {
+        el.addEventListener('click', () => {
+          const pid = el.getAttribute('data-add-pid');
+          MockState.addLineFromProduct(MockState.getCurrentQuote().id, drawerAreaId, pid, 1);
+          MockUI.toast('Added');
+          renderAll();
+        });
+      });
+    }
+
+    // -------- Package modal --------
+    function openPkgModal(areaId) {
+      const list = document.getElementById('pkg-list');
+      list.innerHTML = MockData.packages.map(p => `
+        <div class="package-card" data-pkg-id="${p.id}" data-area-id="${areaId}">
+          <h5>${p.name}</h5>
+          <div class="meta">${p.description} · ${p.items.length} items</div>
+          <div class="tags">${p.tags.map(t => `<span class="tag">${t}</span>`).join('')}</div>
+        </div>
+      `).join('');
+      list.querySelectorAll('[data-pkg-id]').forEach(el => {
+        el.addEventListener('click', () => {
+          const pid = el.getAttribute('data-pkg-id');
+          const aid = el.getAttribute('data-area-id');
+          MockState.addPackageToArea(MockState.getCurrentQuote().id, aid, pid);
+          MockUI.toast('Package applied', 'success');
+          closePkgModal();
+          renderAll();
+        });
+      });
+      document.getElementById('pkg-modal').classList.add('open');
+    }
+    function closePkgModal() { document.getElementById('pkg-modal').classList.remove('open'); }
+    document.getElementById('pkg-close').addEventListener('click', closePkgModal);
+    document.getElementById('pkg-cancel').addEventListener('click', closePkgModal);
+
+    // -------- Services --------
+    function renderServices() {
+      const q = MockState.getCurrentQuote();
+      const host = document.getElementById('services-host');
+      // Build combined list: predefined services (whether or not currently included) + any custom services
+      const predefIds = MockData.services.map(s => s.id);
+      const customRows = q.services.filter(sv => sv.serviceId === null);
+      const orderedRows = MockData.services.map(def => {
+        const existing = q.services.find(sv => sv.serviceId === def.id);
+        return existing ? { ...existing, defaults: def } : {
+          // Not yet added — show as a togglable row
+          id: 'pending_' + def.id, serviceId: def.id, name: def.name, category: def.category,
+          unit: def.unit, qty: def.defaultQty, rate: def.defaultRate, marginPct: def.marginPct,
+          included: false, defaults: def
+        };
+      }).concat(customRows);
+
+      host.innerHTML = orderedRows.map(sv => {
+        const sellEach = sv.rate / (1 - (sv.marginPct / 100));
+        const sellTotal = (sv.qty || 0) * (isFinite(sellEach) ? sellEach : sv.rate);
+        const isCustom = sv.serviceId === null;
+        const includedClass = sv.included ? 'services-row' : 'services-row dim';
+        return `
+          <tr class="${includedClass}" style="${sv.included ? '' : 'opacity:0.55;'}">
+            <td><input type="checkbox" data-svc-toggle="${sv.serviceId || sv.id}" ${sv.included ? 'checked' : ''}></td>
+            <td>
+              <span class="name">${sv.name}</span>
+              <span class="cat-tag">${sv.category}</span>
+              ${isCustom ? '<span class="cat-tag" style="background:var(--status-accent-bg);color:var(--status-accent);">Custom</span>' : ''}
+            </td>
+            <td><div style="font-size:11px;color:var(--text-muted);">${sv.unit}</div></td>
+            <td class="right"><input class="cell-input cell-num" type="number" min="0" step="0.5" value="${sv.qty || 0}" data-svc-edit="${sv.id}" data-field="qty" ${!sv.included ? 'disabled' : ''}></td>
+            <td class="right"><input class="cell-input cell-num" type="number" min="0" step="5" value="${sv.rate}" data-svc-edit="${sv.id}" data-field="rate" ${!sv.included ? 'disabled' : ''}></td>
+            <td class="right"><input class="cell-input cell-num cell-narrow" type="number" min="0" max="80" step="1" value="${sv.marginPct}" data-svc-edit="${sv.id}" data-field="marginPct" ${!sv.included ? 'disabled' : ''}></td>
+            <td class="right"><b>${MockUI.fmtMoney(sellTotal)}</b></td>
+          </tr>
+        `;
+      }).join('');
+
+      // Wire toggles
+      host.querySelectorAll('[data-svc-toggle]').forEach(cb => {
+        const sid = cb.getAttribute('data-svc-toggle');
+        cb.addEventListener('change', () => {
+          MockState.toggleService(MockState.getCurrentQuote().id, sid, cb.checked);
+          renderAll();
+        });
+      });
+      host.querySelectorAll('[data-svc-edit]').forEach(input => {
+        const id = input.getAttribute('data-svc-edit');
+        const field = input.getAttribute('data-field');
+        input.addEventListener('input', () => {
+          const v = parseFloat(input.value) || 0;
+          MockState.updateService(MockState.getCurrentQuote().id, id, { [field]: v });
+          renderServices();
+          renderTotals();
+        });
+      });
+    }
+
+    document.getElementById('add-service-btn').addEventListener('click', () => {
+      const name = prompt('Service name:');
+      if (!name) return;
+      MockState.addCustomService(MockState.getCurrentQuote().id, name, 'lot', 0, 1);
+      renderAll();
+    });
+
+    // -------- Totals --------
+    function renderTotals() {
+      const q = MockState.getCurrentQuote();
+      const t = MockState.quoteTotal(q);
+      document.getElementById('t-mat-cost').textContent = MockUI.fmtMoney(t.materialsCost);
+      document.getElementById('t-mat-sell').textContent = MockUI.fmtMoney(t.materialsSell);
+      document.getElementById('t-lab-hrs').textContent  = MockUI.fmtHours(t.labourHours);
+      document.getElementById('t-lab-sell').textContent = MockUI.fmtMoney(t.labourSell);
+      document.getElementById('t-svc-sell').textContent = MockUI.fmtMoney(t.servicesSell);
+      document.getElementById('t-margin').textContent   = MockUI.fmtMoney(t.margin);
+      document.getElementById('t-margin-pct').textContent = MockUI.fmtPct(t.marginPct);
+      document.getElementById('t-sell').textContent     = MockUI.fmtMoney(t.sellExGST);
+      document.getElementById('t-gst').textContent      = MockUI.fmtMoney(t.gst);
+      document.getElementById('t-total').textContent    = MockUI.fmtMoney(t.incGST);
+      document.getElementById('f-sell').textContent     = MockUI.fmtMoney(t.sellExGST);
+      document.getElementById('f-margin').textContent   = MockUI.fmtPct(t.marginPct);
+    }
+
+    // -------- Global margin --------
+    const slider = document.getElementById('global-margin');
+    const sliderVal = document.getElementById('global-margin-val');
+    slider.value = quote.globalMarginPct;
+    sliderVal.textContent = quote.globalMarginPct + '%';
+    slider.addEventListener('input', () => {
+      sliderVal.textContent = slider.value + '%';
+      MockState.updateQuote(quote.id, { globalMarginPct: parseFloat(slider.value) });
+      renderTotals();
+      // Update per-line displayed sell prices (lines inheriting margin will re-compute)
+      renderAreas();
+    });
+    document.getElementById('apply-all-margin').addEventListener('click', () => {
+      MockUI.confirmAction(`Apply ${slider.value}% margin to every line (clearing per-line overrides)?`, () => {
+        const q = MockState.getCurrentQuote();
+        q.areas.forEach(a => a.lines.forEach(l => l.marginPct = null));
+        MockState.updateQuote(q.id, q);
+        MockUI.toast('Applied to all lines');
+        renderAll();
+      });
+    });
+
+    // -------- View toggle --------
+    document.querySelectorAll('.pill-toggle button').forEach(b => {
+      b.addEventListener('click', () => {
+        document.querySelectorAll('.pill-toggle button').forEach(x => x.classList.remove('active'));
+        b.classList.add('active');
+        document.body.classList.toggle('cost-view', b.getAttribute('data-view') === 'cost');
+        // Re-render to apply hidden columns (CSS handles it but we ensure data is fresh)
+      });
+    });
+
+    // -------- Footer nav --------
+    document.getElementById('continue').addEventListener('click', () => {
+      const cur = MockState.getCurrentQuote();
+      const totalLines = cur.areas.reduce((n, a) => n + a.lines.length, 0);
+      if (totalLines === 0) { MockUI.toast('Add at least one product before continuing', 'warn'); return; }
+      location.href = '05-review.html';
+    });
+    document.getElementById('save-exit').addEventListener('click', () => {
+      MockUI.toast('Saved as draft', 'success');
+      setTimeout(() => location.href = '01-quote-list.html', 500);
+    });
+
+    // -------- Render everything --------
+    function renderAll() {
+      renderMeta();
+      renderAreas();
+      renderServices();
+      renderTotals();
+    }
+    renderAll();
+  </script>
+</body>
+</html>
