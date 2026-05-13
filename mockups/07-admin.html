@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Admin — SKS Quotes</title>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Symbols+Outlined" rel="stylesheet">
+  <link rel="stylesheet" href="../shared/theme.css">
+  <link rel="stylesheet" href="css/mockups.css">
+  <style>
+    .tab-bar { display: flex; gap: 4px; margin-bottom: 16px; padding: 4px; background: var(--surface-inset); border-radius: var(--radius-md); flex-wrap: wrap; }
+    .tab-bar button { background: transparent; border: none; padding: 7px 12px; border-radius: var(--radius-sm); font-size: 12px; color: var(--text-secondary); cursor: pointer; font-family: var(--font-body); font-weight: 500; display: flex; align-items: center; gap: 5px; }
+    .tab-bar button.active { background: var(--surface-white); color: var(--text-primary); box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
+    .tab-bar button .material-symbols-outlined { font-size: 16px; }
+
+    .upload-area { padding: 18px; border: 2px dashed var(--border-input); border-radius: var(--radius-lg); text-align: center; background: var(--surface-card); color: var(--text-secondary); margin-bottom: 14px; }
+    .upload-area .material-symbols-outlined { font-size: 28px; color: var(--text-muted); }
+    .upload-area h4 { font-family: var(--font-heading); font-size: 14px; color: var(--text-primary); margin: 6px 0 2px; }
+    .upload-area .sub { font-size: 12px; }
+
+    .cat-tree { display: grid; grid-template-columns: 240px 1fr; gap: 12px; }
+    @media (max-width: 800px) { .cat-tree { grid-template-columns: 1fr; } }
+    .cat-list { background: var(--surface-card); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 6px; }
+    .cat-list .cat-row { padding: 8px 10px; border-radius: var(--radius-sm); cursor: pointer; font-size: 13px; display: flex; align-items: center; justify-content: space-between; }
+    .cat-list .cat-row:hover { background: rgba(0,0,0,0.04); }
+    .cat-list .cat-row.active { background: var(--accent-primary); color: white; }
+    .cat-list .cat-row .count { font-size: 11px; opacity: 0.7; }
+    .sub-list { background: var(--surface-card); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 14px; }
+    .sub-row { padding: 10px 0; border-bottom: 1px solid var(--border-light); display: flex; align-items: center; gap: 10px; }
+    .sub-row:last-child { border-bottom: none; }
+    .sub-row .name { flex: 1; font-size: 13px; }
+    .sub-row .labour-info { font-size: 11px; color: var(--text-muted); font-family: var(--font-heading); }
+
+    .stat-strip { display: flex; gap: 24px; padding: 12px 16px; background: var(--surface-inset); border-radius: var(--radius-md); margin-bottom: 14px; flex-wrap: wrap; }
+    .stat-strip .s { display: flex; flex-direction: column; gap: 2px; }
+    .stat-strip .s .l { font-size: 10px; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
+    .stat-strip .s .v { font-family: var(--font-heading); font-weight: 700; font-size: 18px; color: var(--text-primary); }
+
+    .product-rows tr td .mfr { font-size: 11px; color: var(--text-muted); font-weight: 600; }
+    .product-rows tr td .model { font-family: var(--font-heading); font-weight: 500; font-size: 12px; color: var(--text-primary); }
+    .product-rows tr td .desc { font-size: 11.5px; color: var(--text-secondary); margin-top: 1px; }
+
+    .package-card.full { padding: 14px 16px; border: 1px solid var(--border); border-radius: var(--radius-md); margin-bottom: 12px; background: var(--surface-card); }
+    .package-card.full h5 { font-family: var(--font-heading); font-size: 14px; font-weight: 600; color: var(--text-primary); }
+    .package-card.full .items { margin-top: 8px; font-size: 12px; color: var(--text-secondary); }
+    .package-card.full .items div { padding: 3px 0; }
+    .package-card.full .items div .qty { color: var(--text-muted); font-family: var(--font-heading); font-weight: 600; margin-right: 6px; }
+  </style>
+</head>
+<body data-page="admin-products">
+  <main id="content" class="content">
+
+    <!-- Tab bar -->
+    <div class="tab-bar" id="tab-bar">
+      <button data-tab="products" class="active"><span class="material-symbols-outlined">inventory_2</span> Products</button>
+      <button data-tab="suppliers"><span class="material-symbols-outlined">store</span> Suppliers</button>
+      <button data-tab="categories"><span class="material-symbols-outlined">category</span> Categories &amp; Labour</button>
+      <button data-tab="packages"><span class="material-symbols-outlined">layers</span> Packages</button>
+      <button data-tab="services"><span class="material-symbols-outlined">build</span> Services</button>
+      <button data-tab="exclusions"><span class="material-symbols-outlined">rule</span> Exclusions</button>
+      <button data-tab="terms"><span class="material-symbols-outlined">gavel</span> Terms</button>
+    </div>
+
+    <div id="tab-host"></div>
+
+  </main>
+
+  <script src="js/mock-data.js"></script>
+  <script src="js/mock-state.js"></script>
+  <script src="js/mock-ui.js"></script>
+  <script src="js/mock-shell.js"></script>
+  <script>
+    MockShell.mount({
+      title: 'Admin — Catalogue & Library',
+      subtitle: 'Suppliers, products, categories, packages, services and clauses',
+      actionsHtml: `<a class="btn btn-secondary" href="01-quote-list.html"><span class="material-symbols-outlined">arrow_back</span> Back to quotes</a>`
+    });
+
+    // -------- Tab renderers --------
+    function renderProducts() {
+      const total = MockData.products.length;
+      const active = MockData.products.filter(p => true).length;
+      const byCat = MockData.categories.map(c => ({ cat: c.name, n: MockData.products.filter(p => p.cat === c.name).length }));
+      const topMfr = [...new Set(MockData.products.map(p => p.mfr))].length;
+
+      return `
+        <div class="stat-strip">
+          <div class="s"><span class="l">Active products</span><span class="v">${active}</span></div>
+          <div class="s"><span class="l">Suppliers</span><span class="v">${MockData.suppliers.length}</span></div>
+          <div class="s"><span class="l">Brands</span><span class="v">${topMfr}</span></div>
+          <div class="s"><span class="l">Categories</span><span class="v">${MockData.categories.length}</span></div>
+        </div>
+
+        <div class="upload-area">
+          <span class="material-symbols-outlined">upload_file</span>
+          <h4>Upload supplier price sheet (CSV or XLSX)</h4>
+          <div class="sub">We'll detect the columns, show you a mapping preview, then update existing products and add new ones. Old cost prices are archived, not overwritten.</div>
+          <div style="margin-top:10px;display:flex;gap:6px;justify-content:center;">
+            <button class="btn btn-primary btn-sm"><span class="material-symbols-outlined">add</span> Upload price sheet</button>
+            <button class="btn btn-secondary btn-sm"><span class="material-symbols-outlined">history</span> View import history</button>
+          </div>
+        </div>
+
+        <div class="filters-row">
+          <div class="search-wrap">
+            <span class="material-symbols-outlined">search</span>
+            <input type="text" class="form-input" placeholder="Search by description / part no…" id="p-search">
+          </div>
+          <select class="form-input" id="p-cat">
+            <option value="">All categories</option>
+            ${MockData.categories.map(c => `<option>${c.name}</option>`).join('')}
+          </select>
+          <select class="form-input" id="p-sup">
+            <option value="">All suppliers</option>
+            ${MockData.suppliers.map(s => `<option value="${s.id}">${s.name}</option>`).join('')}
+          </select>
+          <div style="flex:1;"></div>
+          <button class="btn btn-primary btn-sm"><span class="material-symbols-outlined">add</span> Add product</button>
+        </div>
+
+        <div class="table-wrap">
+          <div class="table-scroll">
+            <table class="data-table product-rows" id="p-table">
+              <thead>
+                <tr>
+                  <th>Brand / Model</th>
+                  <th>Description</th>
+                  <th>Category</th>
+                  <th>Supplier</th>
+                  <th class="right">Cost</th>
+                  <th class="right">RRP</th>
+                  <th>Unit</th>
+                  <th class="right"></th>
+                </tr>
+              </thead>
+              <tbody id="p-rows"></tbody>
+            </table>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderProductRows() {
+      const search = (document.getElementById('p-search')?.value || '').trim().toLowerCase();
+      const cat = document.getElementById('p-cat')?.value || '';
+      const sup = document.getElementById('p-sup')?.value || '';
+      let rows = MockData.products;
+      if (search) rows = rows.filter(p => (p.desc + ' ' + p.mpn + ' ' + p.mfr).toLowerCase().includes(search));
+      if (cat) rows = rows.filter(p => p.cat === cat);
+      if (sup) rows = rows.filter(p => p.supplierId === sup);
+
+      document.getElementById('p-rows').innerHTML = rows.map(p => `
+        <tr>
+          <td>
+            <div class="mfr">${p.mfr}</div>
+            <div class="model">${p.mpn}</div>
+          </td>
+          <td>
+            <div class="desc">${p.short}</div>
+            <div style="font-size:10.5px;color:var(--text-muted);">${p.desc}</div>
+          </td>
+          <td><div style="font-size:11.5px;color:var(--text-secondary);">${p.cat}</div><div style="font-size:10px;color:var(--text-muted);">${p.sub}</div></td>
+          <td><div style="font-size:11.5px;color:var(--text-secondary);">${MockData.supplierById(p.supplierId)?.name || '—'}</div></td>
+          <td class="right num">${MockUI.fmtMoneyCents(p.cost)}</td>
+          <td class="right num" style="color:var(--text-muted);">${p.rrp ? MockUI.fmtMoneyCents(p.rrp) : '—'}</td>
+          <td><div style="font-size:11px;color:var(--text-muted);">${p.unit}</div></td>
+          <td class="right">
+            <div class="row-actions">
+              <button class="icon-btn" title="Edit"><span class="material-symbols-outlined">edit</span></button>
+              <button class="icon-btn" title="Price history"><span class="material-symbols-outlined">history</span></button>
+              <button class="icon-btn danger" title="Deactivate"><span class="material-symbols-outlined">visibility_off</span></button>
+            </div>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    function renderSuppliers() {
+      return `
+        <div class="filters-row">
+          <div class="search-wrap"><span class="material-symbols-outlined">search</span><input type="text" class="form-input" placeholder="Search suppliers…"></div>
+          <div style="flex:1;"></div>
+          <button class="btn btn-primary btn-sm"><span class="material-symbols-outlined">add</span> Add supplier</button>
+        </div>
+        <div class="table-wrap">
+          <div class="table-scroll">
+            <table class="data-table">
+              <thead><tr>
+                <th>Supplier</th><th>Code</th><th>Products</th><th>Lead time</th><th>Preferred</th><th class="right"></th>
+              </tr></thead>
+              <tbody>
+                ${MockData.suppliers.map(s => {
+                  const n = MockData.products.filter(p => p.supplierId === s.id).length;
+                  return `<tr>
+                    <td><div style="font-family:var(--font-heading);font-weight:600;">${s.name}</div></td>
+                    <td><div style="font-size:11px;color:var(--text-muted);font-family:var(--font-heading);">${s.code}</div></td>
+                    <td>${n}</td>
+                    <td>${s.leadDays} days</td>
+                    <td>${s.preferred ? '<span class="badge badge-success">Preferred</span>' : '<span class="badge badge-muted">Standard</span>'}</td>
+                    <td class="right"><button class="icon-btn"><span class="material-symbols-outlined">edit</span></button></td>
+                  </tr>`;
+                }).join('')}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderCategories() {
+      const cats = MockData.categories;
+      return `
+        <div class="cat-tree">
+          <div class="cat-list" id="cat-list">
+            ${cats.map((c, i) => `
+              <div class="cat-row ${i === 0 ? 'active' : ''}" data-cat-idx="${i}">
+                <span>${c.name}</span>
+                <span class="count">${c.subs.length}</span>
+              </div>
+            `).join('')}
+          </div>
+          <div class="sub-list" id="sub-list"></div>
+        </div>
+        <div style="margin-top:10px;display:flex;gap:6px;">
+          <button class="btn btn-secondary btn-sm"><span class="material-symbols-outlined">add</span> Add category</button>
+          <button class="btn btn-secondary btn-sm"><span class="material-symbols-outlined">edit</span> Reorder</button>
+        </div>
+      `;
+    }
+    function renderSubList(catIdx) {
+      const cat = MockData.categories[catIdx];
+      const host = document.getElementById('sub-list');
+      host.innerHTML = `
+        <h3 style="font-family:var(--font-heading);font-size:14px;font-weight:600;color:var(--text-primary);margin-bottom:8px;">${cat.name}</h3>
+        <div style="font-size:11px;color:var(--text-muted);margin-bottom:10px;">Subcategories with their default labour allocation</div>
+        ${cat.subs.map(s => {
+          const lab = MockData.labourForSub(s);
+          return `<div class="sub-row">
+            <div class="name">${s}</div>
+            <div class="labour-info">${lab.hours} hr · ${lab.trade}</div>
+            <button class="icon-btn" title="Edit labour default"><span class="material-symbols-outlined">edit</span></button>
+          </div>`;
+        }).join('')}
+      `;
+      document.querySelectorAll('#cat-list .cat-row').forEach(el => el.classList.remove('active'));
+      document.querySelector(`#cat-list .cat-row[data-cat-idx="${catIdx}"]`).classList.add('active');
+    }
+
+    function renderPackages() {
+      return `
+        <div class="filters-row">
+          <div style="flex:1;font-size:13px;color:var(--text-secondary);">Saved packages — drop any of these into an area to add a pre-built combination of products in one action.</div>
+          <button class="btn btn-primary btn-sm"><span class="material-symbols-outlined">add</span> Create package</button>
+        </div>
+        ${MockData.packages.map(p => `
+          <div class="package-card full">
+            <div style="display:flex;align-items:center;gap:10px;">
+              <h5 style="flex:1;">${p.name}</h5>
+              <div>${p.tags.map(t => `<span class="badge badge-muted">${t}</span>`).join(' ')}</div>
+              <button class="icon-btn" title="Edit"><span class="material-symbols-outlined">edit</span></button>
+              <button class="icon-btn danger" title="Archive"><span class="material-symbols-outlined">archive</span></button>
+            </div>
+            <div style="font-size:12px;color:var(--text-muted);margin-top:2px;">${p.description}</div>
+            <div class="items">
+              ${p.items.map(it => {
+                const prod = MockData.productById(it.productId);
+                return `<div><span class="qty">${it.qty}×</span> ${prod ? prod.mfr + ' ' + prod.mpn + ' — ' + prod.short : it.productId}</div>`;
+              }).join('')}
+            </div>
+          </div>
+        `).join('')}
+      `;
+    }
+
+    function renderServices() {
+      return `
+        <div class="filters-row">
+          <div style="flex:1;font-size:13px;color:var(--text-secondary);">Services are non-product charge items. Set a default rate, default quantity, and default margin — estimators can override per quote.</div>
+          <button class="btn btn-primary btn-sm"><span class="material-symbols-outlined">add</span> Add service</button>
+        </div>
+        <div class="table-wrap">
+          <div class="table-scroll">
+            <table class="data-table">
+              <thead><tr><th>Service</th><th>Category</th><th>Unit</th><th class="right">Default rate</th><th class="right">Default qty</th><th class="right">Margin %</th><th>Default-on?</th><th class="right"></th></tr></thead>
+              <tbody>
+                ${MockData.services.map(s => `<tr>
+                  <td><div style="font-weight:500;">${s.name}</div></td>
+                  <td>${s.category}</td>
+                  <td>${s.unit}</td>
+                  <td class="right num">${MockUI.fmtMoneyCents(s.defaultRate)}</td>
+                  <td class="right num">${s.defaultQty}</td>
+                  <td class="right num">${s.marginPct}%</td>
+                  <td>${s.includedByDefault ? '<span class="badge badge-success">Yes</span>' : '<span class="badge badge-muted">No</span>'}</td>
+                  <td class="right"><button class="icon-btn"><span class="material-symbols-outlined">edit</span></button></td>
+                </tr>`).join('')}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderExclusions() {
+      return `
+        <div class="filters-row">
+          <div style="flex:1;font-size:13px;color:var(--text-secondary);">Standard exclusion clauses. These appear as suggestions on the review screen.</div>
+          <button class="btn btn-primary btn-sm"><span class="material-symbols-outlined">add</span> Add exclusion</button>
+        </div>
+        <div class="table-wrap" style="padding:0;">
+          ${MockData.exclusionsLibrary.map((e, i) => `
+            <div style="display:flex;align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid var(--border-light);">
+              <span class="material-symbols-outlined" style="color:var(--text-muted);">drag_indicator</span>
+              <div style="flex:1;font-size:13px;">${e}</div>
+              <button class="icon-btn"><span class="material-symbols-outlined">edit</span></button>
+              <button class="icon-btn danger"><span class="material-symbols-outlined">delete_outline</span></button>
+            </div>
+          `).join('')}
+        </div>
+      `;
+    }
+
+    function renderTerms() {
+      return `
+        <div class="panel">
+          <div class="panel-header"><h3>Standard terms &amp; conditions</h3><span class="sub">Loaded into every new quote</span></div>
+          <textarea style="width:100%;min-height:280px;border:1px solid var(--border-input);border-radius:var(--radius-md);padding:12px;font:inherit;font-size:12px;color:var(--text-primary);background:var(--surface-white);">${MockData.standardTerms}</textarea>
+          <div style="margin-top:10px;display:flex;gap:8px;">
+            <button class="btn btn-primary btn-sm"><span class="material-symbols-outlined">save</span> Save</button>
+            <button class="btn btn-secondary btn-sm"><span class="material-symbols-outlined">restart_alt</span> Revert</button>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-header"><h3>Additional templates</h3><span class="sub">e.g. tender-specific terms</span></div>
+          <div style="color:var(--text-muted);font-size:13px;padding:8px 0;">No additional templates yet. Click below to add one.</div>
+          <button class="btn btn-secondary btn-sm"><span class="material-symbols-outlined">add</span> Add terms template</button>
+        </div>
+      `;
+    }
+
+    // -------- Tab switching --------
+    const tabs = {
+      products:   { render: renderProducts,   page: 'admin-products',   wire: wireProducts },
+      suppliers:  { render: renderSuppliers,  page: 'admin-suppliers' },
+      categories: { render: renderCategories, page: 'admin-cats',       wire: wireCategories },
+      packages:   { render: renderPackages,   page: 'admin-pkgs' },
+      services:   { render: renderServices,   page: 'admin-services' },
+      exclusions: { render: renderExclusions, page: 'admin-exclusions' },
+      terms:      { render: renderTerms,      page: 'admin-terms' }
+    };
+
+    function wireProducts() {
+      renderProductRows();
+      document.getElementById('p-search').addEventListener('input', renderProductRows);
+      document.getElementById('p-cat').addEventListener('change', renderProductRows);
+      document.getElementById('p-sup').addEventListener('change', renderProductRows);
+    }
+    function wireCategories() {
+      renderSubList(0);
+      document.querySelectorAll('#cat-list .cat-row').forEach(el => {
+        el.addEventListener('click', () => renderSubList(parseInt(el.getAttribute('data-cat-idx'))));
+      });
+    }
+
+    function showTab(name) {
+      const def = tabs[name] || tabs.products;
+      document.getElementById('tab-host').innerHTML = def.render();
+      document.querySelectorAll('#tab-bar button').forEach(b => b.classList.toggle('active', b.getAttribute('data-tab') === name));
+      document.body.setAttribute('data-page', def.page);
+      // Re-highlight sidebar
+      document.querySelectorAll('.sidebar .nav-item').forEach(el => {
+        el.classList.toggle('active', el.getAttribute('data-page') === def.page);
+      });
+      if (def.wire) def.wire();
+      history.replaceState(null, '', '#' + name);
+    }
+
+    document.querySelectorAll('#tab-bar button').forEach(b => {
+      b.addEventListener('click', () => showTab(b.getAttribute('data-tab')));
+    });
+
+    // Hash-based deep link
+    const startTab = (location.hash || '#products').replace('#', '');
+    showTab(tabs[startTab] ? startTab : 'products');
+  </script>
+</body>
+</html>

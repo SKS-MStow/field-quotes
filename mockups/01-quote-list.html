@@ -3,495 +3,264 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <title>Quotes — SKS Field Apps</title>
+  <title>Quotes — SKS Quotes</title>
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/icon?family=Material+Symbols+Outlined" rel="stylesheet">
   <link rel="stylesheet" href="../shared/theme.css">
+  <link rel="stylesheet" href="css/mockups.css">
   <style>
-    /* Mockup-only tweaks — none of these would live in the real app's CSS */
-    a { text-decoration: none; color: inherit; }
-
-    .filters-row {
-      display: flex;
-      gap: 10px;
-      align-items: center;
-      margin-bottom: 16px;
-      flex-wrap: wrap;
-    }
-    .filters-row .form-input { font-size: 13px; padding: 7px 10px; border: 1px solid var(--border-input); border-radius: var(--radius-md); background: var(--surface-white); font-family: var(--font-body); color: var(--text-primary); min-width: 160px; }
-    .filters-row .search-wrap { position: relative; flex: 1; min-width: 220px; max-width: 360px; }
-    .filters-row .search-wrap input { width: 100%; padding-left: 34px; }
-    .filters-row .search-wrap .material-symbols-outlined { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); font-size: 18px; color: var(--text-muted); pointer-events: none; }
-
-    .kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 20px; }
-    @media (max-width: 900px) { .kpi-grid { grid-template-columns: repeat(2, 1fr); } }
-    .kpi {
-      background: var(--surface-card);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-lg);
-      padding: 14px 16px;
-    }
-    .kpi-label { font-size: 11px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; }
-    .kpi-value { font-family: var(--font-heading); font-size: 22px; font-weight: 700; color: var(--text-primary); margin-top: 4px; }
-    .kpi-sub { font-size: 11px; color: var(--text-tertiary); margin-top: 2px; }
-
-    .quote-table-wrap {
-      background: var(--surface-card);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-lg);
-      overflow: hidden;
-    }
-    .table-scroll { overflow-x: auto; }
-    table.quote-table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 13px;
-    }
-    table.quote-table thead th {
-      text-align: left;
-      font-weight: 600;
-      font-size: 11px;
-      color: var(--text-muted);
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      padding: 12px 14px;
-      border-bottom: 1px solid var(--border);
-      background: var(--surface-inset);
-      white-space: nowrap;
-    }
-    table.quote-table tbody td {
-      padding: 13px 14px;
-      border-bottom: 1px solid var(--border-light);
-      vertical-align: middle;
-    }
-    table.quote-table tbody tr:hover { background: rgba(0, 0, 0, 0.015); cursor: pointer; }
-    table.quote-table tbody tr:last-child td { border-bottom: none; }
     .quote-num { font-family: var(--font-heading); font-weight: 600; color: var(--text-primary); }
     .quote-rev { color: var(--text-muted); font-size: 11px; margin-left: 6px; font-weight: 500; }
     .quote-client { font-weight: 500; color: var(--text-primary); }
     .quote-project { color: var(--text-secondary); font-size: 12px; margin-top: 1px; }
     .quote-value { font-family: var(--font-heading); font-weight: 600; color: var(--text-primary); text-align: right; white-space: nowrap; }
-    .quote-date { color: var(--text-secondary); white-space: nowrap; }
-    .quote-prepared { color: var(--text-secondary); white-space: nowrap; }
+    .quote-date { color: var(--text-secondary); white-space: nowrap; font-size: 12px; }
+    .quote-prepared { color: var(--text-secondary); white-space: nowrap; font-size: 12px; }
     .row-actions { display: flex; gap: 4px; justify-content: flex-end; }
-    .icon-btn {
-      width: 28px; height: 28px;
-      display: inline-flex; align-items: center; justify-content: center;
-      border-radius: var(--radius-sm);
-      color: var(--text-muted);
-      cursor: pointer;
-      border: none;
-      background: transparent;
-    }
-    .icon-btn:hover { background: rgba(0,0,0,0.04); color: var(--text-primary); }
-    .icon-btn .material-symbols-outlined { font-size: 18px; }
-
-    .pagination {
-      display: flex; align-items: center; justify-content: space-between;
-      padding: 12px 16px;
-      border-top: 1px solid var(--border);
-      background: var(--surface-card);
-      font-size: 12px;
-      color: var(--text-muted);
-    }
-    .pagination .pager { display: flex; gap: 4px; }
-    .pager-btn { background: transparent; border: 1px solid var(--border); padding: 4px 10px; border-radius: var(--radius-sm); cursor: pointer; color: var(--text-secondary); font-family: var(--font-body); font-size: 12px; }
-    .pager-btn.active { background: var(--accent-primary); color: white; border-color: var(--accent-primary); }
-    .pager-btn:disabled { opacity: 0.4; cursor: default; }
-
-    .topbar-actions { display: flex; gap: 8px; }
-
-    /* Hide some sidebar groups on small screens — mockup-only */
-    @media (max-width: 768px) {
-      .kpi-grid { grid-template-columns: 1fr 1fr; }
-    }
+    .no-results { padding: 40px 20px; text-align: center; color: var(--text-muted); }
+    .no-results .material-symbols-outlined { font-size: 36px; color: var(--border-hover); margin-bottom: 8px; }
+    .no-results h4 { font-family: var(--font-heading); font-size: 14px; font-weight: 600; color: var(--text-secondary); margin: 4px 0; }
   </style>
 </head>
-<body>
-  <div class="app-frame">
-    <!-- Sidebar -->
-    <div class="sidebar" id="sidebar">
-      <div class="sidebar-logo">
-        <h1>SKS Quotes</h1>
-        <span id="sidebar-user">Mark Stowell · Estimator</span>
+<body data-page="quotes">
+
+  <main id="content" class="content">
+
+    <!-- KPI strip -->
+    <div class="kpi-grid" id="kpi-host"></div>
+
+    <!-- Filters -->
+    <div class="filters-row">
+      <div class="search-wrap">
+        <span class="material-symbols-outlined">search</span>
+        <input id="filter-search" type="text" class="form-input" placeholder="Search by quote #, client, project…">
       </div>
-
-      <div class="nav-group-label">Overview</div>
-      <a class="nav-item" href="#"><span class="material-symbols-outlined">home</span> My Dashboard</a>
-
-      <div class="nav-group-label">Quotes</div>
-      <a class="nav-item active" href="#"><span class="material-symbols-outlined">request_quote</span> All Quotes</a>
-      <a class="nav-item" href="#"><span class="material-symbols-outlined">edit_note</span> Drafts <span class="nav-badge">3</span></a>
-      <a class="nav-item" href="#"><span class="material-symbols-outlined">send</span> Issued</a>
-      <a class="nav-item" href="#"><span class="material-symbols-outlined">check_circle</span> Accepted</a>
-      <a class="nav-item" href="#"><span class="material-symbols-outlined">bookmark</span> Templates</a>
-
-      <div class="nav-group-label">Catalogue</div>
-      <a class="nav-item" href="#"><span class="material-symbols-outlined">inventory_2</span> Products</a>
-      <a class="nav-item" href="#"><span class="material-symbols-outlined">store</span> Suppliers</a>
-      <a class="nav-item" href="#"><span class="material-symbols-outlined">category</span> Categories</a>
-      <a class="nav-item" href="#"><span class="material-symbols-outlined">layers</span> Packages</a>
-
-      <div class="nav-group-label">Library</div>
-      <a class="nav-item" href="#"><span class="material-symbols-outlined">build</span> Services</a>
-      <a class="nav-item" href="#"><span class="material-symbols-outlined">rule</span> Exclusions</a>
-      <a class="nav-item" href="#"><span class="material-symbols-outlined">gavel</span> Terms</a>
-
-      <div class="sidebar-bottom">
-        <a class="nav-item" href="#"><span class="material-symbols-outlined">tune</span> Settings</a>
-      </div>
+      <select class="form-input" id="filter-status">
+        <option value="">All statuses</option>
+        <option value="draft">Draft</option>
+        <option value="issued">Issued</option>
+        <option value="accepted">Accepted</option>
+        <option value="declined">Declined</option>
+        <option value="expired">Expired</option>
+        <option value="revised">Revised</option>
+      </select>
+      <select class="form-input" id="filter-mode">
+        <option value="">All modes</option>
+        <option value="quick">Quick</option>
+        <option value="large">Large</option>
+      </select>
+      <select class="form-input" id="filter-prep">
+        <option value="">All estimators</option>
+        <option value="Mark Stowell">Mark Stowell</option>
+        <option value="Steven Carmichael">Steven Carmichael</option>
+      </select>
+      <select class="form-input" id="filter-sort">
+        <option value="newest">Sort: Newest first</option>
+        <option value="oldest">Sort: Oldest first</option>
+        <option value="value-high">Sort: Value high → low</option>
+        <option value="value-low">Sort: Value low → high</option>
+        <option value="client">Sort: Client A–Z</option>
+      </select>
+      <button class="btn btn-secondary btn-sm" id="reset-data" title="Reset mockup data to defaults"><span class="material-symbols-outlined">restart_alt</span> Reset demo</button>
     </div>
 
-    <!-- Sidebar overlay for mobile -->
-    <div class="sidebar-overlay" id="sidebar-overlay"></div>
+    <!-- Quote table -->
+    <div class="table-wrap" id="table-host"></div>
 
-    <!-- Main content -->
-    <div class="main">
-      <!-- Mobile header -->
-      <div class="mobile-header" id="mobile-header">
-        <button class="mobile-hamburger" id="hamburger-btn" style="background:none;border:none;color:white;cursor:pointer;padding:0;display:flex;align-items:center;">
-          <span class="material-symbols-outlined">menu</span>
-        </button>
-        <span class="mobile-title" style="font-family:var(--font-heading);font-size:15px;font-weight:700;">SKS Quotes</span>
-      </div>
+  </main>
 
-      <!-- Desktop topbar -->
-      <div class="topbar">
-        <div>
-          <h2>Quotes</h2>
-          <div class="page-label">All quotes · 47 results</div>
+  <script src="js/mock-data.js"></script>
+  <script src="js/mock-state.js"></script>
+  <script src="js/mock-ui.js"></script>
+  <script src="js/mock-shell.js"></script>
+  <script>
+    MockShell.mount({
+      title: 'Quotes',
+      subtitle: 'All quotes',
+      actionsHtml: `
+        <button class="btn btn-secondary" id="export-btn"><span class="material-symbols-outlined">file_download</span> Export</button>
+        <a class="btn btn-primary" href="02-mode-select.html"><span class="material-symbols-outlined">add</span> New Quote</a>`
+    });
+
+    // -------- Read URL filter (e.g. ?filter=draft from sidebar) --------
+    const params = new URLSearchParams(location.search);
+    if (params.get('filter')) {
+      document.getElementById('filter-status').value = params.get('filter');
+    }
+
+    // -------- KPI computations --------
+    function renderKpis(quotes) {
+      const openPipeline = quotes.filter(q => q.status === 'issued').reduce((s, q) => s + (q.value || 0), 0);
+      const draftCount = quotes.filter(q => q.status === 'draft').length;
+      const wonFy = quotes.filter(q => q.status === 'accepted').reduce((s, q) => s + (q.value || 0), 0);
+      const wonCount = quotes.filter(q => q.status === 'accepted').length;
+      const decided = quotes.filter(q => ['accepted','declined'].includes(q.status));
+      const winRate = decided.length ? Math.round((decided.filter(q => q.status === 'accepted').length / decided.length) * 100) : 0;
+
+      document.getElementById('kpi-host').innerHTML = `
+        <div class="kpi">
+          <div class="kpi-label">Open Pipeline</div>
+          <div class="kpi-value">${MockUI.fmtMoney(openPipeline)}</div>
+          <div class="kpi-sub">Issued, not yet decided</div>
         </div>
-        <div class="actions topbar-actions">
-          <button class="btn btn-secondary"><span class="material-symbols-outlined">file_download</span> Export</button>
-          <button class="btn btn-primary"><span class="material-symbols-outlined">add</span> New Quote</button>
+        <div class="kpi">
+          <div class="kpi-label">Drafts in Progress</div>
+          <div class="kpi-value">${draftCount}</div>
+          <div class="kpi-sub">${draftCount === 1 ? 'In your queue' : 'Across the team'}</div>
         </div>
-      </div>
-
-      <!-- Page content -->
-      <div class="content">
-
-        <!-- KPI strip -->
-        <div class="kpi-grid">
-          <div class="kpi">
-            <div class="kpi-label">Open Pipeline</div>
-            <div class="kpi-value">$684,210</div>
-            <div class="kpi-sub">Issued, not yet decided</div>
-          </div>
-          <div class="kpi">
-            <div class="kpi-label">Drafts in Progress</div>
-            <div class="kpi-value">3</div>
-            <div class="kpi-sub">2 mine, 1 shared</div>
-          </div>
-          <div class="kpi">
-            <div class="kpi-label">Won this FY</div>
-            <div class="kpi-value">$1.42M</div>
-            <div class="kpi-sub">12 quotes accepted</div>
-          </div>
-          <div class="kpi">
-            <div class="kpi-label">Win Rate</div>
-            <div class="kpi-value">63%</div>
-            <div class="kpi-sub">Last 12 months</div>
-          </div>
+        <div class="kpi">
+          <div class="kpi-label">Won this FY</div>
+          <div class="kpi-value">${MockUI.fmtMoney(wonFy)}</div>
+          <div class="kpi-sub">${wonCount} quote${wonCount === 1 ? '' : 's'} accepted</div>
         </div>
-
-        <!-- Filters -->
-        <div class="filters-row">
-          <div class="search-wrap">
-            <span class="material-symbols-outlined">search</span>
-            <input type="text" class="form-input" placeholder="Search by quote #, client, project…">
-          </div>
-          <select class="form-input">
-            <option>All statuses</option>
-            <option>Draft</option>
-            <option>Issued</option>
-            <option>Accepted</option>
-            <option>Declined</option>
-            <option>Expired</option>
-            <option>Revised</option>
-          </select>
-          <select class="form-input">
-            <option>All clients</option>
-            <option>NAPGC</option>
-            <option>Verdale Cres Pty Ltd</option>
-            <option>Rutledge AV</option>
-          </select>
-          <select class="form-input">
-            <option>All estimators</option>
-            <option>Mark Stowell</option>
-            <option>Steven Carmichael</option>
-          </select>
-          <select class="form-input">
-            <option>Sort: Newest first</option>
-            <option>Sort: Value high → low</option>
-            <option>Sort: Valid until ↑</option>
-            <option>Sort: Client A–Z</option>
-          </select>
+        <div class="kpi">
+          <div class="kpi-label">Win Rate</div>
+          <div class="kpi-value">${winRate}%</div>
+          <div class="kpi-sub">Last 12 months</div>
         </div>
+      `;
+    }
 
-        <!-- Quote table -->
-        <div class="quote-table-wrap">
-          <div class="table-scroll">
-            <table class="quote-table">
-              <thead>
-                <tr>
-                  <th>Quote #</th>
-                  <th>Client / Project</th>
-                  <th style="text-align:right;">Value (ex-GST)</th>
-                  <th>Issued</th>
-                  <th>Valid Until</th>
-                  <th>Status</th>
-                  <th>Prepared by</th>
-                  <th style="text-align:right;">&nbsp;</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td>
-                    <span class="quote-num">SKS-2026-0047</span>
-                    <span class="quote-rev">Rev A</span>
-                  </td>
-                  <td>
-                    <div class="quote-client">North Adelaide Plains Golf Club</div>
-                    <div class="quote-project">Clubhouse AV refresh · Level 1</div>
-                  </td>
-                  <td class="quote-value">$184,210</td>
-                  <td class="quote-date">—</td>
-                  <td class="quote-date">—</td>
-                  <td><span class="badge badge-muted">Draft</span></td>
-                  <td class="quote-prepared">Mark S.</td>
-                  <td>
-                    <div class="row-actions">
-                      <button class="icon-btn" title="Edit"><span class="material-symbols-outlined">edit</span></button>
-                      <button class="icon-btn" title="More"><span class="material-symbols-outlined">more_horiz</span></button>
-                    </div>
-                  </td>
-                </tr>
+    // -------- Filter + sort --------
+    function filterAndSort(quotes) {
+      const q   = document.getElementById('filter-search').value.trim().toLowerCase();
+      const st  = document.getElementById('filter-status').value;
+      const md  = document.getElementById('filter-mode').value;
+      const pr  = document.getElementById('filter-prep').value;
+      const so  = document.getElementById('filter-sort').value;
 
-                <tr>
-                  <td>
-                    <span class="quote-num">SKS-2026-0046</span>
-                    <span class="quote-rev">Rev B</span>
-                  </td>
-                  <td>
-                    <div class="quote-client">Verdale Cres Pty Ltd</div>
-                    <div class="quote-project">Boardroom MTR upgrade</div>
-                  </td>
-                  <td class="quote-value">$58,940</td>
-                  <td class="quote-date">12 May 2026</td>
-                  <td class="quote-date">11 Jun 2026</td>
-                  <td><span class="badge badge-info">Issued</span></td>
-                  <td class="quote-prepared">Mark S.</td>
-                  <td>
-                    <div class="row-actions">
-                      <button class="icon-btn" title="View"><span class="material-symbols-outlined">visibility</span></button>
-                      <button class="icon-btn" title="More"><span class="material-symbols-outlined">more_horiz</span></button>
-                    </div>
-                  </td>
-                </tr>
+      let out = quotes.slice();
+      if (q)  out = out.filter(qq => (qq.number + ' ' + (qq.client.name || '') + ' ' + (qq.project.name || '')).toLowerCase().includes(q));
+      if (st) out = out.filter(qq => qq.status === st);
+      if (md) out = out.filter(qq => qq.mode === md);
+      if (pr) out = out.filter(qq => qq.preparedBy === pr);
 
-                <tr>
-                  <td>
-                    <span class="quote-num">SKS-2026-0045</span>
-                    <span class="quote-rev">Rev A</span>
-                  </td>
-                  <td>
-                    <div class="quote-client">Rutledge AV</div>
-                    <div class="quote-project">Hospitality fitout — supply only</div>
-                  </td>
-                  <td class="quote-value">$12,480</td>
-                  <td class="quote-date">10 May 2026</td>
-                  <td class="quote-date">9 Jun 2026</td>
-                  <td><span class="badge badge-success">Accepted</span></td>
-                  <td class="quote-prepared">Mark S.</td>
-                  <td>
-                    <div class="row-actions">
-                      <button class="icon-btn" title="View"><span class="material-symbols-outlined">visibility</span></button>
-                      <button class="icon-btn" title="More"><span class="material-symbols-outlined">more_horiz</span></button>
-                    </div>
-                  </td>
-                </tr>
+      out.sort((a, b) => {
+        switch (so) {
+          case 'oldest':     return (a.createdAt || '').localeCompare(b.createdAt || '');
+          case 'value-high': return (b.value || 0) - (a.value || 0);
+          case 'value-low':  return (a.value || 0) - (b.value || 0);
+          case 'client':     return (a.client.name || '').localeCompare(b.client.name || '');
+          case 'newest':
+          default:           return (b.createdAt || '').localeCompare(a.createdAt || '');
+        }
+      });
+      return out;
+    }
 
-                <tr>
-                  <td>
-                    <span class="quote-num">SKS-2026-0044</span>
-                    <span class="quote-rev">Rev A</span>
-                  </td>
-                  <td>
-                    <div class="quote-client">SA Department of Education</div>
-                    <div class="quote-project">Glenelg Primary — 4 classrooms + library</div>
-                  </td>
-                  <td class="quote-value">$312,560</td>
-                  <td class="quote-date">7 May 2026</td>
-                  <td class="quote-date">6 Jun 2026</td>
-                  <td><span class="badge badge-info">Issued</span></td>
-                  <td class="quote-prepared">Steven C.</td>
-                  <td>
-                    <div class="row-actions">
-                      <button class="icon-btn" title="View"><span class="material-symbols-outlined">visibility</span></button>
-                      <button class="icon-btn" title="More"><span class="material-symbols-outlined">more_horiz</span></button>
-                    </div>
-                  </td>
-                </tr>
+    // -------- Render table --------
+    function renderTable() {
+      const all = MockState.getQuotes();
+      renderKpis(all);
+      const rows = filterAndSort(all);
+      const host = document.getElementById('table-host');
 
-                <tr>
-                  <td>
-                    <span class="quote-num">SKS-2026-0043</span>
-                    <span class="quote-rev">Rev A</span>
-                  </td>
-                  <td>
-                    <div class="quote-client">Adelaide Convention Centre</div>
-                    <div class="quote-project">Pre-function digital signage</div>
-                  </td>
-                  <td class="quote-value">$48,720</td>
-                  <td class="quote-date">3 May 2026</td>
-                  <td class="quote-date">2 Jun 2026</td>
-                  <td><span class="badge badge-danger">Declined</span></td>
-                  <td class="quote-prepared">Mark S.</td>
-                  <td>
-                    <div class="row-actions">
-                      <button class="icon-btn" title="View"><span class="material-symbols-outlined">visibility</span></button>
-                      <button class="icon-btn" title="More"><span class="material-symbols-outlined">more_horiz</span></button>
-                    </div>
-                  </td>
-                </tr>
+      if (rows.length === 0) {
+        host.innerHTML = `
+          <div class="no-results">
+            <span class="material-symbols-outlined">search_off</span>
+            <h4>No quotes match those filters</h4>
+            <div style="font-size:13px;">Clear the filters or start a new quote.</div>
+          </div>`;
+        return;
+      }
 
-                <tr>
-                  <td>
-                    <span class="quote-num">SKS-2026-0042</span>
-                    <span class="quote-rev">Rev A</span>
-                  </td>
-                  <td>
-                    <div class="quote-client">University of Adelaide</div>
-                    <div class="quote-project">Engineering — Lecture Theatre 2 refresh</div>
-                  </td>
-                  <td class="quote-value">$94,180</td>
-                  <td class="quote-date">28 Apr 2026</td>
-                  <td class="quote-date">28 May 2026</td>
-                  <td><span class="badge badge-info">Issued</span></td>
-                  <td class="quote-prepared">Mark S.</td>
-                  <td>
-                    <div class="row-actions">
-                      <button class="icon-btn" title="View"><span class="material-symbols-outlined">visibility</span></button>
-                      <button class="icon-btn" title="More"><span class="material-symbols-outlined">more_horiz</span></button>
-                    </div>
-                  </td>
-                </tr>
+      const rowsHtml = rows.map(q => {
+        const badge = MockUI.statusBadge(q.status);
+        return `
+          <tr class="clickable" data-open="${q.id}">
+            <td>
+              <span class="quote-num">${q.number}</span>
+              <span class="quote-rev">Rev ${q.revision}</span>
+            </td>
+            <td>
+              <div class="quote-client">${q.client.name || '—'}</div>
+              <div class="quote-project">${q.project.name || '—'}</div>
+            </td>
+            <td class="num right">${q.value ? MockUI.fmtMoney(q.value) : '—'}</td>
+            <td class="quote-date">${q.status === 'draft' ? '—' : MockUI.fmtDate(q.createdAt)}</td>
+            <td class="quote-date">${q.status === 'draft' ? '—' : MockUI.fmtDate(q.validUntil)}</td>
+            <td><span class="${badge.cls}">${badge.label}</span></td>
+            <td><span class="badge badge-muted" style="text-transform:capitalize;">${q.mode}</span></td>
+            <td class="quote-prepared">${(q.preparedBy || '').replace(/^(\w+)\s+(\w).*/, '$1 $2.')}</td>
+            <td class="right">
+              <div class="row-actions">
+                <button class="icon-btn" title="${q.status === 'draft' ? 'Edit' : 'View'}" data-open="${q.id}">
+                  <span class="material-symbols-outlined">${q.status === 'draft' ? 'edit' : 'visibility'}</span>
+                </button>
+                <button class="icon-btn" title="More" data-more="${q.id}"><span class="material-symbols-outlined">more_horiz</span></button>
+              </div>
+            </td>
+          </tr>`;
+      }).join('');
 
-                <tr>
-                  <td>
-                    <span class="quote-num">SKS-2026-0041</span>
-                    <span class="quote-rev">Rev A</span>
-                  </td>
-                  <td>
-                    <div class="quote-client">NAPGC</div>
-                    <div class="quote-project">Pro shop signage</div>
-                  </td>
-                  <td class="quote-value">$3,840</td>
-                  <td class="quote-date">22 Apr 2026</td>
-                  <td class="quote-date">22 May 2026</td>
-                  <td><span class="badge badge-success">Accepted</span></td>
-                  <td class="quote-prepared">Mark S.</td>
-                  <td>
-                    <div class="row-actions">
-                      <button class="icon-btn" title="View"><span class="material-symbols-outlined">visibility</span></button>
-                      <button class="icon-btn" title="More"><span class="material-symbols-outlined">more_horiz</span></button>
-                    </div>
-                  </td>
-                </tr>
-
-                <tr>
-                  <td>
-                    <span class="quote-num">SKS-2026-0040</span>
-                    <span class="quote-rev">Rev C</span>
-                  </td>
-                  <td>
-                    <div class="quote-client">Adelaide Oval SMA</div>
-                    <div class="quote-project">Western Stand corporate boxes — AV+UC</div>
-                  </td>
-                  <td class="quote-value">$487,990</td>
-                  <td class="quote-date">18 Apr 2026</td>
-                  <td class="quote-date">18 May 2026</td>
-                  <td><span class="badge badge-warning">Expired</span></td>
-                  <td class="quote-prepared">Steven C.</td>
-                  <td>
-                    <div class="row-actions">
-                      <button class="icon-btn" title="View"><span class="material-symbols-outlined">visibility</span></button>
-                      <button class="icon-btn" title="More"><span class="material-symbols-outlined">more_horiz</span></button>
-                    </div>
-                  </td>
-                </tr>
-
-                <tr>
-                  <td>
-                    <span class="quote-num">SKS-2026-0039</span>
-                    <span class="quote-rev">Rev A</span>
-                  </td>
-                  <td>
-                    <div class="quote-client">RAH</div>
-                    <div class="quote-project">Theatre 4 — UC variation</div>
-                  </td>
-                  <td class="quote-value">$18,640</td>
-                  <td class="quote-date">15 Apr 2026</td>
-                  <td class="quote-date">15 May 2026</td>
-                  <td><span class="badge badge-accent">Revised</span></td>
-                  <td class="quote-prepared">Mark S.</td>
-                  <td>
-                    <div class="row-actions">
-                      <button class="icon-btn" title="View"><span class="material-symbols-outlined">visibility</span></button>
-                      <button class="icon-btn" title="More"><span class="material-symbols-outlined">more_horiz</span></button>
-                    </div>
-                  </td>
-                </tr>
-
-                <tr>
-                  <td>
-                    <span class="quote-num">SKS-2026-0038</span>
-                    <span class="quote-rev">Rev A</span>
-                  </td>
-                  <td>
-                    <div class="quote-client">Holdfast Bay Council</div>
-                    <div class="quote-project">Civic Centre — Council chamber refresh</div>
-                  </td>
-                  <td class="quote-value">$216,400</td>
-                  <td class="quote-date">10 Apr 2026</td>
-                  <td class="quote-date">10 May 2026</td>
-                  <td><span class="badge badge-success">Accepted</span></td>
-                  <td class="quote-prepared">Steven C.</td>
-                  <td>
-                    <div class="row-actions">
-                      <button class="icon-btn" title="View"><span class="material-symbols-outlined">visibility</span></button>
-                      <button class="icon-btn" title="More"><span class="material-symbols-outlined">more_horiz</span></button>
-                    </div>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-
-          <div class="pagination">
-            <div>Showing 1–10 of 47</div>
-            <div class="pager">
-              <button class="pager-btn" disabled>‹ Prev</button>
-              <button class="pager-btn active">1</button>
-              <button class="pager-btn">2</button>
-              <button class="pager-btn">3</button>
-              <button class="pager-btn">4</button>
-              <button class="pager-btn">5</button>
-              <button class="pager-btn">Next ›</button>
-            </div>
-          </div>
+      host.innerHTML = `
+        <div class="table-scroll">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Quote #</th>
+                <th>Client / Project</th>
+                <th class="right">Value</th>
+                <th>Issued</th>
+                <th>Valid Until</th>
+                <th>Status</th>
+                <th>Mode</th>
+                <th>Prepared by</th>
+                <th class="right"></th>
+              </tr>
+            </thead>
+            <tbody>${rowsHtml}</tbody>
+          </table>
         </div>
+        <div class="pagination">
+          <div>Showing ${rows.length} of ${all.length}</div>
+          <div class="pager">
+            <button class="pager-btn" disabled>‹ Prev</button>
+            <button class="pager-btn active">1</button>
+            <button class="pager-btn" disabled>Next ›</button>
+          </div>
+        </div>`;
 
-      </div>
-    </div>
+      // Wire row clicks
+      host.querySelectorAll('[data-open]').forEach(el => {
+        el.addEventListener('click', e => {
+          e.stopPropagation();
+          const id = el.getAttribute('data-open');
+          MockState.setCurrentQuote(id);
+          const q = MockState.getQuote(id);
+          // Drafts open the builder; issued quotes open the output preview
+          location.href = q.status === 'draft' ? '04-area-builder.html' : '06-output-preview.html';
+        });
+      });
 
-    <!-- Bottom tabs for mobile -->
-    <div class="bottom-tabs" id="bottom-tabs">
-      <a class="bottom-tab active" href="#"><span class="material-symbols-outlined">request_quote</span><span>Quotes</span></a>
-      <a class="bottom-tab" href="#"><span class="material-symbols-outlined">edit_note</span><span>Drafts</span></a>
-      <a class="bottom-tab" href="#"><span class="material-symbols-outlined">inventory_2</span><span>Catalogue</span></a>
-      <a class="bottom-tab" href="#"><span class="material-symbols-outlined">add_circle</span><span>New</span></a>
-    </div>
-  </div>
+      host.querySelectorAll('[data-more]').forEach(el => {
+        el.addEventListener('click', e => {
+          e.stopPropagation();
+          MockUI.toast('Mockup — would open a context menu (duplicate / revise / archive / delete)');
+        });
+      });
+    }
+
+    // -------- Wire filters --------
+    ['filter-search','filter-status','filter-mode','filter-prep','filter-sort'].forEach(id => {
+      document.getElementById(id).addEventListener('input', renderTable);
+      document.getElementById(id).addEventListener('change', renderTable);
+    });
+
+    document.getElementById('reset-data').addEventListener('click', () => {
+      MockUI.confirmAction('Reset mockup data — clears any quote you have in progress. Continue?', () => {
+        MockState.reset();
+        MockUI.toast('Demo data reset', 'success');
+        renderTable();
+      });
+    });
+
+    document.getElementById('export-btn').addEventListener('click', () => {
+      MockUI.toast('Mockup — would download a CSV of the current view');
+    });
+
+    renderTable();
+  </script>
 </body>
 </html>

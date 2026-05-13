@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>SKS Quotes — Mockups Index</title>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Symbols+Outlined" rel="stylesheet">
+  <link rel="stylesheet" href="../shared/theme.css">
+  <link rel="stylesheet" href="css/mockups.css">
+  <style>
+    body { padding: 40px 20px; }
+    .wrap { max-width: 880px; margin: 0 auto; }
+    .hero { padding: 28px 32px; background: var(--surface-card); border: 1px solid var(--border); border-radius: var(--radius-xl); margin-bottom: 24px; }
+    .hero h1 { font-family: var(--font-heading); font-size: 26px; font-weight: 700; color: var(--text-primary); }
+    .hero .tag { color: var(--text-muted); font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 8px; }
+    .hero p { font-size: 14px; color: var(--text-secondary); line-height: 1.6; margin-top: 8px; }
+    .hero .cta { margin-top: 14px; display: flex; gap: 8px; flex-wrap: wrap; }
+    .screens { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    @media (max-width: 700px) { .screens { grid-template-columns: 1fr; } }
+    .screen-card { display: flex; gap: 12px; padding: 14px 16px; background: var(--surface-card); border: 1px solid var(--border); border-radius: var(--radius-lg); text-decoration: none; color: inherit; transition: all 0.12s; }
+    .screen-card:hover { border-color: var(--accent-primary); background: var(--surface-white); transform: translateY(-1px); box-shadow: 0 4px 14px rgba(0,0,0,0.04); }
+    .screen-card .num { width: 36px; height: 36px; border-radius: 50%; background: var(--accent-primary); color: white; display: flex; align-items: center; justify-content: center; font-family: var(--font-heading); font-weight: 700; flex-shrink: 0; }
+    .screen-card h3 { font-family: var(--font-heading); font-size: 14px; font-weight: 600; color: var(--text-primary); }
+    .screen-card .desc { font-size: 12px; color: var(--text-secondary); margin-top: 2px; }
+    .note { background: var(--status-info-bg); border: 1px solid #c5cdf2; border-radius: var(--radius-md); padding: 12px 16px; font-size: 12.5px; color: var(--status-info); margin-bottom: 22px; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+
+    <div class="hero">
+      <div class="tag">SKS Quotes · Interactive Mockup</div>
+      <h1>Run through the quote build flow</h1>
+      <p>
+        These mockups visually match the existing <code>/management</code> app (same sidebar, fonts, badges, mobile nav) and share a fake catalogue + state via localStorage, so you can click from one screen to the next as if it were the real app.
+      </p>
+      <p>
+        <b>Suggested path:</b> Start at the quote list → "New Quote" → pick Large → fill in client info (or use "demo text") → build areas (add products, apply packages, edit margins) → review → output preview.
+      </p>
+      <div class="cta">
+        <a class="btn btn-primary" href="01-quote-list.html"><span class="material-symbols-outlined">play_arrow</span> Start the demo</a>
+        <a class="btn btn-secondary" href="02-mode-select.html"><span class="material-symbols-outlined">add</span> Skip to "New Quote"</a>
+        <a class="btn btn-secondary" href="07-admin.html"><span class="material-symbols-outlined">tune</span> Admin panel</a>
+      </div>
+    </div>
+
+    <div class="note">
+      <b>Heads up:</b> all data lives in your browser only (localStorage). Refresh keeps your work; clicking "Reset demo" on the quote list wipes it back to the seeded sample.
+    </div>
+
+    <div class="screens">
+      <a class="screen-card" href="01-quote-list.html">
+        <div class="num">1</div>
+        <div>
+          <h3>Quote list</h3>
+          <div class="desc">Landing page · table of all quotes, KPIs, filters, search, click into a quote.</div>
+        </div>
+      </a>
+      <a class="screen-card" href="02-mode-select.html">
+        <div class="num">2</div>
+        <div>
+          <h3>Mode select</h3>
+          <div class="desc">Pick Quick (small jobs) or Large (full projects). Creates a new quote.</div>
+        </div>
+      </a>
+      <a class="screen-card" href="03-client-info.html">
+        <div class="num">3</div>
+        <div>
+          <h3>Client &amp; project info</h3>
+          <div class="desc">Capture client + project. AI scope helper to pre-fill from pasted email.</div>
+        </div>
+      </a>
+      <a class="screen-card" href="04-area-builder.html">
+        <div class="num">4</div>
+        <div>
+          <h3>Build areas</h3>
+          <div class="desc">Add areas, pick products via category drilldown or apply packages, inline edits, live totals.</div>
+        </div>
+      </a>
+      <a class="screen-card" href="05-review.html">
+        <div class="num">5</div>
+        <div>
+          <h3>Review</h3>
+          <div class="desc">Full summary, warnings, exclusions, terms, last-chance margin slider.</div>
+        </div>
+      </a>
+      <a class="screen-card" href="06-output-preview.html">
+        <div class="num">6</div>
+        <div>
+          <h3>Output preview</h3>
+          <div class="desc">Client-facing quote document + internal cost sheet (with multiple tabs).</div>
+        </div>
+      </a>
+      <a class="screen-card" href="07-admin.html" style="grid-column:1/-1;">
+        <div class="num">7</div>
+        <div>
+          <h3>Admin panel</h3>
+          <div class="desc">Products, suppliers, categories &amp; labour defaults, packages, services, exclusions, terms.</div>
+        </div>
+      </a>
+    </div>
+
+    <div style="margin-top:30px;font-size:11px;color:var(--text-muted);text-align:center;">
+      Mockup only · No backend wired · Pre-build review prior to lower-level technical planning
+    </div>
+
+  </div>
+</body>
+</html>

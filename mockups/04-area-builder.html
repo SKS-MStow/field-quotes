@@ -23,9 +23,13 @@
     .pill-toggle { display: inline-flex; gap: 0; border: 1px solid var(--border-input); border-radius: var(--radius-md); overflow: hidden; }
     .pill-toggle button { background: var(--surface-white); border: none; padding: 5px 10px; font-size: 11px; color: var(--text-secondary); cursor: pointer; font-family: var(--font-body); }
     .pill-toggle button.active { background: var(--accent-primary); color: white; }
-    .col-cost, .col-margin { display: none; }
-    body.cost-view .col-cost, body.cost-view .col-margin { display: table-cell; }
-    body.cost-view .col-cost-h, body.cost-view .col-margin-h { display: table-cell; }
+    /* Cost/margin columns — hidden by default, shown when cost-view is on */
+    table.lines th.col-cost, table.lines th.col-margin,
+    table.lines td.col-cost, table.lines td.col-margin { display: none; }
+    body.cost-view table.lines th.col-cost,
+    body.cost-view table.lines th.col-margin,
+    body.cost-view table.lines td.col-cost,
+    body.cost-view table.lines td.col-margin { display: table-cell; }
 
     .services-table th, .services-table td { padding: 9px 12px; }
     .services-row .name { font-weight: 500; color: var(--text-primary); }
@@ -297,8 +301,8 @@
                 <th class="col-qty">Qty</th>
                 <th class="col-unit">Unit</th>
                 <th class="col-num">Labour (hr)</th>
-                <th class="col-num col-cost col-cost-h" style="display:none;">Cost</th>
-                <th class="col-num col-margin col-margin-h" style="display:none;">Margin %</th>
+                <th class="col-num col-cost">Cost</th>
+                <th class="col-num col-margin">Margin %</th>
                 <th class="col-num">Sell</th>
                 <th class="col-actions"></th>
               </tr>
@@ -332,8 +336,8 @@
             <td><input class="cell-input cell-num" type="number" min="0" step="1" value="${line.qty}" data-line-edit="${line.id}" data-field="qty"></td>
             <td><div style="font-size:11px;color:var(--text-muted);">${line.unit}</div></td>
             <td><input class="cell-input cell-num" type="number" min="0" step="0.1" value="${line.labourHours}" data-line-edit="${line.id}" data-field="labourHours" ${line.isSupplyOnly ? 'disabled' : ''}></td>
-            <td class="col-num col-cost" style="display:none;"><div class="num" style="color:var(--text-tertiary);">${MockUI.fmtMoney(line.costPrice)}</div></td>
-            <td class="col-num col-margin" style="display:none;"><input class="cell-input cell-num cell-narrow" type="number" min="0" max="90" step="1" value="${line.marginPct === null ? '' : line.marginPct}" placeholder="${q.globalMarginPct}" data-line-edit="${line.id}" data-field="marginPct" title="Leave blank to inherit (${effMargin}%)"></td>
+            <td class="col-num col-cost"><div class="num" style="color:var(--text-tertiary);">${MockUI.fmtMoney(line.costPrice)}</div></td>
+            <td class="col-num col-margin"><input class="cell-input cell-num cell-narrow" type="number" min="0" max="90" step="1" value="${line.marginPct === null ? '' : line.marginPct}" placeholder="${q.globalMarginPct}" data-line-edit="${line.id}" data-field="marginPct" title="Leave blank to inherit (${effMargin}%)"></td>
             <td><div class="num"><b>${MockUI.fmtMoney(t.sellTotal)}</b></div></td>
             <td class="right">
               <div style="display:inline-flex;gap:2px;">
