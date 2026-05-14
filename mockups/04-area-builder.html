@@ -6,8 +6,8 @@
   <title>Build Areas — SKS Quotes</title>
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/icon?family=Material+Symbols+Outlined" rel="stylesheet">
-  <link rel="stylesheet" href="css/theme.css?v=20260515r1">
-  <link rel="stylesheet" href="css/mockups.css?v=20260515r1">
+  <link rel="stylesheet" href="css/theme.css?v=20260515r2">
+  <link rel="stylesheet" href="css/mockups.css?v=20260515r2">
   <style>
     .quote-meta { display: flex; gap: 18px; padding: 12px 16px; background: var(--surface-inset); border-radius: var(--radius-md); margin-bottom: 14px; flex-wrap: wrap; align-items: center; }
     .quote-meta .mi { display: flex; flex-direction: column; gap: 2px; }
@@ -284,12 +284,12 @@
     </div>
   </main>
 
-  <script src="js/mock-data.js?v=20260515r1"></script>
-  <script src="js/mock-state.js?v=20260515r1"></script>
-  <script src="js/mock-ui.js?v=20260515r1"></script>
-  <script src="js/mock-shell.js?v=20260515r1"></script>
-  <script src="js/mock-expiry.js?v=20260515r1"></script>
-  <script src="js/mock-review.js?v=20260515r1"></script>
+  <script src="js/mock-data.js?v=20260515r2"></script>
+  <script src="js/mock-state.js?v=20260515r2"></script>
+  <script src="js/mock-ui.js?v=20260515r2"></script>
+  <script src="js/mock-shell.js?v=20260515r2"></script>
+  <script src="js/mock-expiry.js?v=20260515r2"></script>
+  <script src="js/mock-review.js?v=20260515r2"></script>
   <script>
     // -------- Shell --------
     MockShell.mount({
@@ -329,6 +329,12 @@
     function renderAreas() {
       const q = MockState.getCurrentQuote();
       const host = document.getElementById('areas-host');
+      // Quick mode: auto-create a single area on first render so the page is
+      // immediately usable (Quick = single scope; "+ Add Area" is hidden).
+      if (q.areas.length === 0 && q.mode === 'quick') {
+        MockState.addArea(q.id, '');
+        return renderAreas();
+      }
       if (q.areas.length === 0) {
         host.innerHTML = `
           <div class="area-card">
@@ -352,21 +358,23 @@
       const linesHtml = renderLinesForArea(area, q);
       const at = MockState.areaTotals(area, q);
 
+      const visibleLines = area.lines.filter(isAreaLineRendered);
+      const hideAreaActions = isQuick && q.areas.length === 1;
       return `
         <div class="area-card" data-area-id="${area.id}">
           <div class="area-head">
             <div class="area-name-wrap">
-              <label class="area-name-label" for="area-name-${area.id}">Area name</label>
-              <input id="area-name-${area.id}" class="area-name" value="${area.name}" placeholder="e.g. Boardroom Level 3" data-area-input="${area.id}">
+              <label class="area-name-label" for="area-name-${area.id}">${isQuick ? 'Heading' : 'Area name'}</label>
+              <input id="area-name-${area.id}" class="area-name" value="${area.name}" placeholder="${isQuick ? 'e.g. Boardroom Level 3 — AV upgrade' : 'e.g. Boardroom Level 3'}" data-area-input="${area.id}">
               <div class="area-name-help">Becomes this area's heading on the client document.</div>
             </div>
-            <span class="area-meta">${area.lines.length} item${area.lines.length === 1 ? '' : 's'} · ${MockUI.fmtMoney(at.materialsSell + at.labourSell)}</span>
-            <div class="area-actions">
+            <span class="area-meta">${visibleLines.length} item${visibleLines.length === 1 ? '' : 's'} · ${MockUI.fmtMoney(at.materialsSell + at.labourSell)}</span>
+            ${hideAreaActions ? '' : `<div class="area-actions">
               <button class="icon-btn" title="Duplicate" data-dup="${area.id}"><span class="material-symbols-outlined">content_copy</span></button>
               <button class="icon-btn" title="Move up"  data-up="${area.id}"><span class="material-symbols-outlined">arrow_upward</span></button>
               <button class="icon-btn" title="Move down" data-down="${area.id}"><span class="material-symbols-outlined">arrow_downward</span></button>
               <button class="icon-btn danger" title="Remove" data-rm-area="${area.id}"><span class="material-symbols-outlined">delete_outline</span></button>
-            </div>
+            </div>`}
           </div>
           <div class="area-body">
             ${linesHtml}
@@ -1069,6 +1077,21 @@
     }
     setupSliders();
     renderAll();
+
+    // Hash scroll: when arriving from Review's "View in builder" link, scroll
+    // the matching area card into view + briefly highlight it.
+    if (location.hash && /^#area-/.test(location.hash)) {
+      requestAnimationFrame(() => {
+        const id = location.hash.replace(/^#area-/, '');
+        const card = document.querySelector(`.area-card[data-area-id="${CSS.escape(id)}"]`);
+        if (card) {
+          card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          card.style.transition = 'box-shadow 0.4s ease';
+          card.style.boxShadow = '0 0 0 3px var(--accent-primary)';
+          setTimeout(() => { card.style.boxShadow = ''; }, 1500);
+        }
+      });
+    }
   </script>
 </body>
 </html>

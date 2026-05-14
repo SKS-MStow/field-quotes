@@ -6,8 +6,8 @@
   <title>Review — SKS Quotes</title>
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/icon?family=Material+Symbols+Outlined" rel="stylesheet">
-  <link rel="stylesheet" href="css/theme.css?v=20260515r1">
-  <link rel="stylesheet" href="css/mockups.css?v=20260515r1">
+  <link rel="stylesheet" href="css/theme.css?v=20260515r2">
+  <link rel="stylesheet" href="css/mockups.css?v=20260515r2">
   <style>
     .review-layout { display: grid; grid-template-columns: 1fr 320px; gap: 18px; }
     @media (max-width: 1100px) { .review-layout { grid-template-columns: 1fr; } }
@@ -124,7 +124,7 @@
 
         <!-- Services summary -->
         <div class="summary-block">
-          <h3>Services &amp; Installation</h3>
+          <h3>Services &amp; Labour</h3>
           <div id="services-summary-host"></div>
         </div>
 
@@ -233,12 +233,12 @@
     </div>
   </main>
 
-  <script src="js/mock-data.js?v=20260515r1"></script>
-  <script src="js/mock-state.js?v=20260515r1"></script>
-  <script src="js/mock-ui.js?v=20260515r1"></script>
-  <script src="js/mock-shell.js?v=20260515r1"></script>
-  <script src="js/mock-expiry.js?v=20260515r1"></script>
-  <script src="js/mock-review.js?v=20260515r1"></script>
+  <script src="js/mock-data.js?v=20260515r2"></script>
+  <script src="js/mock-state.js?v=20260515r2"></script>
+  <script src="js/mock-ui.js?v=20260515r2"></script>
+  <script src="js/mock-shell.js?v=20260515r2"></script>
+  <script src="js/mock-expiry.js?v=20260515r2"></script>
+  <script src="js/mock-review.js?v=20260515r2"></script>
   <script>
     MockShell.mount({
       title: 'Review Quote',
@@ -280,14 +280,18 @@
       document.getElementById('areas-heading').textContent = q.mode === 'quick' ? 'Scope' : 'Areas';
       const host = document.getElementById('areas-summary-host');
       if (q.areas.length === 0) { host.innerHTML = '<div style="color:var(--text-muted);font-size:12px;">No areas in this quote.</div>'; return; }
+      // Cables/consumables hide from per-area lines + the visible count, since
+      // they aggregate into Cables & Accessories below.
+      const HIDE = new Set(['Cabling & Pathways', 'Consumables']);
       host.innerHTML = q.areas.map(a => {
         const t = MockState.areaTotals(a, q);
         const total = t.materialsSell + t.labourSell;
+        const visibleCount = (a.lines || []).filter(l => !HIDE.has(l.cat)).length;
         return `<div class="area-summary-row">
           <div class="name">
-            ${a.name}
-            <a class="row-view-link" href="04-area-builder.html"><span class="material-symbols-outlined" style="font-size:12px;vertical-align:middle;">edit</span> View in builder</a>
-            <div class="sub">${(a.lines||[]).length} item${(a.lines||[]).length === 1 ? '' : 's'} · ${MockUI.fmtHours(t.labourHours)} labour</div>
+            ${a.name || '(unnamed)'}
+            <a class="row-view-link" href="04-area-builder.html#area-${a.id}"><span class="material-symbols-outlined" style="font-size:12px;vertical-align:middle;">edit</span> View in builder</a>
+            <div class="sub">${visibleCount} item${visibleCount === 1 ? '' : 's'} · ${MockUI.fmtHours(t.labourHours)} labour</div>
           </div>
           <div class="count">${MockUI.fmtMoney(t.materialsSell)} materials</div>
           <div class="total">${MockUI.fmtMoney(total)}</div>

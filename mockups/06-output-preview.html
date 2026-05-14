@@ -6,8 +6,8 @@
   <title>Output Preview — SKS Quotes</title>
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/icon?family=Material+Symbols+Outlined" rel="stylesheet">
-  <link rel="stylesheet" href="css/theme.css?v=20260515r1">
-  <link rel="stylesheet" href="css/mockups.css?v=20260515r1">
+  <link rel="stylesheet" href="css/theme.css?v=20260515r2">
+  <link rel="stylesheet" href="css/mockups.css?v=20260515r2">
   <style>
     .tab-bar { display: flex; gap: 4px; margin-bottom: 16px; padding: 4px; background: var(--surface-inset); border-radius: var(--radius-md); width: fit-content; }
     .tab-bar button { background: transparent; border: none; padding: 7px 14px; border-radius: var(--radius-sm); font-size: 12px; color: var(--text-secondary); cursor: pointer; font-family: var(--font-body); font-weight: 500; display: flex; align-items: center; gap: 5px; }
@@ -98,12 +98,12 @@
     </div>
   </main>
 
-  <script src="js/mock-data.js?v=20260515r1"></script>
-  <script src="js/mock-state.js?v=20260515r1"></script>
-  <script src="js/mock-ui.js?v=20260515r1"></script>
-  <script src="js/mock-shell.js?v=20260515r1"></script>
-  <script src="js/mock-expiry.js?v=20260515r1"></script>
-  <script src="js/mock-review.js?v=20260515r1"></script>
+  <script src="js/mock-data.js?v=20260515r2"></script>
+  <script src="js/mock-state.js?v=20260515r2"></script>
+  <script src="js/mock-ui.js?v=20260515r2"></script>
+  <script src="js/mock-shell.js?v=20260515r2"></script>
+  <script src="js/mock-expiry.js?v=20260515r2"></script>
+  <script src="js/mock-review.js?v=20260515r2"></script>
   <script>
     MockShell.mount({
       title: 'Output Preview',
@@ -149,13 +149,15 @@
       `;
 
       // Areas
+      const HIDE_CATS = new Set(['Cabling & Pathways', 'Consumables']);
       if (quote.areas.length > 0) {
-        html += `<div class="doc-section-h">Scope by Area</div>`;
+        html += `<div class="doc-section-h">${quote.mode === 'quick' ? 'Scope of works' : 'Scope by area'}</div>`;
         quote.areas.forEach(a => {
           const t = MockState.areaTotals(a, quote);
+          const visibleLines = (a.lines || []).filter(l => !HIDE_CATS.has(l.cat));
           html += `
-            <div class="doc-area-title">${a.name}</div>
-            <div class="doc-area-meta">${a.lines.length} item${a.lines.length === 1 ? '' : 's'}</div>
+            <div class="doc-area-title">${a.name || 'Scope of works'}</div>
+            <div class="doc-area-meta">${visibleLines.length} item${visibleLines.length === 1 ? '' : 's'}</div>
             <table>
               <thead>
                 <tr>
@@ -167,7 +169,7 @@
                 </tr>
               </thead>
               <tbody>`;
-          a.lines.forEach(l => {
+          visibleLines.forEach(l => {
             const t = MockState.lineTotals(l, a, quote);
             const tags = (l.isSupplyOnly ? ' <span class="pc-note">SUPPLY ONLY</span>' : '') + (l.isProvisional ? ' <span class="pc-note">PC SUM</span>' : '');
             html += `<tr>
@@ -186,14 +188,14 @@
       // Services
       const includedSvcs = quote.services.filter(s => s.included);
       if (includedSvcs.length > 0) {
-        html += `<div class="doc-section-h">Services &amp; Installation</div>
+        html += `<div class="doc-section-h">Services &amp; Labour</div>
           <table>
-            <thead><tr><th>Service</th><th class="right" style="width:70px;">Qty</th><th style="width:70px;">Unit</th><th class="right" style="width:100px;">Total</th></tr></thead>
+            <thead><tr><th>Service</th><th class="right" style="width:70px;">Qty / Hrs</th><th style="width:70px;">Unit</th><th class="right" style="width:100px;">Total</th></tr></thead>
             <tbody>`;
         includedSvcs.forEach(sv => {
-          const sellEach = sv.rate / (1 - (sv.marginPct / 100));
-          const sell = (sv.qty || 0) * (isFinite(sellEach) ? sellEach : sv.rate);
-          html += `<tr><td>${sv.name}</td><td class="right">${sv.qty}</td><td>${sv.unit}</td><td class="right">${MockUI.fmtMoney(sell)}</td></tr>`;
+          const sell = MockState.serviceSell(sv);
+          const unitCount = MockState.serviceUnitCount(sv);
+          html += `<tr><td>${sv.name}</td><td class="right">${unitCount}</td><td>${sv.unit}</td><td class="right">${MockUI.fmtMoney(sell)}</td></tr>`;
         });
         html += `</tbody></table>`;
       }
@@ -240,8 +242,10 @@
       const areaNames = quote.areas.map(a => a.name).filter(Boolean);
       const project = quote.project.name || 'project';
       const client = quote.client.name || 'the client';
-      if (areaNames.length === 0) {
-        return `SKS Technologies is pleased to provide this quotation to ${client} for the ${project}. This proposal covers the supply, installation and commissioning of all equipment and services itemised below.`;
+      // Quick mode reads as a single scope, not "across these spaces" — that
+      // phrasing leaks the internal area-card concept onto the client document.
+      if (quote.mode === 'quick' || areaNames.length <= 1) {
+        return `SKS Technologies is pleased to provide this quotation to ${client} for the ${project}. The proposed scope covers the supply, installation, commissioning and handover of the audio-visual system as itemised below.`;
       }
       const last = areaNames.pop();
       const list = areaNames.length > 0 ? `${areaNames.join(', ')} and ${last}` : last;
@@ -294,16 +298,17 @@
         html += `</tbody></table>`;
         host.innerHTML = html;
       } else if (tab === 'services') {
-        let html = `<table class="internal-table"><thead><tr><th>Service</th><th>Category</th><th>Unit</th><th class="right">Qty</th><th class="right">Cost rate</th><th class="right">Margin %</th><th class="right">Sell total</th></tr></thead><tbody>`;
+        let html = `<table class="internal-table"><thead><tr><th>Service</th><th>Category</th><th>Unit</th><th class="right">Qty</th><th class="right">Hours</th><th class="right">Rate</th><th class="right">Cost</th><th class="right">Margin %</th><th class="right">Sell total</th></tr></thead><tbody>`;
         quote.services.filter(s => s.included).forEach(s => {
-          const sellEach = s.rate / (1 - (s.marginPct / 100));
-          const sell = (s.qty || 0) * (isFinite(sellEach) ? sellEach : s.rate);
-          html += `<tr><td>${s.name}</td><td>${s.category}</td><td>${s.unit}</td><td class="right">${s.qty}</td><td class="right">${MockUI.fmtMoneyCents(s.rate)}</td><td class="right">${s.marginPct}%</td><td class="right">${MockUI.fmtMoneyCents(sell)}</td></tr>`;
+          const isLab = MockState.isLabourService(s);
+          const cost = MockState.serviceCost(s);
+          const sell = MockState.serviceSell(s);
+          html += `<tr><td>${s.name}</td><td>${s.category}</td><td>${s.unit}</td><td class="right">${isLab ? '—' : s.qty}</td><td class="right">${isLab ? (s.hours || 0) : '—'}</td><td class="right">${MockUI.fmtMoneyCents(s.rate)}</td><td class="right">${MockUI.fmtMoneyCents(cost)}</td><td class="right">${s.marginPct}%</td><td class="right">${MockUI.fmtMoneyCents(sell)}</td></tr>`;
         });
         html += `</tbody></table>`;
         host.innerHTML = html;
       } else if (tab === 'labour') {
-        // Aggregate hours by trade
+        // Aggregate auto-rolled hours from product lines, by trade
         const trades = {};
         quote.areas.forEach(a => a.lines.forEach(l => {
           if (l.isSupplyOnly) return;
@@ -312,14 +317,23 @@
           trades[trade] = (trades[trade] || 0) + hrs;
         }));
         let html = `<table class="internal-table"><thead><tr><th>Trade</th><th class="right">Total hours</th><th class="right">Rate / hr</th><th class="right">Sell total</th></tr></thead><tbody>`;
+        html += `<tr class="section"><td colspan="4">Auto-rolled from product labour defaults</td></tr>`;
         Object.entries(trades).forEach(([trade, hrs]) => {
           const rate = MockData.rateForTrade(trade);
           html += `<tr><td>${trade}</td><td class="right">${MockUI.fmtHours(hrs)}</td><td class="right">${MockUI.fmtMoneyCents(rate)}</td><td class="right">${MockUI.fmtMoneyCents(hrs * rate)}</td></tr>`;
         });
-        html += `<tr class="section"><td colspan="4">By area</td></tr>`;
+        // Manual labour services (PM, Commissioning, Programming, custom labour rows)
+        const labourSvcs = quote.services.filter(s => s.included && MockState.isLabourService(s));
+        if (labourSvcs.length > 0) {
+          html += `<tr class="section"><td colspan="4">Service-table labour (manually entered)</td></tr>`;
+          labourSvcs.forEach(s => {
+            html += `<tr><td>${s.name}</td><td class="right">${MockUI.fmtHours(s.hours || 0)}</td><td class="right">${MockUI.fmtMoneyCents(s.rate)}</td><td class="right">${MockUI.fmtMoneyCents(MockState.serviceSell(s))}</td></tr>`;
+          });
+        }
+        html += `<tr class="section"><td colspan="4">By area (auto product labour only)</td></tr>`;
         quote.areas.forEach(a => {
           const t = MockState.areaTotals(a, quote);
-          html += `<tr><td>${a.name}</td><td class="right">${MockUI.fmtHours(t.labourHours)}</td><td class="right">—</td><td class="right">${MockUI.fmtMoneyCents(t.labourSell)}</td></tr>`;
+          html += `<tr><td>${a.name || '(unnamed)'}</td><td class="right">${MockUI.fmtHours(t.labourHours)}</td><td class="right">—</td><td class="right">${MockUI.fmtMoneyCents(t.labourSell)}</td></tr>`;
         });
         html += `</tbody></table>`;
         host.innerHTML = html;

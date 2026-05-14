@@ -48,9 +48,21 @@ window.MockState = (function () {
             area.labourLines = [];
           }
         });
+        // Round 2 regression fix: predefined labour services were created with
+        // qty + rate but no hours field. The new isLabour math reads hours, so
+        // PM/Commissioning/Documentation/etc. silently compute $0. Migrate them
+        // so qty becomes hours, qty resets to 1, isLabour=true.
+        q.services.forEach(sv => {
+          if ((sv.category === 'Labour' || sv.category === 'Subcontract') && (sv.hours === undefined || sv.hours === null)) {
+            sv.hours = Number(sv.qty) || 0;
+            sv.qty = 1;
+            sv.isLabour = true;
+            migrated = true;
+          }
+        });
       });
       if (migrated) {
-        try { console.info('[mock-state] migrated area.labourLines → quote.services'); } catch (e) {}
+        try { console.info('[mock-state] migrated services to hours/isLabour model'); } catch (e) {}
         save(merged);
       }
       return merged;
@@ -70,10 +82,17 @@ window.MockState = (function () {
         // Ensure project has the new client-facing scopeOfWorks field
         project: { scopeOfWorks: '', ...(q.project || {}) },
         areas: [],
-        services: MockData.services.filter(svc => svc.includedByDefault).map(svc => ({
-          id: uid('sv'), serviceId: svc.id, name: svc.name, category: svc.category,
-          unit: svc.unit, qty: svc.defaultQty, rate: svc.defaultRate, marginPct: svc.marginPct, included: true
-        })),
+        services: MockData.services.filter(svc => svc.includedByDefault).map(svc => {
+          const isLab = svc.category === 'Labour';
+          return {
+            id: uid('sv'), serviceId: svc.id, name: svc.name, category: svc.category,
+            unit: svc.unit,
+            qty: isLab ? 1 : svc.defaultQty,
+            hours: isLab ? svc.defaultQty : 0,
+            isLabour: isLab,
+            rate: svc.defaultRate, marginPct: svc.marginPct, included: true
+          };
+        }),
         exclusions: [...MockData.exclusionsLibrary].slice(0, 6),
         terms: MockData.standardTerms,
         // Margin model — two independent sliders, global is a computed readout

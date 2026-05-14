@@ -165,10 +165,10 @@ window.MockData = (function () {
   // Services (pre-defined non-product charge items)
   // -------------------------------------------------------------
   const services = [
-    { id:'s_pm',     name:'Project Management',  category:'Labour',     unit:'hr',  defaultRate: 175.00, defaultQty: 0,  marginPct: 25, includedByDefault: true  },
+    { id:'s_pm',     name:'Project Management',  category:'Labour',     unit:'hr',  defaultRate: 175.00, defaultQty: 0,  marginPct: 25, includedByDefault: false },
     { id:'s_super',  name:'Site Supervision',    category:'Labour',     unit:'day', defaultRate: 1100.00,defaultQty: 0,  marginPct: 25, includedByDefault: false },
-    { id:'s_comm',   name:'Commissioning & Testing', category:'Labour', unit:'hr',  defaultRate: 165.00, defaultQty: 0,  marginPct: 20, includedByDefault: true  },
-    { id:'s_prog',   name:'System Programming',  category:'Labour',     unit:'hr',  defaultRate: 195.00, defaultQty: 0,  marginPct: 25, includedByDefault: true  },
+    { id:'s_comm',   name:'Commissioning & Testing', category:'Labour', unit:'hr',  defaultRate: 165.00, defaultQty: 0,  marginPct: 20, includedByDefault: false },
+    { id:'s_prog',   name:'System Programming',  category:'Labour',     unit:'hr',  defaultRate: 195.00, defaultQty: 0,  marginPct: 25, includedByDefault: false },
     { id:'s_docs',   name:'Documentation',       category:'Labour',     unit:'lot', defaultRate: 850.00, defaultQty: 1,  marginPct: 30, includedByDefault: true  },
     { id:'s_train',  name:'Training',            category:'Labour',     unit:'hr',  defaultRate: 165.00, defaultQty: 0,  marginPct: 25, includedByDefault: false },
     { id:'s_travel', name:'Travel & Accommodation', category:'Expense', unit:'lot', defaultRate: 0,      defaultQty: 1,  marginPct: 0,  includedByDefault: false },
