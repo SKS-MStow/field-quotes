@@ -126,7 +126,13 @@ window.MockReview = (function () {
   // Helpers
   // -------------------------------------------------------------
   function uid() { return 'c_' + Math.random().toString(36).slice(2, 8); }
-  function pageId() { return (location.pathname.split('/').pop() || 'index').replace(/[?#].*$/, ''); }
+  function pageId() {
+    // Include the hash so tabbed pages (07-admin.html#products vs
+    // #services) are treated as distinct contexts for pinning.
+    const file = (location.pathname.split('/').pop() || 'index').replace(/\?.*$/, '');
+    const hash = (location.hash || '').split('?')[0];
+    return file + hash;
+  }
   function pageTitle() { return document.title.replace(/ — SKS Quotes.*$/, '').trim(); }
   function nowIso() { return new Date().toISOString(); }
   function timeAgo(date) {
@@ -153,6 +159,79 @@ window.MockReview = (function () {
     return { tag: el.tagName.toLowerCase(), text: '' };
   }
   function escapeHtml(s) { return (s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
+
+  // ---------- DOM-anchoring (so pins survive layout reflow) ----------
+  // Build a CSS selector path that re-finds the element after navigation/resize.
+  function cssPathOf(el) {
+    if (!el || el === document.body || el.nodeType !== 1) return 'body';
+    if (el.id) return '#' + CSS.escape(el.id);
+    const parts = [];
+    let cur = el;
+    while (cur && cur !== document.body && cur.nodeType === 1 && parts.length < 7) {
+      if (cur.id) { parts.unshift('#' + CSS.escape(cur.id)); break; }
+      let part = cur.tagName.toLowerCase();
+      if (cur.classList && cur.classList.length) {
+        const cls = Array.from(cur.classList).filter(c => c && !c.startsWith('mr-')).slice(0, 2);
+        if (cls.length) part += '.' + cls.map(c => CSS.escape(c)).join('.');
+      }
+      const parent = cur.parentElement;
+      if (parent) {
+        const sameTagSibs = Array.from(parent.children).filter(s => s.tagName === cur.tagName);
+        if (sameTagSibs.length > 1) part += `:nth-of-type(${sameTagSibs.indexOf(cur) + 1})`;
+      }
+      parts.unshift(part);
+      cur = parent;
+    }
+    return parts.join(' > ');
+  }
+
+  // Resolve a saved selector back to an element (best effort).
+  function resolveAnchorElement(pin) {
+    if (!pin) return null;
+    if (pin.selector) {
+      try {
+        const el = document.querySelector(pin.selector);
+        if (el) return el;
+      } catch (e) { /* invalid selector — fall through */ }
+    }
+    // Fallback: try by id, or by class+text snippet
+    if (pin.anchor) {
+      if (pin.anchor.id) {
+        try {
+          const id = pin.anchor.id.replace(/^#/, '');
+          const el = document.getElementById(id);
+          if (el) return el;
+        } catch (e) {}
+      }
+      if (pin.anchor.cls) {
+        try {
+          const cls = pin.anchor.cls.replace(/^\./, '').split('.')[0];
+          if (cls && pin.anchor.text) {
+            const probe = pin.anchor.text.slice(0, 30).toLowerCase();
+            const candidates = document.getElementsByClassName(cls);
+            for (const c of candidates) {
+              if ((c.innerText || '').toLowerCase().includes(probe)) return c;
+            }
+          }
+        } catch (e) {}
+      }
+    }
+    return null;
+  }
+
+  // Compute (left, top) in document coords for a pin.
+  function pinPosition(pin) {
+    const el = resolveAnchorElement(pin);
+    if (el) {
+      const rect = el.getBoundingClientRect();
+      return {
+        left: Math.round(rect.left + (pin.offsetX || 0) + window.scrollX),
+        top:  Math.round(rect.top  + (pin.offsetY || 0) + window.scrollY)
+      };
+    }
+    // Fallback for legacy pins without selector/offset (or anchor element gone)
+    return { left: pin.x || 0, top: pin.y || 0 };
+  }
 
   // -------------------------------------------------------------
   // Styles
@@ -316,13 +395,23 @@ window.MockReview = (function () {
     e.preventDefault(); e.stopPropagation();
     exitPinMode();
 
+    // Anchor to the click target so the pin moves with the layout, not the viewport.
+    const target = e.target;
+    const tRect = target.getBoundingClientRect();
+    const offsetX = e.clientX - tRect.left;
+    const offsetY = e.clientY - tRect.top;
+
     const pin = {
       id: uid(),
       page: pageId(),
       pageTitle: pageTitle(),
       type: 'pin',
+      // Element-anchored position (the source of truth on render):
+      selector: cssPathOf(target),
+      offsetX, offsetY,
+      // Absolute coords kept as fallback (used if the selector fails to resolve):
       x: e.pageX, y: e.pageY,
-      anchor: nearestAnchor(e.target),
+      anchor: nearestAnchor(target),
       text: '',
       author: reviewer,
       createdAt: nowIso()
@@ -343,12 +432,26 @@ window.MockReview = (function () {
     pinsHere.forEach((pin, idx) => {
       const el = document.createElement('div');
       el.className = 'mr-pin' + (pin.author && pin.author === reviewer ? ' mine' : '');
-      el.style.left = pin.x + 'px';
-      el.style.top  = pin.y + 'px';
+      const pos = pinPosition(pin);
+      el.style.left = pos.left + 'px';
+      el.style.top  = pos.top + 'px';
+      el.dataset.pinId = pin.id;
       el.textContent = idx + 1;
       el.title = (pin.author ? pin.author + ': ' : '') + (pin.text || '(empty — click to add note)');
       el.addEventListener('click', e => { e.stopPropagation(); openPopoverForPin(pin.id); });
       document.body.appendChild(el);
+    });
+  }
+
+  // Re-place existing pins without rebuilding (called on resize / scroll).
+  function repositionPins() {
+    const pid = pageId();
+    document.querySelectorAll('.mr-pin').forEach(el => {
+      const pin = comments.find(c => c.id === el.dataset.pinId);
+      if (!pin || pin.page !== pid) return;
+      const pos = pinPosition(pin);
+      el.style.left = pos.left + 'px';
+      el.style.top  = pos.top + 'px';
     });
   }
 
@@ -594,6 +697,38 @@ window.MockReview = (function () {
     }, POLL_MS);
 
     window.addEventListener('focus', () => fetchAll());
+
+    // When user navigates between hash-routed tabs (e.g. admin #products →
+    // #services), pageId changes — re-render the pin set for the new context.
+    window.addEventListener('hashchange', () => {
+      closePopover();
+      renderPinsForCurrentPage();
+    });
+
+    // Re-position pins when layout changes (resize, zoom, font load, layout shift).
+    let resizeTimer;
+    function scheduleReposition() {
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(repositionPins, 80);
+    }
+    window.addEventListener('resize', scheduleReposition);
+    document.fonts?.ready?.then(repositionPins);
+    if (window.ResizeObserver) {
+      try { new ResizeObserver(scheduleReposition).observe(document.body); } catch (e) {}
+    }
+    // Catch dynamic content changes (e.g. tab switches inside admin/settings)
+    if (window.MutationObserver) {
+      const mo = new MutationObserver(muts => {
+        // Skip mutations our own pin/toolbar/drawer triggered
+        for (const m of muts) {
+          for (const n of m.addedNodes) {
+            if (n.classList && (n.classList.contains('mr-pin') || n.classList.contains('mr-toolbar') || n.classList.contains('mr-drawer') || n.classList.contains('mr-popover'))) return;
+          }
+        }
+        scheduleReposition();
+      });
+      mo.observe(document.body, { childList: true, subtree: true });
+    }
 
     setInterval(() => renderToolbar(), 10000);
 
