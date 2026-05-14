@@ -130,14 +130,62 @@ window.MockReview = (function () {
   // Helpers
   // -------------------------------------------------------------
   function uid() { return 'c_' + Math.random().toString(36).slice(2, 8); }
+  // Quote-context pages: each (quote id + mode) is its own pinning context,
+  // so notes Steven leaves on a small quote don't bleed onto a different quote
+  // that happens to use the same HTML file. The suffix uses ?q=…&m=… purely
+  // as an opaque key — we strip it before navigating via the jump-to-pin link.
+  const QUOTE_CTX_FILES = /^(03-client-info|04-area-builder|05-review|06-output-preview)\.html$/;
+  function quoteContext(file) {
+    if (!QUOTE_CTX_FILES.test(file)) return '';
+    try {
+      const q = (typeof MockState !== 'undefined') && MockState.getCurrentQuote && MockState.getCurrentQuote();
+      if (!q) return '';
+      return '?q=' + encodeURIComponent(q.id) + '&m=' + encodeURIComponent(q.mode || 'large');
+    } catch (e) { return ''; }
+  }
   function pageId() {
     // Include the hash so tabbed pages (07-admin.html#products vs
     // #services) are treated as distinct contexts for pinning.
     const file = (location.pathname.split('/').pop() || 'index').replace(/\?.*$/, '');
     const hash = (location.hash || '').split('?')[0];
-    return file + hash;
+    return file + quoteContext(file) + hash;
   }
-  function pageTitle() { return document.title.replace(/ — SKS Quotes.*$/, '').trim(); }
+  // Strip the quote-context suffix back off — used when building hrefs for
+  // jump-to-pin so the browser actually loads a clean URL.
+  function pageHref(storedPage) {
+    return (storedPage || '').replace(/\?q=[^&#]*(&m=[^#]*)?/, '');
+  }
+  // Extract the quote id from a stored pageId so we can restore MockState
+  // after the jump-to-pin navigation lands.
+  function pageQuoteId(storedPage) {
+    const m = (storedPage || '').match(/[?&]q=([^&#]+)/);
+    return m ? decodeURIComponent(m[1]) : null;
+  }
+  function pageTitle() {
+    const base = document.title.replace(/ — SKS Quotes.*$/, '').trim();
+    const file = (location.pathname.split('/').pop() || 'index');
+    try {
+      const q = QUOTE_CTX_FILES.test(file) && (typeof MockState !== 'undefined') && MockState.getCurrentQuote && MockState.getCurrentQuote();
+      if (q) {
+        const modeLabel = q.mode === 'quick' ? 'small' : 'large';
+        const num = q.number || q.id;
+        return base + ' · ' + modeLabel + ' quote ' + num;
+      }
+    } catch (e) {}
+    return base;
+  }
+  function quoteContextLabel() {
+    const file = (location.pathname.split('/').pop() || 'index');
+    if (!QUOTE_CTX_FILES.test(file)) return '';
+    try {
+      const q = (typeof MockState !== 'undefined') && MockState.getCurrentQuote && MockState.getCurrentQuote();
+      if (q) {
+        const modeLabel = q.mode === 'quick' ? 'small' : 'large';
+        return modeLabel + ' · ' + (q.number || q.id);
+      }
+    } catch (e) {}
+    return '';
+  }
   function nowIso() { return new Date().toISOString(); }
   function timeAgo(date) {
     if (!date) return 'never';
@@ -442,6 +490,7 @@ window.MockReview = (function () {
     toolbarEl.innerHTML = `
       <button class="mr-btn mr-toggle" title="Hide toolbar" id="mr-toggle"><span class="material-symbols-outlined">edit_note</span></button>
       ${STAGING ? '<span style="background:#b8860b;color:white;padding:3px 8px;border-radius:4px;font-size:10px;font-weight:700;letter-spacing:0.05em;">STAGING</span>' : ''}
+      ${quoteContextLabel() ? '<span title="Notes you leave here are scoped to this quote only" style="background:#4a5699;color:white;padding:3px 8px;border-radius:4px;font-size:10px;font-weight:600;display:inline-flex;align-items:center;gap:4px;"><span class="material-symbols-outlined" style="font-size:13px;">request_quote</span>' + escapeHtml(quoteContextLabel()) + '</span>' : ''}
       <button class="mr-btn" id="mr-add-pin" title="Drop a pin and write a note"><span class="material-symbols-outlined">push_pin</span> Pin a note</button>
       <button class="mr-btn" id="mr-add-shape" title="Draw a shape around an area"><span class="material-symbols-outlined">${shapeIcon(currentShape)}</span> Draw a note</button>
       <button class="mr-btn mr-secondary" id="mr-shape-picker" title="Pick a shape (rect / circle / cloud)" style="padding:8px 6px;"><span class="material-symbols-outlined" style="font-size:14px;">expand_more</span></button>
@@ -1092,8 +1141,14 @@ window.MockReview = (function () {
       closeDrawer(); openDrawer();
     }));
     drawer.querySelectorAll('[data-jump-page]').forEach(b => b.addEventListener('click', () => {
+      const storedPage = b.getAttribute('data-jump-page');
       sessionStorage.setItem('mr_jump_to', b.getAttribute('data-jump-id'));
-      location.href = b.getAttribute('data-jump-page');
+      // Restore the quote context on the destination page so per-quote pageId
+      // computes to the same key the pin was stored under.
+      const qid = pageQuoteId(storedPage);
+      if (qid) sessionStorage.setItem('mr_jump_quote', qid);
+      else sessionStorage.removeItem('mr_jump_quote');
+      location.href = pageHref(storedPage);
     }));
     document.getElementById('mr-drawer-clear').addEventListener('click', () => {
       if (confirm('Clear ALL review notes from EVERY reviewer? This cannot be undone.')) {
@@ -1123,6 +1178,13 @@ window.MockReview = (function () {
   // -------------------------------------------------------------
   async function start() {
     injectStyles();
+    // Restore quote context before computing any pageIds — the jump-to-pin
+    // flow stashes the quote id in sessionStorage on its way out.
+    const restoreQ = sessionStorage.getItem('mr_jump_quote');
+    if (restoreQ) {
+      sessionStorage.removeItem('mr_jump_quote');
+      try { if (typeof MockState !== 'undefined' && MockState.setCurrentQuote) MockState.setCurrentQuote(restoreQ); } catch (e) {}
+    }
     renderToolbar();
     await fetchAll();
     renderPinsForCurrentPage();
