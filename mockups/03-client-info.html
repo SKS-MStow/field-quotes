@@ -108,6 +108,21 @@
           </div>
         </div>
 
+        <!-- Scope of works panel (client-facing, flows through to area builder + client doc) -->
+        <div class="panel" id="scope">
+          <div class="panel-header">
+            <h3>Scope of works</h3>
+            <span class="sub">Shown to the client</span>
+          </div>
+          <div class="field-grid">
+            <div class="field" style="grid-column: 1 / -1;">
+              <label>Brief description of what we're delivering</label>
+              <textarea data-bind="project.scopeOfWorks" rows="4" placeholder="e.g. Supply, install and commission a Microsoft Teams Rooms system in the Level 3 boardroom — single 75&quot; display, ceiling-array mic, Logitech Rally Bar, Crestron control."></textarea>
+              <div class="help">This text appears at the top of the Area Builder, on the Review screen, and as the executive scope summary on the client quote document.</div>
+            </div>
+          </div>
+        </div>
+
         <!-- Quote validity panel -->
         <div class="panel">
           <div class="panel-header">
@@ -129,7 +144,50 @@
             </div>
             <div class="field">
               <label>Status</label>
-              <input value="Draft" disabled>
+              <select data-bind="status" class="form-input">
+                <option value="draft">Draft</option>
+                <option value="issued">Issued</option>
+                <option value="accepted">Accepted</option>
+                <option value="declined">Declined</option>
+                <option value="expired">Expired</option>
+                <option value="revised">Revised</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quote-level overrides panel — margin defaults + labour rate overrides -->
+        <div class="panel">
+          <div class="panel-header">
+            <h3>Margin &amp; labour-rate defaults</h3>
+            <span class="sub">Quote-level overrides — per-line edits still win</span>
+          </div>
+          <div class="field-grid">
+            <div class="field">
+              <label>Materials margin %</label>
+              <input data-bind="materialsMarginPct" type="number" min="0" max="80" step="1">
+              <div class="help">Default markup on products + sundries. Lines and categories can still override.</div>
+            </div>
+            <div class="field">
+              <label>Labour margin %</label>
+              <input data-bind="labourMarginPct" type="number" min="0" max="60" step="1">
+              <div class="help">Extra markup on top of trade rates. Usually 0 — rates already carry SKS margin.</div>
+            </div>
+            <div class="field">
+              <label>AV Tech rate ($/hr)</label>
+              <input data-bind="labourRates.AV Tech" type="number" min="0" step="5" placeholder="(default 145)">
+            </div>
+            <div class="field">
+              <label>Data Tech rate ($/hr)</label>
+              <input data-bind="labourRates.Data Tech" type="number" min="0" step="5" placeholder="(default 135)">
+            </div>
+            <div class="field">
+              <label>Electrician rate ($/hr)</label>
+              <input data-bind="labourRates.Electrician" type="number" min="0" step="5" placeholder="(default 165)">
+            </div>
+            <div class="field">
+              <label>PM rate ($/hr)</label>
+              <input data-bind="labourRates.PM" type="number" min="0" step="5" placeholder="(default 175)">
             </div>
           </div>
         </div>
@@ -267,6 +325,7 @@ Project Manager — University of Adelaide
         'client.address': 'North Terrace, Adelaide SA 5005',
         'project.name':   'Engineering — Lecture Theatre 2 refresh',
         'project.address':'Engineering Building, North Terrace campus, University of Adelaide',
+        'project.scopeOfWorks': 'Refresh of the AV system in Engineering Lecture Theatre 2 (90 seats). Supply, install and commission: large front-of-room display + screen, ceiling-array microphones for lecture capture, lectern + handheld mics, Crestron control system aligned to the rest of the campus, and HDBaseT/NVX signal distribution from lectern to display.',
         'project.notes':  '90 seats. Recorded lectures (ceiling mics). Lectern + handheld mics. Budget ~$90-100k. Needed by next Friday.'
       };
       const labels = {
@@ -277,6 +336,7 @@ Project Manager — University of Adelaide
         'client.address': 'Address',
         'project.name': 'Project name',
         'project.address': 'Project address',
+        'project.scopeOfWorks': 'Scope of works',
         'project.notes': 'Notes'
       };
       const rowsHtml = Object.entries(suggestions).map(([k, v]) =>
