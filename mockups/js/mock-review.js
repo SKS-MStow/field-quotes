@@ -163,6 +163,12 @@ window.MockReview = (function () {
     return { tag: el.tagName.toLowerCase(), text: '' };
   }
   function escapeHtml(s) { return (s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
+  function dateLong(iso) {
+    if (!iso) return '';
+    const d = new Date(iso);
+    if (isNaN(d)) return '';
+    return d.toLocaleString('en-AU', { day:'numeric', month:'short', year:'numeric', hour:'numeric', minute:'2-digit', hour12:true });
+  }
 
   // ---------- DOM-anchoring (so pins survive layout reflow) ----------
   // Build a CSS selector path that re-finds the element after navigation/resize.

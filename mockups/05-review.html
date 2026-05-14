@@ -1,9 +1,9 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <title>Review — SKS Quotes</title>
+  <title>Review â€” SKS Quotes</title>
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/icon?family=Material+Symbols+Outlined" rel="stylesheet">
   <link rel="stylesheet" href="css/theme.css?v=20260514r3">
@@ -116,7 +116,7 @@
           <div id="areas-summary-host"></div>
         </div>
 
-        <!-- Labour overview (NEW — high-level hours/rates per trade) -->
+        <!-- Labour overview (NEW â€” high-level hours/rates per trade) -->
         <div class="summary-block">
           <h3>Labour overview</h3>
           <div id="labour-overview-host"></div>
@@ -137,10 +137,10 @@
         <!-- Notes to client -->
         <div class="summary-block">
           <h3>Notes to client</h3>
-          <textarea id="notes-to-client" style="width:100%;min-height:60px;border:1px solid var(--border-input);border-radius:var(--radius-md);padding:10px;font:inherit;font-size:13px;background:var(--surface-white);" placeholder="Optional message shown on the client document (e.g. 'Pricing assumes works completed in one mobilisation…')"></textarea>
+          <textarea id="notes-to-client" style="width:100%;min-height:60px;border:1px solid var(--border-input);border-radius:var(--radius-md);padding:10px;font:inherit;font-size:13px;background:var(--surface-white);" placeholder="Optional message shown on the client document (e.g. 'Pricing assumes works completed in one mobilisationâ€¦')"></textarea>
         </div>
 
-        <!-- Attachments (NEW — markup drawings / PDF uploads to attach to the client doc) -->
+        <!-- Attachments (NEW â€” markup drawings / PDF uploads to attach to the client doc) -->
         <div class="summary-block">
           <h3>Attachments <span style="font-weight:400;color:var(--text-muted);font-size:11px;text-transform:none;letter-spacing:0;">(appended to the client quote document)</span></h3>
           <label class="att-drop" id="att-drop">
@@ -165,7 +165,7 @@
         <div class="summary-block">
           <h3>Terms &amp; conditions</h3>
           <textarea id="terms-text" style="width:100%;min-height:160px;border:1px solid var(--border-input);border-radius:var(--radius-md);padding:10px 12px;font:inherit;font-size:12px;background:var(--surface-white);"></textarea>
-          <div style="margin-top:8px;color:var(--text-muted);font-size:11px;">Loaded from the SKS standard template — edit inline if needed.</div>
+          <div style="margin-top:8px;color:var(--text-muted);font-size:11px;">Loaded from the SKS standard template â€” edit inline if needed.</div>
         </div>
 
         <!-- Output options -->
@@ -196,7 +196,7 @@
             <input type="range" id="labour-margin" min="0" max="50" step="1">
             <div class="readout">
               <span class="l">Blended global margin</span>
-              <span class="v" id="global-margin-readout">—</span>
+              <span class="v" id="global-margin-readout">â€”</span>
             </div>
           </div>
 
@@ -238,18 +238,18 @@
   <script src="js/mock-ui.js?v=20260514r3"></script>
   <script src="js/mock-shell.js?v=20260514r3"></script>
   <script src="js/mock-expiry.js?v=20260514r3"></script>
-  <script src="js/mock-review.js?v=20260514r3"></script>
+  <script src="js/mock-review.js?v=20260514r4"></script>
   <script>
     MockShell.mount({
       title: 'Review Quote',
-      subtitle: 'Step 4 of 5 · Final check before output',
+      subtitle: 'Step 4 of 5 Â· Final check before output',
       actionsHtml: `<a class="btn btn-secondary" href="01-quote-list.html"><span class="material-symbols-outlined">close</span> Cancel</a>`
     });
 
     let quote = MockState.getCurrentQuote();
     if (!quote) {
       location.href = '01-quote-list.html';
-      throw new Error('No active quote — redirecting to list');
+      throw new Error('No active quote â€” redirecting to list');
     }
 
     // -------- Warnings --------
@@ -267,7 +267,7 @@
       });
       const host = document.getElementById('warnings-host');
       if (issues.length === 0) {
-        host.innerHTML = `<div class="warning-card" style="background:var(--status-success-bg);border-color:#bfdfc1;color:#235724;"><span class="material-symbols-outlined" style="color:var(--status-success);">check_circle</span><div><b>Looks good</b> — no issues detected. Ready to generate outputs.</div></div>`;
+        host.innerHTML = `<div class="warning-card" style="background:var(--status-success-bg);border-color:#bfdfc1;color:#235724;"><span class="material-symbols-outlined" style="color:var(--status-success);">check_circle</span><div><b>Looks good</b> â€” no issues detected. Ready to generate outputs.</div></div>`;
       } else {
         host.innerHTML = `<div class="warning-card"><span class="material-symbols-outlined">warning</span><div><b>${issues.length} issue${issues.length === 1 ? '' : 's'} to review</b><ul>${issues.map(i => `<li>${i}</li>`).join('')}</ul></div></div>`;
       }
@@ -287,7 +287,7 @@
           <div class="name">
             ${a.name}
             <a class="row-view-link" href="04-area-builder.html"><span class="material-symbols-outlined" style="font-size:12px;vertical-align:middle;">edit</span> View in builder</a>
-            <div class="sub">${(a.lines||[]).length} item${(a.lines||[]).length === 1 ? '' : 's'} · ${MockUI.fmtHours(t.labourHours)} labour</div>
+            <div class="sub">${(a.lines||[]).length} item${(a.lines||[]).length === 1 ? '' : 's'} Â· ${MockUI.fmtHours(t.labourHours)} labour</div>
           </div>
           <div class="count">${MockUI.fmtMoney(t.materialsSell)} materials</div>
           <div class="total">${MockUI.fmtMoney(total)}</div>
@@ -295,7 +295,7 @@
       }).join('');
     }
 
-    // -------- Labour overview (NEW — hours/rate/sell per trade) --------
+    // -------- Labour overview (NEW â€” hours/rate/sell per trade) --------
     function renderLabourOverview() {
       const q = MockState.getCurrentQuote();
       const byTrade = MockState.quoteLabourByTrade(q);
@@ -325,7 +325,7 @@
         <table class="lab-overview-table">
           <thead><tr><th>Trade</th><th class="right">Hours</th><th class="right">Rate</th><th class="right">Cost</th><th class="right">Sell</th></tr></thead>
           <tbody>${rows}</tbody>
-          <tfoot><tr><td>Total</td><td class="right">${MockUI.fmtHours(totalH)}</td><td class="right">—</td><td class="right">${MockUI.fmtMoney(totalCost)}</td><td class="right">${MockUI.fmtMoney(totalSell)}</td></tr></tfoot>
+          <tfoot><tr><td>Total</td><td class="right">${MockUI.fmtHours(totalH)}</td><td class="right">â€”</td><td class="right">${MockUI.fmtMoney(totalCost)}</td><td class="right">${MockUI.fmtMoney(totalSell)}</td></tr></tfoot>
         </table>
       `;
     }
@@ -343,7 +343,7 @@
           <div class="name">
             ${s.name}
             <span class="row-edit" data-svc-edit-toggle="${s.id}"><span class="material-symbols-outlined">edit</span>edit</span>
-            <div class="sub" data-svc-meta="${s.id}">${s.qty} × ${MockUI.fmtMoney(s.rate)} / ${s.unit} · ${s.marginPct}% margin</div>
+            <div class="sub" data-svc-meta="${s.id}">${s.qty} Ã— ${MockUI.fmtMoney(s.rate)} / ${s.unit} Â· ${s.marginPct}% margin</div>
             <div class="inline-edit" data-svc-inline="${s.id}" hidden style="margin-top:6px;display:flex;gap:6px;align-items:center;">
               <input class="cell-input cell-num" type="number" min="0" step="0.5" value="${s.qty || 0}" data-svc-field="qty" style="width:70px;" title="Qty">
               <input class="cell-input cell-num" type="number" min="0" step="5" value="${s.rate}" data-svc-field="rate" style="width:90px;" title="Rate">
@@ -372,7 +372,7 @@
           MockState.updateService(MockState.getCurrentQuote().id, id, { [field]: v });
           // Re-render JUST this row's meta + sell + the overall totals
           renderServicesSummary(); renderCostBreakdown(); renderTotals(); renderLabourOverview();
-          MockUI.toast('Updated — feeds back to Area Builder', 'success');
+          MockUI.toast('Updated â€” feeds back to Area Builder', 'success');
         });
       });
     }
@@ -409,7 +409,7 @@
           <div class="totals-row"><span class="l">Subtotal (ex-GST)</span><span class="v">${MockUI.fmtMoney(t.sellExGST)}</span></div>
           <div class="totals-row"><span class="l">GST (10%)</span><span class="v">${MockUI.fmtMoney(t.gst)}</span></div>
           <div class="totals-row grand"><span class="l">Total inc-GST</span><span class="v">${MockUI.fmtMoney(t.incGST)}</span></div>
-          <div class="totals-row" style="font-weight:500;font-size:12.5px;color:var(--text-muted);"><span class="l">Total margin / overall %</span><span class="v">${MockUI.fmtMoney(t.margin)} · ${MockUI.fmtPct(t.marginPct)}</span></div>
+          <div class="totals-row" style="font-weight:500;font-size:12.5px;color:var(--text-muted);"><span class="l">Total margin / overall %</span><span class="v">${MockUI.fmtMoney(t.margin)} Â· ${MockUI.fmtPct(t.marginPct)}</span></div>
         </div>
       `;
     }
@@ -488,7 +488,7 @@
       });
     }
     document.getElementById('add-exclusion').addEventListener('click', () => {
-      const text = prompt('New exclusion:', 'Any exclusion text…');
+      const text = prompt('New exclusion:', 'Any exclusion textâ€¦');
       if (!text) return;
       const cur = MockState.getCurrentQuote();
       cur.exclusions.push(text);

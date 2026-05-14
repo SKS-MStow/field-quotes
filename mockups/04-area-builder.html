@@ -1,9 +1,9 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <title>Build Areas — SKS Quotes</title>
+  <title>Build Areas â€” SKS Quotes</title>
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/icon?family=Material+Symbols+Outlined" rel="stylesheet">
   <link rel="stylesheet" href="css/theme.css?v=20260514r3">
@@ -25,7 +25,7 @@
     table.lines th.col-cost, table.lines th.col-margin,
     table.lines td.col-cost, table.lines td.col-margin { display: table-cell; }
 
-    /* Scope panel at the top of the builder — pulled from client-info project.scopeOfWorks */
+    /* Scope panel at the top of the builder â€” pulled from client-info project.scopeOfWorks */
     .scope-panel { background: var(--surface-card); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 14px 16px; margin-bottom: 14px; position: relative; }
     .scope-panel h3 { font-family: var(--font-heading); font-size: 13px; font-weight: 600; color: var(--text-primary); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 6px; display: flex; align-items: center; gap: 8px; }
     .scope-panel h3 .material-symbols-outlined { color: var(--status-info); font-size: 18px; }
@@ -146,7 +146,7 @@
             <button class="btn btn-secondary btn-sm" id="add-sundry-btn"><span class="material-symbols-outlined">add</span> Add manual sundry line</button>
           </div>
           <p style="font-size:12px;color:var(--text-muted);margin:0 0 10px;">
-            Cables / consumables from your area lines are aggregated here for quick review. Add free-text sundries below — they roll into the materials total.
+            Cables / consumables from your area lines are aggregated here for quick review. Add free-text sundries below â€” they roll into the materials total.
           </p>
           <div class="agg-block" id="cables-host"></div>
         </div>
@@ -193,7 +193,7 @@
             <input type="range" id="labour-margin" min="0" max="50" step="1">
             <div class="readout">
               <span class="l">Blended global margin</span>
-              <span class="v" id="global-margin-readout">—</span>
+              <span class="v" id="global-margin-readout">â€”</span>
             </div>
           </div>
 
@@ -250,7 +250,7 @@
           <select id="filter-mfr" class="form-input"><option value="">All brands</option></select>
           <div class="search-wrap" style="max-width:none;">
             <span class="material-symbols-outlined">search</span>
-            <input id="filter-search" type="text" class="form-input" placeholder="Search description or part no…">
+            <input id="filter-search" type="text" class="form-input" placeholder="Search description or part noâ€¦">
           </div>
         </div>
         <div id="product-results"></div>
@@ -282,12 +282,12 @@
   <script src="js/mock-ui.js?v=20260514r3"></script>
   <script src="js/mock-shell.js?v=20260514r3"></script>
   <script src="js/mock-expiry.js?v=20260514r3"></script>
-  <script src="js/mock-review.js?v=20260514r3"></script>
+  <script src="js/mock-review.js?v=20260514r4"></script>
   <script>
     // -------- Shell --------
     MockShell.mount({
       title: 'Build the Quote',
-      subtitle: 'Step 3 of 5 · Add areas, products, and services',
+      subtitle: 'Step 3 of 5 Â· Add areas, products, and services',
       actionsHtml: `<a class="btn btn-secondary" href="01-quote-list.html"><span class="material-symbols-outlined">close</span> Cancel</a>`
     });
 
@@ -295,7 +295,7 @@
     let quote = MockState.getCurrentQuote();
     if (!quote) {
       location.href = '02-mode-select.html';
-      throw new Error('No active quote — redirecting to mode select');
+      throw new Error('No active quote â€” redirecting to mode select');
     }
 
     // Quick mode UI tweaks
@@ -311,8 +311,8 @@
       const q = MockState.getCurrentQuote();
       document.getElementById('quote-meta').innerHTML = `
         <div class="mi"><span class="l">Quote #</span><span class="v">${q.number}</span></div>
-        <div class="mi"><span class="l">Client</span><span class="v">${q.client.name || '—'}</span></div>
-        <div class="mi"><span class="l">Project</span><span class="v">${q.project.name || '—'}</span></div>
+        <div class="mi"><span class="l">Client</span><span class="v">${q.client.name || 'â€”'}</span></div>
+        <div class="mi"><span class="l">Project</span><span class="v">${q.project.name || 'â€”'}</span></div>
         <div class="mi"><span class="l">Mode</span><span class="v">${q.mode === 'quick' ? 'Quick' : 'Large'}</span></div>
         <div class="mi"><span class="l">Status</span><span class="v">Draft</span></div>
       `;
@@ -350,7 +350,7 @@
         <div class="area-card" data-area-id="${area.id}">
           <div class="area-head">
             <input class="area-name" value="${area.name}" placeholder="Area name" data-area-input="${area.id}">
-            <span class="area-meta">${area.lines.length} item${area.lines.length === 1 ? '' : 's'} · ${MockUI.fmtMoney(at.materialsSell + at.labourSell)}</span>
+            <span class="area-meta">${area.lines.length} item${area.lines.length === 1 ? '' : 's'} Â· ${MockUI.fmtMoney(at.materialsSell + at.labourSell)}</span>
             <div class="area-actions">
               <button class="icon-btn" title="Duplicate" data-dup="${area.id}"><span class="material-symbols-outlined">content_copy</span></button>
               <button class="icon-btn" title="Move up"  data-up="${area.id}"><span class="material-symbols-outlined">arrow_upward</span></button>
@@ -372,7 +372,7 @@
         </div>`;
     }
 
-    // Per-area Installation labour block — auto roll-up + manual entries
+    // Per-area Installation labour block â€” auto roll-up + manual entries
     function renderLabourBlock(area, q) {
       const at = MockState.areaTotals(area, q);
       const tradeRows = Object.entries(at.labourByTrade || {})
@@ -431,7 +431,7 @@
       if (rows.length === 0) {
         return `<div class="labour-block">
           <div class="lh"><span class="material-symbols-outlined">engineering</span> Installation labour</div>
-          <div style="font-size:12px;color:var(--text-muted);">No labour yet — add products with subcategory defaults, or click "+ Add labour" below.</div>
+          <div style="font-size:12px;color:var(--text-muted);">No labour yet â€” add products with subcategory defaults, or click "+ Add labour" below.</div>
         </div>`;
       }
 
@@ -456,7 +456,7 @@
 
     function renderLinesForArea(area, q) {
       if (area.lines.length === 0) {
-        return `<div class="area-empty">No products yet — click <b>+ Add Product</b> below to start.</div>`;
+        return `<div class="area-empty">No products yet â€” click <b>+ Add Product</b> below to start.</div>`;
       }
       let html = `
         <div class="table-scroll">
@@ -499,7 +499,7 @@
             <td><div style="font-family:var(--font-heading);font-weight:500;font-size:12px;">${line.model}</div></td>
             <td>
               <div>${line.description}</div>
-              <div style="font-size:10px;color:var(--text-muted);margin-top:2px;">${line.cat} · ${line.sub} ${supplyTag} ${provTag}</div>
+              <div style="font-size:10px;color:var(--text-muted);margin-top:2px;">${line.cat} Â· ${line.sub} ${supplyTag} ${provTag}</div>
             </td>
             <td><input class="cell-input cell-num" type="number" min="0" step="1" value="${line.qty}" data-line-edit="${line.id}" data-field="qty"></td>
             <td><div style="font-size:11px;color:var(--text-muted);">${line.unit}</div></td>
@@ -714,9 +714,9 @@
         <div class="product-result" data-add-pid="${p.id}">
           <div>
             <div class="pr-mfr">${p.mfr}</div>
-            <div class="pr-name">${p.mpn} — ${p.short}</div>
+            <div class="pr-name">${p.mpn} â€” ${p.short}</div>
             <div class="pr-desc">${p.desc}</div>
-            <div class="pr-cat">${p.cat} · ${p.sub}</div>
+            <div class="pr-cat">${p.cat} Â· ${p.sub}</div>
           </div>
           <div>
             <div class="pr-price">${MockUI.fmtMoney(p.cost)}</div>
@@ -741,7 +741,7 @@
       list.innerHTML = MockData.packages.map(p => `
         <div class="package-card" data-pkg-id="${p.id}" data-area-id="${areaId}">
           <h5>${p.name}</h5>
-          <div class="meta">${p.description} · ${p.items.length} items</div>
+          <div class="meta">${p.description} Â· ${p.items.length} items</div>
           <div class="tags">${p.tags.map(t => `<span class="tag">${t}</span>`).join('')}</div>
         </div>
       `).join('');
@@ -771,7 +771,7 @@
       const orderedRows = MockData.services.map(def => {
         const existing = q.services.find(sv => sv.serviceId === def.id);
         return existing ? { ...existing, defaults: def } : {
-          // Not yet added — show as a togglable row
+          // Not yet added â€” show as a togglable row
           id: 'pending_' + def.id, serviceId: def.id, name: def.name, category: def.category,
           unit: def.unit, qty: def.defaultQty, rate: def.defaultRate, marginPct: def.marginPct,
           included: false, defaults: def
@@ -865,7 +865,7 @@
         body.textContent = text;
       } else {
         body.classList.add('empty');
-        body.textContent = 'No scope yet — add it on Client & Project (top-right link) so it flows through to the client document.';
+        body.textContent = 'No scope yet â€” add it on Client & Project (top-right link) so it flows through to the client document.';
       }
     }
 
@@ -937,7 +937,7 @@
       }
 
       // Subtotal row
-      html += `<table class="agg-table"><tbody><tr class="subtotal-row"><td>Cables, consumables &amp; sundries — subtotal</td><td class="right" colspan="3">Cost ${MockUI.fmtMoney(runningCost)}</td><td class="right">${MockUI.fmtMoney(runningSell)}</td></tr></tbody></table>`;
+      html += `<table class="agg-table"><tbody><tr class="subtotal-row"><td>Cables, consumables &amp; sundries â€” subtotal</td><td class="right" colspan="3">Cost ${MockUI.fmtMoney(runningCost)}</td><td class="right">${MockUI.fmtMoney(runningSell)}</td></tr></tbody></table>`;
 
       host.innerHTML = html;
 
