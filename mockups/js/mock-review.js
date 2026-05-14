@@ -230,13 +230,23 @@ window.MockReview = (function () {
   }
 
   // Compute (left, top) in document coords for a pin.
+  // Scaling-safe: stored offset is a fraction of the element's size at click
+  // time, so we multiply by the element's current size on render. Legacy pins
+  // (created before the fractional model) fall back to the absolute pixel
+  // offset, which is still close enough on similar viewport widths.
   function pinPosition(pin) {
     const el = resolveAnchorElement(pin);
     if (el) {
       const rect = el.getBoundingClientRect();
+      const ox = (typeof pin.offsetXFrac === 'number')
+        ? pin.offsetXFrac * rect.width
+        : (pin.offsetX || 0);
+      const oy = (typeof pin.offsetYFrac === 'number')
+        ? pin.offsetYFrac * rect.height
+        : (pin.offsetY || 0);
       return {
-        left: Math.round(rect.left + (pin.offsetX || 0) + window.scrollX),
-        top:  Math.round(rect.top  + (pin.offsetY || 0) + window.scrollY)
+        left: Math.round(rect.left + ox + window.scrollX),
+        top:  Math.round(rect.top  + oy + window.scrollY)
       };
     }
     // Fallback for legacy pins without selector/offset (or anchor element gone)
@@ -424,6 +434,9 @@ window.MockReview = (function () {
     const tRect = target.getBoundingClientRect();
     const offsetX = e.clientX - tRect.left;
     const offsetY = e.clientY - tRect.top;
+    // Fractional offset within the element — survives viewport scaling.
+    const offsetXFrac = tRect.width  > 0 ? offsetX / tRect.width  : 0;
+    const offsetYFrac = tRect.height > 0 ? offsetY / tRect.height : 0;
 
     const pin = {
       id: uid(),
@@ -432,7 +445,8 @@ window.MockReview = (function () {
       type: 'pin',
       // Element-anchored position (the source of truth on render):
       selector: cssPathOf(target),
-      offsetX, offsetY,
+      offsetX, offsetY,           // legacy fallback (absolute px within element)
+      offsetXFrac, offsetYFrac,   // scaling-safe (fraction of element size)
       // Absolute coords kept as fallback (used if the selector fails to resolve):
       x: e.pageX, y: e.pageY,
       anchor: nearestAnchor(target),
