@@ -309,6 +309,64 @@ window.MockReview = (function () {
         background: #c0553a; color: white; padding: 6px 14px; border-radius: 0 0 8px 8px;
         font: 600 12px 'Inter', sans-serif; z-index: 9989; }
 
+      /* ---- Shape annotations (rect / circle / cloud lasso) ---- */
+      body.mr-draw-mode, body.mr-draw-mode * { cursor: crosshair !important; user-select: none !important; }
+      .mr-shape { position: absolute; z-index: 9984; pointer-events: none;
+        opacity: 0; transition: opacity 0.12s ease; }
+      .mr-shape.show { opacity: 1; }
+      .mr-shape svg { width: 100%; height: 100%; overflow: visible; }
+      .mr-shape svg .mr-shape-stroke {
+        fill: rgba(192,85,58,0.06);
+        stroke: #c0553a; stroke-width: 2.5;
+        stroke-linejoin: round; stroke-linecap: round;
+        stroke-dasharray: 6 3;
+      }
+      .mr-shape.mine svg .mr-shape-stroke { stroke: #4a5699; fill: rgba(74,86,153,0.06); }
+      .mr-shape-marker { position: absolute; z-index: 9986;
+        width: 24px; height: 24px;
+        background: #c0553a; color: white;
+        border-radius: 50% 50% 50% 0;
+        transform: translate(-2px, -22px) rotate(-45deg);
+        display: flex; align-items: center; justify-content: center;
+        cursor: pointer;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.25), 0 0 0 2px white;
+      }
+      .mr-shape-marker.mine { background: #4a5699; }
+      .mr-shape-marker:hover { filter: brightness(1.1); }
+      .mr-shape-marker .mr-sm-icon { transform: rotate(45deg);
+        font-family: 'Material Symbols Outlined'; font-size: 14px;
+        font-variation-settings: 'FILL' 1; line-height: 1; }
+      .mr-shape-marker .mr-sm-num { transform: rotate(45deg);
+        font: 700 9px 'IBM Plex Sans', sans-serif;
+        position: absolute; bottom: -3px; right: -5px;
+        background: white; color: #2d2d2a;
+        border-radius: 50%; width: 13px; height: 13px;
+        display: flex; align-items: center; justify-content: center;
+        font-variant-numeric: tabular-nums;
+      }
+
+      /* Shape picker popover (selects rect/circle/cloud) */
+      .mr-shape-picker { position: absolute; z-index: 9991; background: white;
+        border: 1px solid #e8e6e1; border-radius: 10px; padding: 4px;
+        box-shadow: 0 12px 30px rgba(0,0,0,0.18); display: flex; gap: 2px; }
+      .mr-shape-picker button { background: white; color: #2d2d2a;
+        border: 1px solid transparent; border-radius: 6px;
+        padding: 6px 10px; font: 600 11px 'Inter', sans-serif;
+        cursor: pointer; display: flex; align-items: center; gap: 4px; }
+      .mr-shape-picker button.active { background: #2d2d2a; color: white; }
+      .mr-shape-picker button .material-symbols-outlined { font-size: 16px; }
+
+      /* In-progress drawing preview (live SVG that follows the cursor) */
+      .mr-draw-preview { position: absolute; z-index: 9985; pointer-events: none;
+        opacity: 0.8; }
+      .mr-draw-preview svg { width: 100%; height: 100%; overflow: visible; }
+      .mr-draw-preview svg .mr-shape-stroke {
+        fill: rgba(192,85,58,0.08);
+        stroke: #c0553a; stroke-width: 2.5;
+        stroke-linejoin: round; stroke-linecap: round;
+        stroke-dasharray: 6 3;
+      }
+
       .mr-drawer-bg { position: fixed; inset: 0; background: rgba(0,0,0,0.35); z-index: 9991; display: none; }
       .mr-drawer-bg.open { display: block; }
       .mr-drawer { position: fixed; top: 0; right: 0; bottom: 0; width: 480px; max-width: 100%;
@@ -385,12 +443,16 @@ window.MockReview = (function () {
       <button class="mr-btn mr-toggle" title="Hide toolbar" id="mr-toggle"><span class="material-symbols-outlined">edit_note</span></button>
       ${STAGING ? '<span style="background:#b8860b;color:white;padding:3px 8px;border-radius:4px;font-size:10px;font-weight:700;letter-spacing:0.05em;">STAGING</span>' : ''}
       <button class="mr-btn" id="mr-add-pin" title="Drop a pin and write a note"><span class="material-symbols-outlined">push_pin</span> Pin a note</button>
+      <button class="mr-btn" id="mr-add-shape" title="Draw a shape around an area"><span class="material-symbols-outlined">${shapeIcon(currentShape)}</span> Draw a note</button>
+      <button class="mr-btn mr-secondary" id="mr-shape-picker" title="Pick a shape (rect / circle / cloud)" style="padding:8px 6px;"><span class="material-symbols-outlined" style="font-size:14px;">expand_more</span></button>
       <button class="mr-btn mr-secondary" id="mr-add-page-note" title="General note about this page"><span class="material-symbols-outlined">sticky_note_2</span> Note this page</button>
       <button class="mr-btn mr-secondary" id="mr-view-all" title="See every note across every page"><span class="material-symbols-outlined">checklist</span> All notes <span class="mr-count">${total}</span></button>
       <button class="mr-btn mr-secondary" id="mr-history" title="Browse past snapshots of the feedback set"><span class="material-symbols-outlined">history</span> History</button>
       <span class="mr-status ${statusCls}" title="Click to refresh"><span class="mr-dot"></span> ${statusText}${reviewer ? ' · ' + escapeHtml(reviewer) : ''}</span>
     `;
     document.getElementById('mr-add-pin').addEventListener('click', enterPinMode);
+    document.getElementById('mr-add-shape').addEventListener('click', () => enterDrawMode(currentShape));
+    document.getElementById('mr-shape-picker').addEventListener('click', e => { e.stopPropagation(); openShapePicker(e.currentTarget); });
     document.getElementById('mr-add-page-note').addEventListener('click', addPageNote);
     document.getElementById('mr-view-all').addEventListener('click', openDrawer);
     document.getElementById('mr-history').addEventListener('click', openHistoryDrawer);
@@ -466,19 +528,24 @@ window.MockReview = (function () {
   function renderPinsForCurrentPage() {
     document.querySelectorAll('.mr-pin').forEach(el => el.remove());
     const pid = pageId();
-    const pinsHere = comments.filter(c => c.type === 'pin' && c.page === pid);
-    pinsHere.forEach((pin, idx) => {
+    // Number pins continuously within the (pins + shapes) sequence on this page
+    const allHere = comments.filter(c => (c.type === 'pin' || c.type === 'shape') && c.page === pid);
+    const pinsHere = allHere.filter(c => c.type === 'pin');
+    pinsHere.forEach(pin => {
+      const idx = allHere.indexOf(pin) + 1;
       const el = document.createElement('div');
       el.className = 'mr-pin' + (pin.author && pin.author === reviewer ? ' mine' : '');
       const pos = pinPosition(pin);
       el.style.left = pos.left + 'px';
       el.style.top  = pos.top + 'px';
       el.dataset.pinId = pin.id;
-      el.textContent = idx + 1;
+      el.textContent = idx;
       el.title = (pin.author ? pin.author + ': ' : '') + (pin.text || '(empty — click to add note)');
       el.addEventListener('click', e => { e.stopPropagation(); openPopoverForPin(pin.id); });
       document.body.appendChild(el);
     });
+    // Render shapes too so callers don't need to remember both
+    renderShapesForCurrentPage();
   }
 
   // Re-place existing pins without rebuilding (called on resize / scroll).
@@ -490,6 +557,338 @@ window.MockReview = (function () {
       const pos = pinPosition(pin);
       el.style.left = pos.left + 'px';
       el.style.top  = pos.top + 'px';
+    });
+    // Also reflow shapes (boxes + markers) on the same schedule
+    repositionShapes();
+  }
+
+  // -------------------------------------------------------------
+  // Shape annotations (rectangle / circle / cloud lasso)
+  //   Stored as comments with type='shape'. Same selector + fractional
+  //   offset model as pins (so they survive viewport scaling), with
+  //   extra box/path fields for the actual outline.
+  // -------------------------------------------------------------
+  let currentShape = localStorage.getItem('mr_shape_v1') || 'rect';
+  let drawModeActive = false;
+  let drawBanner = null;
+  let drawTarget = null;        // anchor element under mousedown
+  let drawStart = null;         // { x, y } in client coords
+  let drawCloudPts = null;      // for cloud: array of client coords
+  let drawPreviewEl = null;
+
+  function shapeIcon(t) {
+    return t === 'circle' ? 'radio_button_unchecked'
+         : t === 'cloud'  ? 'gesture'
+         : 'check_box_outline_blank';
+  }
+  function shapeLabel(t) {
+    return t === 'circle' ? 'Circle'
+         : t === 'cloud'  ? 'Cloud (lasso)'
+         : 'Rectangle';
+  }
+
+  function openShapePicker(anchorBtn) {
+    document.getElementById('mr-shape-picker-pop')?.remove();
+    const pop = document.createElement('div');
+    pop.className = 'mr-shape-picker';
+    pop.id = 'mr-shape-picker-pop';
+    const types = ['rect', 'circle', 'cloud'];
+    pop.innerHTML = types.map(t => `
+      <button data-shape="${t}" class="${t === currentShape ? 'active' : ''}">
+        <span class="material-symbols-outlined">${shapeIcon(t)}</span> ${shapeLabel(t)}
+      </button>
+    `).join('');
+    document.body.appendChild(pop);
+    const r = anchorBtn.getBoundingClientRect();
+    const popR = pop.getBoundingClientRect();
+    pop.style.left = Math.max(8, Math.min(r.left + window.scrollX, document.documentElement.clientWidth - popR.width - 8)) + 'px';
+    pop.style.top  = (r.top + window.scrollY - popR.height - 6) + 'px';
+    pop.querySelectorAll('[data-shape]').forEach(b => b.addEventListener('click', e => {
+      currentShape = b.getAttribute('data-shape');
+      localStorage.setItem('mr_shape_v1', currentShape);
+      pop.remove();
+      renderToolbar();
+      enterDrawMode(currentShape);
+    }));
+    setTimeout(() => document.addEventListener('click', outside, true), 0);
+    function outside(e) {
+      if (!pop.contains(e.target)) { document.removeEventListener('click', outside, true); pop.remove(); }
+    }
+  }
+
+  function enterDrawMode(shape) {
+    ensureReviewerName(() => {
+      if (drawModeActive) return exitDrawMode();
+      currentShape = shape || currentShape;
+      drawModeActive = true;
+      document.body.classList.add('mr-draw-mode');
+      drawBanner = document.createElement('div');
+      drawBanner.className = 'mr-banner';
+      drawBanner.textContent = `${shapeLabel(currentShape)}: click + drag to draw · Esc to cancel`;
+      document.body.appendChild(drawBanner);
+      document.addEventListener('mousedown', drawDown, true);
+      document.addEventListener('keydown', drawEsc);
+    });
+  }
+  function exitDrawMode() {
+    drawModeActive = false;
+    document.body.classList.remove('mr-draw-mode');
+    if (drawBanner) { drawBanner.remove(); drawBanner = null; }
+    document.removeEventListener('mousedown', drawDown, true);
+    document.removeEventListener('mousemove', drawMove, true);
+    document.removeEventListener('mouseup', drawUp, true);
+    document.removeEventListener('keydown', drawEsc);
+    if (drawPreviewEl) { drawPreviewEl.remove(); drawPreviewEl = null; }
+    drawStart = null; drawTarget = null; drawCloudPts = null;
+  }
+  function drawEsc(e) { if (e.key === 'Escape') exitDrawMode(); }
+
+  function drawDown(e) {
+    if (e.target.closest('.mr-toolbar') || e.target.closest('.mr-popover') || e.target.closest('.mr-banner') || e.target.closest('.mr-shape-picker')) return;
+    e.preventDefault(); e.stopPropagation();
+    drawTarget = e.target;
+    drawStart = { x: e.clientX, y: e.clientY };
+    drawCloudPts = currentShape === 'cloud' ? [[e.clientX, e.clientY]] : null;
+    drawPreviewEl = document.createElement('div');
+    drawPreviewEl.className = 'mr-draw-preview';
+    drawPreviewEl.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg"><path class="mr-shape-stroke" d=""/></svg>';
+    document.body.appendChild(drawPreviewEl);
+    document.addEventListener('mousemove', drawMove, true);
+    document.addEventListener('mouseup', drawUp, true);
+  }
+  function drawMove(e) {
+    if (!drawStart) return;
+    if (currentShape === 'cloud') {
+      const last = drawCloudPts[drawCloudPts.length - 1];
+      const dx = e.clientX - last[0], dy = e.clientY - last[1];
+      if (dx*dx + dy*dy >= 16) drawCloudPts.push([e.clientX, e.clientY]);
+    }
+    updateDrawPreview(e.clientX, e.clientY);
+  }
+  function drawUp(e) {
+    document.removeEventListener('mousemove', drawMove, true);
+    document.removeEventListener('mouseup', drawUp, true);
+    if (!drawStart) return exitDrawMode();
+    const end = { x: e.clientX, y: e.clientY };
+    let dragDist = Math.hypot(end.x - drawStart.x, end.y - drawStart.y);
+    if (dragDist < 4 && currentShape !== 'cloud') {
+      // Treat tiny drags as cancellations — user probably just clicked
+      exitDrawMode();
+      return;
+    }
+    commitShape(end);
+    exitDrawMode();
+  }
+
+  function updateDrawPreview(curX, curY) {
+    if (!drawPreviewEl || !drawStart) return;
+    let minX, minY, maxX, maxY, d;
+    if (currentShape === 'cloud') {
+      const pts = drawCloudPts.concat([[curX, curY]]);
+      minX = Math.min(...pts.map(p => p[0]));
+      minY = Math.min(...pts.map(p => p[1]));
+      maxX = Math.max(...pts.map(p => p[0]));
+      maxY = Math.max(...pts.map(p => p[1]));
+      const pad = 4;
+      minX -= pad; minY -= pad; maxX += pad; maxY += pad;
+      const local = pts.map(p => [p[0] - minX, p[1] - minY]);
+      d = 'M ' + local.map(p => p[0].toFixed(1) + ',' + p[1].toFixed(1)).join(' L ') + ' Z';
+    } else {
+      minX = Math.min(drawStart.x, curX);
+      minY = Math.min(drawStart.y, curY);
+      maxX = Math.max(drawStart.x, curX);
+      maxY = Math.max(drawStart.y, curY);
+      const w = maxX - minX, h = maxY - minY;
+      if (currentShape === 'circle') {
+        const cx = w / 2, cy = h / 2;
+        d = `M ${cx.toFixed(1)},0 A ${cx.toFixed(1)},${cy.toFixed(1)} 0 1 0 ${cx.toFixed(1)},${(h).toFixed(1)} A ${cx.toFixed(1)},${cy.toFixed(1)} 0 1 0 ${cx.toFixed(1)},0 Z`;
+      } else {
+        d = `M 0,0 L ${w.toFixed(1)},0 L ${w.toFixed(1)},${h.toFixed(1)} L 0,${h.toFixed(1)} Z`;
+      }
+    }
+    drawPreviewEl.style.left = (minX + window.scrollX) + 'px';
+    drawPreviewEl.style.top  = (minY + window.scrollY) + 'px';
+    drawPreviewEl.style.width  = (maxX - minX) + 'px';
+    drawPreviewEl.style.height = (maxY - minY) + 'px';
+    drawPreviewEl.querySelector('path').setAttribute('d', d);
+  }
+
+  function commitShape(end) {
+    // Compute bbox in client coords + a points list (for cloud)
+    let minX, minY, maxX, maxY, points;
+    if (currentShape === 'cloud') {
+      points = drawCloudPts.concat([drawCloudPts[0]]);  // close
+      minX = Math.min(...points.map(p => p[0]));
+      minY = Math.min(...points.map(p => p[1]));
+      maxX = Math.max(...points.map(p => p[0]));
+      maxY = Math.max(...points.map(p => p[1]));
+    } else {
+      minX = Math.min(drawStart.x, end.x);
+      minY = Math.min(drawStart.y, end.y);
+      maxX = Math.max(drawStart.x, end.x);
+      maxY = Math.max(drawStart.y, end.y);
+      points = null;
+    }
+    // Pick an anchor element that contains the entire bbox (so resize survives)
+    let anchorEl = chooseShapeAnchor(drawTarget, minX, minY, maxX, maxY);
+    const aRect = anchorEl.getBoundingClientRect();
+    const aw = Math.max(1, aRect.width);
+    const ah = Math.max(1, aRect.height);
+    // Marker = drag-start point (where the user clicked first)
+    const markerXFrac = (drawStart.x - aRect.left) / aw;
+    const markerYFrac = (drawStart.y - aRect.top)  / ah;
+    // Bounding box fractional within anchor
+    const boxXFrac = (minX - aRect.left) / aw;
+    const boxYFrac = (minY - aRect.top)  / ah;
+    const boxWFrac = (maxX - minX) / aw;
+    const boxHFrac = (maxY - minY) / ah;
+    // Path points (cloud only) — fractional WITHIN the bbox
+    const pathFrac = points ? points.map(p => [
+      (p[0] - minX) / Math.max(1, maxX - minX),
+      (p[1] - minY) / Math.max(1, maxY - minY)
+    ]) : null;
+    const shape = {
+      id: uid(),
+      page: pageId(),
+      pageTitle: pageTitle(),
+      type: 'shape',
+      shapeType: currentShape,
+      selector: cssPathOf(anchorEl),
+      // Marker (pin-style) within anchor:
+      offsetX: Math.round(markerXFrac * aw),
+      offsetY: Math.round(markerYFrac * ah),
+      offsetXFrac: markerXFrac,
+      offsetYFrac: markerYFrac,
+      // Shape bounding box within anchor:
+      boxXFrac, boxYFrac, boxWFrac, boxHFrac,
+      // Cloud path within bbox:
+      pathFrac,
+      // Absolute fallback (legacy):
+      x: Math.round(drawStart.x + window.scrollX),
+      y: Math.round(drawStart.y + window.scrollY),
+      anchor: nearestAnchor(anchorEl),
+      text: '',
+      author: reviewer,
+      createdAt: nowIso()
+    };
+    comments.push(shape);
+    putComment(shape);
+    renderShapesForCurrentPage();
+    setTimeout(() => openPopoverForPin(shape.id), 50);
+  }
+
+  // Walk up from `start` to find the smallest ancestor whose bbox fully
+  // contains the drawn region. Falls back to document.body.
+  function chooseShapeAnchor(start, minX, minY, maxX, maxY) {
+    let el = start;
+    while (el && el !== document.body) {
+      const r = el.getBoundingClientRect();
+      if (r.left <= minX + 0.5 && r.top <= minY + 0.5 && r.right >= maxX - 0.5 && r.bottom >= maxY - 0.5) {
+        return el;
+      }
+      el = el.parentElement;
+    }
+    return document.body;
+  }
+
+  // -------------------------------------------------------------
+  // Shape rendering
+  // -------------------------------------------------------------
+  function renderShapesForCurrentPage() {
+    document.querySelectorAll('.mr-shape, .mr-shape-marker').forEach(el => el.remove());
+    const pid = pageId();
+    const shapesHere = comments.filter(c => c.type === 'shape' && c.page === pid);
+    // Re-numbering goes across all comments on this page (pins + shapes) to keep
+    // the user's mental model "this is comment #5 on this page"
+    const allHere = comments.filter(c => (c.type === 'pin' || c.type === 'shape') && c.page === pid);
+    shapesHere.forEach(s => {
+      const idx = allHere.indexOf(s) + 1;
+      renderOneShape(s, idx);
+    });
+  }
+
+  function shapeGeom(s) {
+    const anchorEl = resolveAnchorElement(s);
+    if (anchorEl) {
+      const r = anchorEl.getBoundingClientRect();
+      const left = r.left + s.boxXFrac * r.width + window.scrollX;
+      const top  = r.top  + s.boxYFrac * r.height + window.scrollY;
+      const w    = s.boxWFrac * r.width;
+      const h    = s.boxHFrac * r.height;
+      const mLeft = r.left + s.offsetXFrac * r.width + window.scrollX;
+      const mTop  = r.top  + s.offsetYFrac * r.height + window.scrollY;
+      return { left, top, w, h, mLeft, mTop };
+    }
+    // Fallback: cannot scale, use legacy abs coords if present
+    return { left: s.x || 0, top: s.y || 0, w: 100, h: 50, mLeft: s.x || 0, mTop: s.y || 0 };
+  }
+
+  function renderOneShape(s, idx) {
+    const g = shapeGeom(s);
+    const mine = !s.author || s.author === reviewer;
+    // Build SVG path
+    let d;
+    if (s.shapeType === 'cloud' && Array.isArray(s.pathFrac) && s.pathFrac.length > 1) {
+      d = 'M ' + s.pathFrac.map(p => (p[0] * g.w).toFixed(1) + ',' + (p[1] * g.h).toFixed(1)).join(' L ') + ' Z';
+    } else if (s.shapeType === 'circle') {
+      const cx = g.w / 2, cy = g.h / 2;
+      d = `M ${cx.toFixed(1)},0 A ${cx.toFixed(1)},${cy.toFixed(1)} 0 1 0 ${cx.toFixed(1)},${g.h.toFixed(1)} A ${cx.toFixed(1)},${cy.toFixed(1)} 0 1 0 ${cx.toFixed(1)},0 Z`;
+    } else {
+      d = `M 0,0 L ${g.w.toFixed(1)},0 L ${g.w.toFixed(1)},${g.h.toFixed(1)} L 0,${g.h.toFixed(1)} Z`;
+    }
+    const shapeEl = document.createElement('div');
+    shapeEl.className = 'mr-shape' + (mine ? ' mine' : '');
+    shapeEl.dataset.shapeId = s.id;
+    shapeEl.style.left = g.left + 'px';
+    shapeEl.style.top  = g.top + 'px';
+    shapeEl.style.width  = g.w + 'px';
+    shapeEl.style.height = g.h + 'px';
+    shapeEl.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg"><path class="mr-shape-stroke" d="${d}"/></svg>`;
+    document.body.appendChild(shapeEl);
+
+    const marker = document.createElement('div');
+    marker.className = 'mr-shape-marker' + (mine ? ' mine' : '');
+    marker.dataset.shapeId = s.id;
+    marker.style.left = g.mLeft + 'px';
+    marker.style.top  = g.mTop + 'px';
+    marker.title = (s.author ? s.author + ': ' : '') + (s.text || '(empty — click to add note)');
+    marker.innerHTML = `<span class="mr-sm-icon">${shapeIcon(s.shapeType)}</span><span class="mr-sm-num">${idx}</span>`;
+    marker.addEventListener('mouseenter', () => shapeEl.classList.add('show'));
+    marker.addEventListener('mouseleave', () => shapeEl.classList.remove('show'));
+    marker.addEventListener('click', e => { e.stopPropagation(); openPopoverForPin(s.id); });
+    document.body.appendChild(marker);
+  }
+
+  function repositionShapes() {
+    const pid = pageId();
+    document.querySelectorAll('.mr-shape').forEach(el => {
+      const s = comments.find(c => c.id === el.dataset.shapeId);
+      if (!s || s.page !== pid) return;
+      const g = shapeGeom(s);
+      el.style.left = g.left + 'px';
+      el.style.top  = g.top + 'px';
+      el.style.width  = g.w + 'px';
+      el.style.height = g.h + 'px';
+      const path = el.querySelector('path');
+      if (path) {
+        let d;
+        if (s.shapeType === 'cloud' && Array.isArray(s.pathFrac) && s.pathFrac.length > 1) {
+          d = 'M ' + s.pathFrac.map(p => (p[0] * g.w).toFixed(1) + ',' + (p[1] * g.h).toFixed(1)).join(' L ') + ' Z';
+        } else if (s.shapeType === 'circle') {
+          const cx = g.w / 2, cy = g.h / 2;
+          d = `M ${cx.toFixed(1)},0 A ${cx.toFixed(1)},${cy.toFixed(1)} 0 1 0 ${cx.toFixed(1)},${g.h.toFixed(1)} A ${cx.toFixed(1)},${cy.toFixed(1)} 0 1 0 ${cx.toFixed(1)},0 Z`;
+        } else {
+          d = `M 0,0 L ${g.w.toFixed(1)},0 L ${g.w.toFixed(1)},${g.h.toFixed(1)} L 0,${g.h.toFixed(1)} Z`;
+        }
+        path.setAttribute('d', d);
+      }
+    });
+    document.querySelectorAll('.mr-shape-marker').forEach(el => {
+      const s = comments.find(c => c.id === el.dataset.shapeId);
+      if (!s || s.page !== pid) return;
+      const g = shapeGeom(s);
+      el.style.left = g.mLeft + 'px';
+      el.style.top  = g.mTop + 'px';
     });
   }
 
@@ -656,10 +1055,11 @@ window.MockReview = (function () {
               <div class="mr-c">
                 <div class="mr-c-h">
                   <span class="mr-c-num">#${i + 1}</span>
+                  <span class="material-symbols-outlined" style="font-size:14px;color:#8a8880;" title="${c.type === 'shape' ? shapeLabel(c.shapeType) : 'Pin'}">${c.type === 'shape' ? shapeIcon(c.shapeType) : 'push_pin'}</span>
                   ${c.author ? '<span class="mr-c-author">' + escapeHtml(c.author) + '</span>' : ''}
-                  <span class="mr-c-anchor">near <i>"${escapeHtml((c.anchor.text || c.anchor.tag || '').slice(0, 40))}"</i></span>
+                  <span class="mr-c-anchor">near <i>"${escapeHtml(((c.anchor && (c.anchor.text || c.anchor.tag)) || '').slice(0, 40))}"</i></span>
                   <div class="mr-c-actions">
-                    <button title="Jump to pin" data-jump-page="${c.page}" data-jump-id="${c.id}">↗</button>
+                    <button title="Jump to note" data-jump-page="${c.page}" data-jump-id="${c.id}">↗</button>
                     ${(c.author === reviewer || !c.author) ? `<button title="Delete" data-del="${c.id}">×</button>` : ''}
                   </div>
                 </div>
@@ -760,7 +1160,7 @@ window.MockReview = (function () {
         // Skip mutations our own pin/toolbar/drawer triggered
         for (const m of muts) {
           for (const n of m.addedNodes) {
-            if (n.classList && (n.classList.contains('mr-pin') || n.classList.contains('mr-toolbar') || n.classList.contains('mr-drawer') || n.classList.contains('mr-popover'))) return;
+            if (n.classList && (n.classList.contains('mr-pin') || n.classList.contains('mr-shape') || n.classList.contains('mr-shape-marker') || n.classList.contains('mr-shape-picker') || n.classList.contains('mr-draw-preview') || n.classList.contains('mr-toolbar') || n.classList.contains('mr-drawer') || n.classList.contains('mr-popover'))) return;
           }
         }
         scheduleReposition();
@@ -957,6 +1357,7 @@ window.MockReview = (function () {
               <div class="mr-c">
                 <div class="mr-c-h">
                   <span class="mr-c-num">#${i + 1}</span>
+                  <span class="material-symbols-outlined" style="font-size:14px;color:#8a8880;" title="${c.type === 'shape' ? shapeLabel(c.shapeType) : 'Pin'}">${c.type === 'shape' ? shapeIcon(c.shapeType) : 'push_pin'}</span>
                   ${c.author ? '<span class="mr-c-author">' + escapeHtml(c.author) + '</span>' : ''}
                   <span class="mr-c-anchor">near <i>"${escapeHtml(((c.anchor && c.anchor.text) || (c.anchor && c.anchor.tag) || '').slice(0, 40))}"</i></span>
                 </div>
