@@ -1,87 +1,125 @@
 /* ================================================================
    field-quotes mockups — review / markup overlay
-   Server-backed: every reviewer writes to and reads from the same
-   shared pool via /api/quotes-mockup/notes. Notes persist across
-   browsers and reviewers; last-write-wins on conflict.
+   Server-backed, per-record. Each comment / page note is its own
+   row server-side, so concurrent reviewers can't trample each
+   other's notes. Reviewer name lives per-browser in localStorage.
    ================================================================ */
 
 window.MockReview = (function () {
 
   const API = '/api/quotes-mockup/notes';
-  const POLL_MS = 20000;            // background refresh interval
-  const SAVE_DEBOUNCE = 400;        // coalesce rapid edits
+  const POLL_MS = 12000;
+  const REVIEWER_KEY = 'mr_reviewer_v1';
 
   // -------------------------------------------------------------
-  // In-memory cache + sync state
+  // In-memory mirror of server state (read-cache only — all
+  // mutations go straight to the per-record endpoints).
   // -------------------------------------------------------------
-  let cache = defaultData();
-  let cacheLoaded = false;
+  let comments = [];
+  let pageNotes = {};
+  let reviewer = localStorage.getItem(REVIEWER_KEY) || '';
   let lastSyncedAt = null;
-  let lastSavedAt = null;
-  let saveTimer = null;
-  let pendingSave = false;
   let lastError = null;
+  let inFlight = 0;          // number of mutations being saved
+  let cacheLoaded = false;
 
-  function defaultData() {
-    return { reviewer: '', startedAt: new Date().toISOString(), comments: [], pageNotes: {} };
-  }
-
-  async function fetchFromServer({ silent } = {}) {
+  // -------------------------------------------------------------
+  // Network — per-record API
+  // -------------------------------------------------------------
+  async function fetchAll({ silent } = {}) {
     try {
       const r = await fetch(API, { cache: 'no-store' });
       if (!r.ok) throw new Error('HTTP ' + r.status);
       const j = await r.json();
-      const fresh = (j && j.data && Object.keys(j.data).length > 0) ? j.data : defaultData();
-      cache = { ...defaultData(), ...fresh };
+      comments = Array.isArray(j.comments) ? j.comments : [];
+      pageNotes = (j.pageNotes && typeof j.pageNotes === 'object') ? j.pageNotes : {};
       lastSyncedAt = new Date();
       lastError = null;
       cacheLoaded = true;
-      // Repaint pins + toolbar so other reviewers' edits show up
       if (!silent) { renderPinsForCurrentPage(); renderToolbar(); }
-      return cache;
     } catch (e) {
       lastError = e.message || String(e);
       if (!silent) renderToolbar();
-      console.warn('MockReview fetch failed:', e);
-      return cache;
     }
   }
 
-  async function pushToServer() {
-    pendingSave = false;
+  async function putComment(c) {
+    inFlight++; renderToolbar();
     try {
-      const r = await fetch(API, {
-        method: 'POST',
+      const r = await fetch(API + '/comment', {
+        method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(cache)
+        body: JSON.stringify(c)
       });
       if (!r.ok) throw new Error('HTTP ' + r.status);
-      const j = await r.json();
-      lastSavedAt = new Date();
-      lastSyncedAt = lastSavedAt;
       lastError = null;
-      renderToolbar();
+      lastSyncedAt = new Date();
     } catch (e) {
       lastError = e.message || String(e);
-      renderToolbar();
-      console.warn('MockReview save failed:', e);
+    } finally {
+      inFlight--; renderToolbar();
     }
   }
 
-  function load() { return cache; }
-  function save(data) {
-    cache = data;
-    if (saveTimer) clearTimeout(saveTimer);
-    pendingSave = true;
-    renderToolbar();
-    saveTimer = setTimeout(() => pushToServer(), SAVE_DEBOUNCE);
+  async function deleteComment(id) {
+    inFlight++; renderToolbar();
+    try {
+      const r = await fetch(API + '/comment/' + encodeURIComponent(id), { method: 'DELETE' });
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      lastError = null;
+      lastSyncedAt = new Date();
+    } catch (e) {
+      lastError = e.message || String(e);
+    } finally {
+      inFlight--; renderToolbar();
+    }
   }
 
-  function reset() {
-    cache = defaultData();
-    pushToServer();
-    document.querySelectorAll('.mr-pin').forEach(el => el.remove());
-    renderToolbar();
+  async function putPageNote(page, note) {
+    inFlight++; renderToolbar();
+    try {
+      const r = await fetch(API + '/pagenote/' + encodeURIComponent(page), {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(note)
+      });
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      lastError = null;
+      lastSyncedAt = new Date();
+    } catch (e) {
+      lastError = e.message || String(e);
+    } finally {
+      inFlight--; renderToolbar();
+    }
+  }
+
+  async function deletePageNote(page) {
+    inFlight++; renderToolbar();
+    try {
+      const r = await fetch(API + '/pagenote/' + encodeURIComponent(page), { method: 'DELETE' });
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      lastError = null;
+      lastSyncedAt = new Date();
+    } catch (e) {
+      lastError = e.message || String(e);
+    } finally {
+      inFlight--; renderToolbar();
+    }
+  }
+
+  async function clearAll() {
+    inFlight++; renderToolbar();
+    try {
+      const r = await fetch(API, { method: 'DELETE' });
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      comments = []; pageNotes = {};
+      lastSyncedAt = new Date();
+      lastError = null;
+    } catch (e) {
+      lastError = e.message || String(e);
+    } finally {
+      inFlight--; renderToolbar();
+    }
   }
 
   // -------------------------------------------------------------
@@ -91,7 +129,6 @@ window.MockReview = (function () {
   function pageId() { return (location.pathname.split('/').pop() || 'index').replace(/[?#].*$/, ''); }
   function pageTitle() { return document.title.replace(/ — SKS Quotes.*$/, '').trim(); }
   function nowIso() { return new Date().toISOString(); }
-  function dateLong(iso) { return new Date(iso).toLocaleString('en-AU', { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit', hour12: true }); }
   function timeAgo(date) {
     if (!date) return 'never';
     const sec = Math.round((Date.now() - date.getTime()) / 1000);
@@ -103,7 +140,6 @@ window.MockReview = (function () {
     if (hr < 24) return hr + 'h ago';
     return Math.round(hr / 24) + 'd ago';
   }
-
   function nearestAnchor(el) {
     let cur = el; let depth = 0;
     while (cur && cur !== document.body && depth < 6) {
@@ -116,6 +152,7 @@ window.MockReview = (function () {
     }
     return { tag: el.tagName.toLowerCase(), text: '' };
   }
+  function escapeHtml(s) { return (s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
 
   // -------------------------------------------------------------
   // Styles
@@ -140,9 +177,9 @@ window.MockReview = (function () {
       .mr-toolbar .mr-btn .material-symbols-outlined { font-size: 16px; }
       .mr-toolbar .mr-count { font-size: 11px; font-weight: 600; padding: 2px 7px; background: #c0553a; color: white; border-radius: 10px; }
       .mr-toolbar .mr-toggle { padding: 8px; }
-      .mr-status { font-size: 11px; color: #8a8880; padding: 0 6px; display: flex; align-items: center; gap: 4px; }
+      .mr-status { font-size: 11px; color: #8a8880; padding: 0 6px; display: flex; align-items: center; gap: 4px; cursor: pointer; }
       .mr-status .mr-dot { width: 7px; height: 7px; border-radius: 50%; background: #3d7c3f; }
-      .mr-status.saving .mr-dot { background: #b8860b; animation: mr-pulse 0.8s infinite; }
+      .mr-status.busy .mr-dot { background: #b8860b; animation: mr-pulse 0.8s infinite; }
       .mr-status.error .mr-dot { background: #c0553a; }
       @keyframes mr-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
 
@@ -203,7 +240,6 @@ window.MockReview = (function () {
       .mr-drawer .mr-c .mr-c-actions button { background: none; border: none; color: #8a8880;
         cursor: pointer; padding: 0; font-size: 14px; line-height: 1; }
       .mr-drawer .mr-c .mr-c-actions button:hover { color: #c0553a; }
-
       .mr-empty { padding: 30px 20px; text-align: center; color: #8a8880; }
 
       .mr-name-prompt { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 9999;
@@ -230,23 +266,23 @@ window.MockReview = (function () {
       toolbarEl.className = 'mr-toolbar';
       document.body.appendChild(toolbarEl);
     }
-    const total = cache.comments.length + Object.values(cache.pageNotes).filter(Boolean).length;
-    let statusCls = ''; let statusIcon = '●'; let statusText = 'synced ' + timeAgo(lastSyncedAt);
-    if (lastError) { statusCls = 'error'; statusText = 'sync failed'; }
-    else if (pendingSave) { statusCls = 'saving'; statusText = 'saving…'; }
-    else if (!cacheLoaded) { statusCls = 'saving'; statusText = 'loading…'; }
+    const total = comments.length + Object.keys(pageNotes).length;
+    let statusCls = ''; let statusText = 'synced ' + timeAgo(lastSyncedAt);
+    if (lastError) { statusCls = 'error'; statusText = 'sync failed (click)'; }
+    else if (inFlight > 0) { statusCls = 'busy'; statusText = 'saving…'; }
+    else if (!cacheLoaded) { statusCls = 'busy'; statusText = 'loading…'; }
     toolbarEl.innerHTML = `
       <button class="mr-btn mr-toggle" title="Hide toolbar" id="mr-toggle"><span class="material-symbols-outlined">edit_note</span></button>
       <button class="mr-btn" id="mr-add-pin" title="Drop a pin and write a note"><span class="material-symbols-outlined">push_pin</span> Pin a note</button>
       <button class="mr-btn mr-secondary" id="mr-add-page-note" title="General note about this page"><span class="material-symbols-outlined">sticky_note_2</span> Note this page</button>
       <button class="mr-btn mr-secondary" id="mr-view-all" title="See every note across every page"><span class="material-symbols-outlined">checklist</span> All notes <span class="mr-count">${total}</span></button>
-      <span class="mr-status ${statusCls}" title="Click to refresh"><span class="mr-dot"></span> ${statusText}</span>
+      <span class="mr-status ${statusCls}" title="Click to refresh"><span class="mr-dot"></span> ${statusText}${reviewer ? ' · ' + escapeHtml(reviewer) : ''}</span>
     `;
     document.getElementById('mr-add-pin').addEventListener('click', enterPinMode);
     document.getElementById('mr-add-page-note').addEventListener('click', addPageNote);
     document.getElementById('mr-view-all').addEventListener('click', openDrawer);
     document.getElementById('mr-toggle').addEventListener('click', () => toolbarEl.classList.toggle('collapsed'));
-    toolbarEl.querySelector('.mr-status').addEventListener('click', () => fetchFromServer());
+    toolbarEl.querySelector('.mr-status').addEventListener('click', () => fetchAll());
   }
 
   // -------------------------------------------------------------
@@ -280,20 +316,19 @@ window.MockReview = (function () {
     e.preventDefault(); e.stopPropagation();
     exitPinMode();
 
-    const x = e.pageX; const y = e.pageY;
-    const anchor = nearestAnchor(e.target);
     const pin = {
       id: uid(),
       page: pageId(),
       pageTitle: pageTitle(),
       type: 'pin',
-      x, y, anchor,
+      x: e.pageX, y: e.pageY,
+      anchor: nearestAnchor(e.target),
       text: '',
-      author: cache.reviewer || '',
+      author: reviewer,
       createdAt: nowIso()
     };
-    cache.comments.push(pin);
-    save(cache);
+    comments.push(pin);
+    putComment(pin);
     renderPinsForCurrentPage();
     setTimeout(() => openPopoverForPin(pin.id), 50);
   }
@@ -304,10 +339,10 @@ window.MockReview = (function () {
   function renderPinsForCurrentPage() {
     document.querySelectorAll('.mr-pin').forEach(el => el.remove());
     const pid = pageId();
-    const pinsHere = cache.comments.filter(c => c.type === 'pin' && c.page === pid);
+    const pinsHere = comments.filter(c => c.type === 'pin' && c.page === pid);
     pinsHere.forEach((pin, idx) => {
       const el = document.createElement('div');
-      el.className = 'mr-pin' + (pin.author && pin.author === cache.reviewer ? ' mine' : '');
+      el.className = 'mr-pin' + (pin.author && pin.author === reviewer ? ' mine' : '');
       el.style.left = pin.x + 'px';
       el.style.top  = pin.y + 'px';
       el.textContent = idx + 1;
@@ -319,16 +354,15 @@ window.MockReview = (function () {
 
   function openPopoverForPin(pinId) {
     closePopover();
-    const pin = cache.comments.find(c => c.id === pinId);
+    const pin = comments.find(c => c.id === pinId);
     if (!pin) return;
     const popover = document.createElement('div');
-    popover.className = 'mr-popover';
-    popover.id = 'mr-popover';
+    popover.className = 'mr-popover'; popover.id = 'mr-popover';
     const top = pin.y + 16;
     const leftRaw = pin.x - 145;
     const left = Math.max(8, Math.min(leftRaw, document.documentElement.clientWidth - 306));
     popover.style.left = left + 'px'; popover.style.top  = top + 'px';
-    const isMine = !pin.author || pin.author === cache.reviewer;
+    const isMine = !pin.author || pin.author === reviewer;
     popover.innerHTML = `
       <div class="mr-pop-meta">${pin.author ? '<b>' + escapeHtml(pin.author) + '</b> · ' : ''}near "${escapeHtml((pin.anchor.text || pin.anchor.tag).slice(0, 50))}"</div>
       <textarea placeholder="Type your note…" id="mr-pop-text" ${!isMine ? 'readonly' : ''}>${escapeHtml(pin.text)}</textarea>
@@ -342,24 +376,23 @@ window.MockReview = (function () {
     if (isMine) document.getElementById('mr-pop-text').focus();
     document.getElementById('mr-pop-save')?.addEventListener('click', () => {
       const text = document.getElementById('mr-pop-text').value.trim();
-      const p = cache.comments.find(c => c.id === pinId);
-      if (p) { p.text = text; p.updatedAt = nowIso(); }
-      save(cache);
+      const p = comments.find(c => c.id === pinId);
+      if (p) { p.text = text; p.updatedAt = nowIso(); putComment(p); }
       closePopover();
       renderPinsForCurrentPage();
     });
     document.getElementById('mr-pop-cancel').addEventListener('click', () => {
-      const p = cache.comments.find(c => c.id === pinId);
+      const p = comments.find(c => c.id === pinId);
       if (isMine && p && !p.text.trim()) {
-        cache.comments = cache.comments.filter(c => c.id !== pinId);
-        save(cache);
+        comments = comments.filter(c => c.id !== pinId);
+        deleteComment(pinId);
       }
       closePopover();
       renderPinsForCurrentPage();
     });
     document.getElementById('mr-pop-del')?.addEventListener('click', () => {
-      cache.comments = cache.comments.filter(c => c.id !== pinId);
-      save(cache);
+      comments = comments.filter(c => c.id !== pinId);
+      deleteComment(pinId);
       closePopover();
       renderPinsForCurrentPage();
     });
@@ -379,32 +412,31 @@ window.MockReview = (function () {
   function addPageNote() {
     ensureReviewerName(() => {
       const pid = pageId();
-      const existing = cache.pageNotes[pid]?.text || '';
+      const existing = pageNotes[pid]?.text || '';
       const text = prompt(`General note for "${pageTitle()}":`, existing);
       if (text === null) return;
       if (!text.trim()) {
-        delete cache.pageNotes[pid];
+        delete pageNotes[pid];
+        deletePageNote(pid);
       } else {
-        cache.pageNotes[pid] = cache.pageNotes[pid] || { page: pid, pageTitle: pageTitle(), createdAt: nowIso(), author: cache.reviewer };
-        cache.pageNotes[pid].text = text.trim();
-        cache.pageNotes[pid].updatedAt = nowIso();
-        cache.pageNotes[pid].author = cache.reviewer || cache.pageNotes[pid].author;
+        pageNotes[pid] = { page: pid, pageTitle: pageTitle(), text: text.trim(), author: reviewer, updatedAt: nowIso() };
+        putPageNote(pid, { pageTitle: pageTitle(), author: reviewer, text: text.trim() });
       }
-      save(cache);
+      renderToolbar();
     });
   }
 
   // -------------------------------------------------------------
-  // Reviewer name
+  // Reviewer name (per-browser, in localStorage)
   // -------------------------------------------------------------
   function ensureReviewerName(cb) {
-    if (cache.reviewer) return cb();
+    if (reviewer) return cb();
     const wrap = document.createElement('div');
     wrap.className = 'mr-name-prompt';
     wrap.innerHTML = `
       <div class="card">
         <h3>Who's reviewing?</h3>
-        <p>Your name will be on every note you add so others know who wrote what. Notes are shared — everyone working on this mockup sees the same set.</p>
+        <p>Your name will be on every note you add so others know who wrote what. Notes are shared — everyone working on this mockup sees the same set, but you can only edit your own.</p>
         <input id="mr-name-in" type="text" placeholder="e.g. Steven Carmichael" autofocus>
         <button id="mr-name-ok">Continue</button>
       </div>
@@ -414,8 +446,9 @@ window.MockReview = (function () {
     document.getElementById('mr-name-ok').addEventListener('click', () => {
       const v = document.getElementById('mr-name-in').value.trim();
       if (!v) return;
-      cache.reviewer = v;
-      save(cache);
+      reviewer = v;
+      localStorage.setItem(REVIEWER_KEY, v);
+      renderToolbar();
       wrap.remove();
       cb();
     });
@@ -439,16 +472,19 @@ window.MockReview = (function () {
     document.body.appendChild(drawer);
 
     const pages = {};
-    cache.comments.forEach(c => {
+    comments.forEach(c => {
       pages[c.page] = pages[c.page] || { page: c.page, pageTitle: c.pageTitle, comments: [] };
       pages[c.page].comments.push(c);
     });
-    Object.entries(cache.pageNotes).forEach(([pid, note]) => {
+    Object.entries(pageNotes).forEach(([pid, note]) => {
       pages[pid] = pages[pid] || { page: pid, pageTitle: note.pageTitle, comments: [] };
     });
     const pageList = Object.values(pages).sort((a, b) => a.page.localeCompare(b.page));
 
-    const reviewers = [...new Set([cache.reviewer, ...cache.comments.map(c => c.author).filter(Boolean), ...Object.values(cache.pageNotes).map(p => p.author).filter(Boolean)])].filter(Boolean);
+    const contributors = [...new Set([
+      ...comments.map(c => c.author).filter(Boolean),
+      ...Object.values(pageNotes).map(p => p.author).filter(Boolean)
+    ])];
 
     drawer.innerHTML = `
       <div class="mr-dh">
@@ -458,21 +494,21 @@ window.MockReview = (function () {
       </div>
       <div class="mr-db">
         <div style="margin-bottom:12px;font-size:12px;color:#5c5b56;">
-          ${reviewers.length > 0 ? `Contributors: ${reviewers.map(r => `<b>${escapeHtml(r)}</b>`).join(', ')}` : 'No reviewers yet.'}
+          ${contributors.length > 0 ? `Contributors: ${contributors.map(r => `<b>${escapeHtml(r)}</b>`).join(', ')}` : 'No notes yet.'}
           <br><span style="color:#8a8880;">Synced ${timeAgo(lastSyncedAt)}.</span>
         </div>
         ${pageList.length === 0 ? `<div class="mr-empty"><span class="material-symbols-outlined" style="font-size:32px;">edit_note</span><div style="margin-top:6px;">No notes yet. Drop a pin or add a page note from the toolbar.</div></div>` : ''}
         ${pageList.map(pg => `
           <div class="mr-pg">
             <div class="mr-pg-h"><a class="pg-link" href="${pg.page}">${escapeHtml(pg.pageTitle)} <span style="font-weight:400;color:#a09e97;">(${pg.page})</span></a></div>
-            ${cache.pageNotes[pg.page] ? `
+            ${pageNotes[pg.page] ? `
               <div class="mr-c">
                 <div class="mr-c-h">
                   <span style="background:#4a5699;color:white;padding:1px 7px;border-radius:10px;font-weight:600;font-size:10px;">PAGE</span>
-                  ${cache.pageNotes[pg.page].author ? '<span class="mr-c-author">' + escapeHtml(cache.pageNotes[pg.page].author) + '</span>' : ''}
-                  ${(cache.pageNotes[pg.page].author === cache.reviewer || !cache.pageNotes[pg.page].author) ? `<div class="mr-c-actions"><button title="Delete" data-del-page="${pg.page}">×</button></div>` : ''}
+                  ${pageNotes[pg.page].author ? '<span class="mr-c-author">' + escapeHtml(pageNotes[pg.page].author) + '</span>' : ''}
+                  ${(pageNotes[pg.page].author === reviewer || !pageNotes[pg.page].author) ? `<div class="mr-c-actions"><button title="Delete" data-del-page="${pg.page}">×</button></div>` : ''}
                 </div>
-                <div class="mr-c-text">${escapeHtml(cache.pageNotes[pg.page].text)}</div>
+                <div class="mr-c-text">${escapeHtml(pageNotes[pg.page].text)}</div>
               </div>
             ` : ''}
             ${pg.comments.map((c, i) => `
@@ -483,7 +519,7 @@ window.MockReview = (function () {
                   <span class="mr-c-anchor">near <i>"${escapeHtml((c.anchor.text || c.anchor.tag || '').slice(0, 40))}"</i></span>
                   <div class="mr-c-actions">
                     <button title="Jump to pin" data-jump-page="${c.page}" data-jump-id="${c.id}">↗</button>
-                    ${(c.author === cache.reviewer || !c.author) ? `<button title="Delete" data-del="${c.id}">×</button>` : ''}
+                    ${(c.author === reviewer || !c.author) ? `<button title="Delete" data-del="${c.id}">×</button>` : ''}
                   </div>
                 </div>
                 <div class="mr-c-text">${escapeHtml(c.text || '(empty)')}</div>
@@ -503,39 +539,42 @@ window.MockReview = (function () {
 
     document.getElementById('mr-drawer-close').addEventListener('click', closeDrawer);
     drawer.querySelectorAll('[data-del]').forEach(b => b.addEventListener('click', () => {
-      cache.comments = cache.comments.filter(c => c.id !== b.getAttribute('data-del'));
-      save(cache); closeDrawer(); openDrawer(); renderPinsForCurrentPage();
+      const id = b.getAttribute('data-del');
+      comments = comments.filter(c => c.id !== id);
+      deleteComment(id);
+      closeDrawer(); openDrawer(); renderPinsForCurrentPage();
     }));
     drawer.querySelectorAll('[data-del-page]').forEach(b => b.addEventListener('click', () => {
-      delete cache.pageNotes[b.getAttribute('data-del-page')];
-      save(cache); closeDrawer(); openDrawer();
+      const pg = b.getAttribute('data-del-page');
+      delete pageNotes[pg];
+      deletePageNote(pg);
+      closeDrawer(); openDrawer();
     }));
     drawer.querySelectorAll('[data-jump-page]').forEach(b => b.addEventListener('click', () => {
-      const pg = b.getAttribute('data-jump-page');
-      const id = b.getAttribute('data-jump-id');
-      sessionStorage.setItem('mr_jump_to', id);
-      location.href = pg;
+      sessionStorage.setItem('mr_jump_to', b.getAttribute('data-jump-id'));
+      location.href = b.getAttribute('data-jump-page');
     }));
     document.getElementById('mr-drawer-clear').addEventListener('click', () => {
       if (confirm('Clear ALL review notes from EVERY reviewer? This cannot be undone.')) {
-        reset(); closeDrawer();
+        clearAll().then(() => { closeDrawer(); renderPinsForCurrentPage(); });
       }
     });
     document.getElementById('mr-drawer-name').addEventListener('click', () => {
-      const v = prompt('Reviewer name:', cache.reviewer || '');
-      if (v !== null) { cache.reviewer = v.trim(); save(cache); closeDrawer(); openDrawer(); }
+      const v = prompt('Reviewer name:', reviewer || '');
+      if (v !== null && v.trim()) {
+        reviewer = v.trim();
+        localStorage.setItem(REVIEWER_KEY, reviewer);
+        renderToolbar();
+        closeDrawer(); openDrawer();
+      }
     });
     document.getElementById('mr-drawer-refresh').addEventListener('click', async () => {
-      await fetchFromServer(); closeDrawer(); openDrawer();
+      await fetchAll(); closeDrawer(); openDrawer();
     });
   }
   function closeDrawer() {
     document.getElementById('mr-drawer')?.remove();
     document.getElementById('mr-drawer-bg')?.remove();
-  }
-
-  function escapeHtml(s) {
-    return (s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
   }
 
   // -------------------------------------------------------------
@@ -544,29 +583,24 @@ window.MockReview = (function () {
   async function start() {
     injectStyles();
     renderToolbar();
-    await fetchFromServer();
+    await fetchAll();
     renderPinsForCurrentPage();
 
-    // Periodic refresh — picks up notes added by other reviewers
     setInterval(() => {
-      // Only refresh when tab is visible and no popover is open
       if (document.hidden) return;
       if (document.getElementById('mr-popover')) return;
       if (document.getElementById('mr-drawer')) return;
-      fetchFromServer({ silent: false });
+      fetchAll();
     }, POLL_MS);
 
-    // Refresh on focus
-    window.addEventListener('focus', () => fetchFromServer({ silent: false }));
+    window.addEventListener('focus', () => fetchAll());
 
-    // Update "synced X ago" label every 10s
     setInterval(() => renderToolbar(), 10000);
 
-    // Jump-to-pin support
     const jump = sessionStorage.getItem('mr_jump_to');
     if (jump) {
       sessionStorage.removeItem('mr_jump_to');
-      const c = cache.comments.find(x => x.id === jump);
+      const c = comments.find(x => x.id === jump);
       if (c && c.page === pageId()) {
         setTimeout(() => {
           window.scrollTo({ top: Math.max(0, c.y - 200), behavior: 'smooth' });
@@ -576,7 +610,7 @@ window.MockReview = (function () {
     }
   }
 
-  return { start, reset, _cache: () => cache };
+  return { start, _state: () => ({ comments, pageNotes, reviewer }) };
 })();
 
 document.addEventListener('DOMContentLoaded', () => window.MockReview.start());
