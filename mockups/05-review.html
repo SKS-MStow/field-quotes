@@ -1,13 +1,13 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <title>Review — SKS Quotes</title>
+  <title>Review â€” SKS Quotes</title>
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/icon?family=Material+Symbols+Outlined" rel="stylesheet">
-  <link rel="stylesheet" href="css/theme.css">
-  <link rel="stylesheet" href="css/mockups.css">
+  <link rel="stylesheet" href="css/theme.css?v=20260514r3">
+  <link rel="stylesheet" href="css/mockups.css?v=20260514r3">
   <style>
     .review-layout { display: grid; grid-template-columns: 1fr 320px; gap: 18px; }
     @media (max-width: 1100px) { .review-layout { grid-template-columns: 1fr; } }
@@ -43,6 +43,55 @@
     .totals-final .row .v { color: var(--text-primary); font-weight: 600; font-variant-numeric: tabular-nums; }
     .totals-final .grand { border-top: 2px solid var(--accent-primary); padding-top: 10px; margin-top: 8px; font-size: 18px; font-weight: 700; }
     .totals-final .grand .v { font-size: 22px; }
+
+    /* Dual margin sliders (mirror area builder UI) */
+    .slider-block { padding: 6px 0; }
+    .slider-block .slr-label { display: flex; justify-content: space-between; align-items: center; font-size: 11px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 2px; }
+    .slider-block .slr-label .v { font-family: var(--font-heading); font-weight: 700; font-size: 14px; color: var(--text-primary); }
+    .slider-block input[type=range] { width: 100%; }
+    .slider-block .readout { display: flex; justify-content: space-between; align-items: center; padding: 8px 0 4px; border-top: 1px dashed var(--border-light); margin-top: 6px; }
+    .slider-block .readout .l { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600; }
+    .slider-block .readout .v { font-family: var(--font-heading); font-weight: 700; font-size: 16px; color: var(--accent-primary); }
+
+    /* Restructured cost breakdown */
+    .cb-section { margin-bottom: 14px; }
+    .cb-section .h { font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; padding: 6px 0; border-bottom: 1px solid var(--border-light); margin-bottom: 6px; display: flex; align-items: center; gap: 6px; }
+    .cb-section .h .material-symbols-outlined { font-size: 14px; }
+    .cb-section .r { display: grid; grid-template-columns: 1fr auto auto auto; gap: 14px; padding: 5px 0; font-size: 13px; align-items: center; }
+    .cb-section .r .lab { color: var(--text-secondary); }
+    .cb-section .r .num { font-variant-numeric: tabular-nums; }
+    .cb-section .r .sell { font-family: var(--font-heading); font-weight: 600; }
+    .cb-section .r .pct { color: var(--text-muted); font-size: 11.5px; }
+    .cb-section .totals-row { display: grid; grid-template-columns: 1fr auto; gap: 14px; padding: 6px 0; font-size: 13.5px; font-weight: 600; }
+    .cb-section.totals-section { border-top: 2px solid var(--accent-primary); padding-top: 10px; margin-top: 16px; }
+    .cb-section.totals-section .grand { font-family: var(--font-heading); font-size: 17px; padding-top: 4px; }
+    .cb-section.totals-section .grand .v { color: var(--accent-primary); }
+
+    /* Labour overview block */
+    .lab-overview-table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+    .lab-overview-table th { font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; text-align: left; font-weight: 600; padding: 6px 8px; }
+    .lab-overview-table td { padding: 7px 8px; border-top: 1px solid var(--border-light); }
+    .lab-overview-table .right { text-align: right; }
+    .lab-overview-table tfoot td { font-weight: 700; border-top: 2px solid var(--border); }
+
+    /* Attachments */
+    .att-drop { padding: 20px; border: 2px dashed var(--border-input); border-radius: var(--radius-md); text-align: center; color: var(--text-secondary); cursor: pointer; transition: all 0.12s; margin-bottom: 12px; }
+    .att-drop:hover, .att-drop.dragover { border-color: var(--accent-primary); background: var(--surface-inset); color: var(--text-primary); }
+    .att-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 10px; }
+    .att-card { padding: 10px; border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--surface-card); position: relative; }
+    .att-card .thumb { width: 100%; aspect-ratio: 4/3; object-fit: cover; border-radius: 4px; background: var(--surface-inset); margin-bottom: 6px; display: flex; align-items: center; justify-content: center; color: var(--text-muted); }
+    .att-card .thumb img { width: 100%; height: 100%; object-fit: cover; border-radius: 4px; }
+    .att-card .name { font-size: 12px; font-weight: 500; color: var(--text-primary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .att-card .size { font-size: 11px; color: var(--text-muted); }
+    .att-card .rm { position: absolute; top: 6px; right: 6px; background: white; border-radius: 50%; width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; cursor: pointer; border: 1px solid var(--border); }
+    .att-card .rm .material-symbols-outlined { font-size: 14px; color: var(--status-danger); }
+
+    /* Inline-edit pencil + popover on summary rows */
+    .summary-block .row-edit { cursor: pointer; display: inline-flex; align-items: center; gap: 4px; font-size: 11px; color: var(--accent-primary); margin-left: 8px; }
+    .summary-block .row-edit .material-symbols-outlined { font-size: 14px; }
+    .summary-block .row-edit:hover { text-decoration: underline; }
+    .summary-block .row-view-link { font-size: 11px; color: var(--text-muted); margin-left: 8px; text-decoration: none; }
+    .summary-block .row-view-link:hover { color: var(--accent-primary); }
   </style>
 </head>
 <body data-page="new-quote">
@@ -63,8 +112,14 @@
       <div>
         <!-- Areas summary -->
         <div class="summary-block">
-          <h3>Areas</h3>
+          <h3 id="areas-heading">Areas</h3>
           <div id="areas-summary-host"></div>
+        </div>
+
+        <!-- Labour overview (NEW â€” high-level hours/rates per trade) -->
+        <div class="summary-block">
+          <h3>Labour overview</h3>
+          <div id="labour-overview-host"></div>
         </div>
 
         <!-- Services summary -->
@@ -73,7 +128,7 @@
           <div id="services-summary-host"></div>
         </div>
 
-        <!-- Cost / margin breakdown -->
+        <!-- Cost / margin breakdown (restructured into Materials / Labour / Services sub-sections) -->
         <div class="summary-block">
           <h3>Cost &amp; margin breakdown</h3>
           <div id="cost-breakdown"></div>
@@ -82,7 +137,18 @@
         <!-- Notes to client -->
         <div class="summary-block">
           <h3>Notes to client</h3>
-          <textarea id="notes-to-client" style="width:100%;min-height:60px;border:1px solid var(--border-input);border-radius:var(--radius-md);padding:10px;font:inherit;font-size:13px;background:var(--surface-white);" placeholder="Optional message shown on the client document (e.g. 'Pricing assumes works completed in one mobilisation…')"></textarea>
+          <textarea id="notes-to-client" style="width:100%;min-height:60px;border:1px solid var(--border-input);border-radius:var(--radius-md);padding:10px;font:inherit;font-size:13px;background:var(--surface-white);" placeholder="Optional message shown on the client document (e.g. 'Pricing assumes works completed in one mobilisationâ€¦')"></textarea>
+        </div>
+
+        <!-- Attachments (NEW â€” markup drawings / PDF uploads to attach to the client doc) -->
+        <div class="summary-block">
+          <h3>Attachments <span style="font-weight:400;color:var(--text-muted);font-size:11px;text-transform:none;letter-spacing:0;">(appended to the client quote document)</span></h3>
+          <label class="att-drop" id="att-drop">
+            <span class="material-symbols-outlined" style="font-size:24px;color:var(--text-muted);vertical-align:middle;margin-right:6px;">upload_file</span>
+            Drag &amp; drop PDFs / images / marked-up drawings here, or click to browse.
+            <input type="file" id="att-input" multiple style="display:none;">
+          </label>
+          <div class="att-list" id="att-list"></div>
         </div>
 
         <!-- Exclusions -->
@@ -99,7 +165,7 @@
         <div class="summary-block">
           <h3>Terms &amp; conditions</h3>
           <textarea id="terms-text" style="width:100%;min-height:160px;border:1px solid var(--border-input);border-radius:var(--radius-md);padding:10px 12px;font:inherit;font-size:12px;background:var(--surface-white);"></textarea>
-          <div style="margin-top:8px;color:var(--text-muted);font-size:11px;">Loaded from the SKS standard template — edit inline if needed.</div>
+          <div style="margin-top:8px;color:var(--text-muted);font-size:11px;">Loaded from the SKS standard template â€” edit inline if needed.</div>
         </div>
 
         <!-- Output options -->
@@ -119,10 +185,19 @@
         <div class="margin-panel">
           <h3 style="font-family:var(--font-heading);font-size:13px;font-weight:600;color:var(--text-primary);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:10px;">Final totals</h3>
 
-          <div style="font-size:11px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px;">Global margin</div>
-          <div class="global-margin-row" style="display:flex;gap:10px;align-items:center;">
-            <input type="range" id="global-margin" min="0" max="60" step="1" style="flex:1;">
-            <span id="global-margin-val" style="font-family:var(--font-heading);font-weight:700;font-size:18px;min-width:50px;text-align:right;">25%</span>
+          <!-- Materials margin slider -->
+          <div class="slider-block">
+            <div class="slr-label"><span>Materials margin</span><span class="v" id="materials-margin-val">25%</span></div>
+            <input type="range" id="materials-margin" min="0" max="60" step="1">
+          </div>
+          <!-- Labour margin slider -->
+          <div class="slider-block">
+            <div class="slr-label"><span>Labour margin</span><span class="v" id="labour-margin-val">0%</span></div>
+            <input type="range" id="labour-margin" min="0" max="50" step="1">
+            <div class="readout">
+              <span class="l">Blended global margin</span>
+              <span class="v" id="global-margin-readout">â€”</span>
+            </div>
           </div>
 
           <hr style="border:none;border-top:1px solid var(--border-light);margin:14px 0;">
@@ -131,7 +206,6 @@
             <div class="row"><span class="l">Materials</span><span class="v" id="t-materials">$0</span></div>
             <div class="row"><span class="l">Labour</span><span class="v" id="t-labour">$0</span></div>
             <div class="row"><span class="l">Services</span><span class="v" id="t-services">$0</span></div>
-            <div class="row"><span class="l">Margin (overall)</span><span class="v" id="t-margin-pct">0%</span></div>
             <div class="row"><span class="l">Subtotal (ex-GST)</span><span class="v" id="t-sell">$0</span></div>
             <div class="row"><span class="l">GST (10%)</span><span class="v" id="t-gst">$0</span></div>
             <div class="row grand"><span class="l">Total inc-GST</span><span class="v" id="t-total">$0</span></div>
@@ -159,23 +233,23 @@
     </div>
   </main>
 
-  <script src="js/mock-data.js"></script>
-  <script src="js/mock-state.js"></script>
-  <script src="js/mock-ui.js"></script>
-  <script src="js/mock-shell.js"></script>
-  <script src="js/mock-expiry.js"></script>
-  <script src="js/mock-review.js"></script>
+  <script src="js/mock-data.js?v=20260514r3"></script>
+  <script src="js/mock-state.js?v=20260514r3"></script>
+  <script src="js/mock-ui.js?v=20260514r3"></script>
+  <script src="js/mock-shell.js?v=20260514r3"></script>
+  <script src="js/mock-expiry.js?v=20260514r3"></script>
+  <script src="js/mock-review.js?v=20260514r5"></script>
   <script>
     MockShell.mount({
       title: 'Review Quote',
-      subtitle: 'Step 4 of 5 · Final check before output',
+      subtitle: 'Step 4 of 5 Â· Final check before output',
       actionsHtml: `<a class="btn btn-secondary" href="01-quote-list.html"><span class="material-symbols-outlined">close</span> Cancel</a>`
     });
 
     let quote = MockState.getCurrentQuote();
     if (!quote) {
       location.href = '01-quote-list.html';
-      throw new Error('No active quote — redirecting to list');
+      throw new Error('No active quote â€” redirecting to list');
     }
 
     // -------- Warnings --------
@@ -193,29 +267,70 @@
       });
       const host = document.getElementById('warnings-host');
       if (issues.length === 0) {
-        host.innerHTML = `<div class="warning-card" style="background:var(--status-success-bg);border-color:#bfdfc1;color:#235724;"><span class="material-symbols-outlined" style="color:var(--status-success);">check_circle</span><div><b>Looks good</b> — no issues detected. Ready to generate outputs.</div></div>`;
+        host.innerHTML = `<div class="warning-card" style="background:var(--status-success-bg);border-color:#bfdfc1;color:#235724;"><span class="material-symbols-outlined" style="color:var(--status-success);">check_circle</span><div><b>Looks good</b> â€” no issues detected. Ready to generate outputs.</div></div>`;
       } else {
         host.innerHTML = `<div class="warning-card"><span class="material-symbols-outlined">warning</span><div><b>${issues.length} issue${issues.length === 1 ? '' : 's'} to review</b><ul>${issues.map(i => `<li>${i}</li>`).join('')}</ul></div></div>`;
       }
     }
 
-    // -------- Areas summary --------
+    // -------- Areas summary (with inline-edit + view-in-builder link) --------
     function renderAreasSummary() {
       const q = MockState.getCurrentQuote();
+      // Heading: "Scope" in Quick mode, "Areas" in Large
+      document.getElementById('areas-heading').textContent = q.mode === 'quick' ? 'Scope' : 'Areas';
       const host = document.getElementById('areas-summary-host');
       if (q.areas.length === 0) { host.innerHTML = '<div style="color:var(--text-muted);font-size:12px;">No areas in this quote.</div>'; return; }
       host.innerHTML = q.areas.map(a => {
         const t = MockState.areaTotals(a, q);
         const total = t.materialsSell + t.labourSell;
         return `<div class="area-summary-row">
-          <div class="name">${a.name}<div class="sub">${a.lines.length} item${a.lines.length === 1 ? '' : 's'} · ${MockUI.fmtHours(t.labourHours)} labour</div></div>
+          <div class="name">
+            ${a.name}
+            <a class="row-view-link" href="04-area-builder.html"><span class="material-symbols-outlined" style="font-size:12px;vertical-align:middle;">edit</span> View in builder</a>
+            <div class="sub">${(a.lines||[]).length} item${(a.lines||[]).length === 1 ? '' : 's'} Â· ${MockUI.fmtHours(t.labourHours)} labour</div>
+          </div>
           <div class="count">${MockUI.fmtMoney(t.materialsSell)} materials</div>
           <div class="total">${MockUI.fmtMoney(total)}</div>
         </div>`;
       }).join('');
     }
 
-    // -------- Services summary --------
+    // -------- Labour overview (NEW â€” hours/rate/sell per trade) --------
+    function renderLabourOverview() {
+      const q = MockState.getCurrentQuote();
+      const byTrade = MockState.quoteLabourByTrade(q);
+      const host = document.getElementById('labour-overview-host');
+      const trades = Object.entries(byTrade).filter(([, h]) => h > 0);
+      if (trades.length === 0) {
+        host.innerHTML = '<div style="color:var(--text-muted);font-size:12px;">No labour allocated yet.</div>';
+        return;
+      }
+      const margin = MockState.labourMargin(q);
+      let totalH = 0, totalCost = 0, totalSell = 0;
+      const rows = trades.map(([trade, hrs]) => {
+        const rate = MockState.rateForTrade(trade, q);
+        const cost = hrs * rate;
+        const sell = MockState.sellFromCost(cost, margin);
+        totalH += hrs; totalCost += cost; totalSell += sell;
+        return `<tr>
+          <td>${trade}</td>
+          <td class="right">${MockUI.fmtHours(hrs)}</td>
+          <td class="right">${MockUI.fmtMoney(rate)}/hr</td>
+          <td class="right">${MockUI.fmtMoney(cost)}</td>
+          <td class="right"><b>${MockUI.fmtMoney(sell)}</b></td>
+        </tr>`;
+      }).join('');
+      host.innerHTML = `
+        <div style="font-size:12px;color:var(--text-muted);margin-bottom:6px;">Labour aggregated across every area, with the active quote-level rate overrides and labour margin.</div>
+        <table class="lab-overview-table">
+          <thead><tr><th>Trade</th><th class="right">Hours</th><th class="right">Rate</th><th class="right">Cost</th><th class="right">Sell</th></tr></thead>
+          <tbody>${rows}</tbody>
+          <tfoot><tr><td>Total</td><td class="right">${MockUI.fmtHours(totalH)}</td><td class="right">â€”</td><td class="right">${MockUI.fmtMoney(totalCost)}</td><td class="right">${MockUI.fmtMoney(totalSell)}</td></tr></tfoot>
+        </table>
+      `;
+    }
+
+    // -------- Services summary (with inline edit pencils) --------
     function renderServicesSummary() {
       const q = MockState.getCurrentQuote();
       const included = q.services.filter(s => s.included);
@@ -224,28 +339,124 @@
       host.innerHTML = included.map(s => {
         const sellEach = s.rate / (1 - (s.marginPct / 100));
         const sell = (s.qty || 0) * (isFinite(sellEach) ? sellEach : s.rate);
-        return `<div class="area-summary-row">
-          <div class="name">${s.name}<div class="sub">${s.qty} × ${MockUI.fmtMoney(s.rate)} / ${s.unit} · ${s.marginPct}% margin</div></div>
+        return `<div class="area-summary-row" data-svc-row="${s.id}">
+          <div class="name">
+            ${s.name}
+            <span class="row-edit" data-svc-edit-toggle="${s.id}"><span class="material-symbols-outlined">edit</span>edit</span>
+            <div class="sub" data-svc-meta="${s.id}">${s.qty} Ã— ${MockUI.fmtMoney(s.rate)} / ${s.unit} Â· ${s.marginPct}% margin</div>
+            <div class="inline-edit" data-svc-inline="${s.id}" hidden style="margin-top:6px;display:flex;gap:6px;align-items:center;">
+              <input class="cell-input cell-num" type="number" min="0" step="0.5" value="${s.qty || 0}" data-svc-field="qty" style="width:70px;" title="Qty">
+              <input class="cell-input cell-num" type="number" min="0" step="5" value="${s.rate}" data-svc-field="rate" style="width:90px;" title="Rate">
+              <input class="cell-input cell-num cell-narrow" type="number" min="0" max="80" step="1" value="${s.marginPct}" data-svc-field="marginPct" title="Margin %">
+              <span style="font-size:11px;color:var(--text-muted);">flows back to Area Builder</span>
+            </div>
+          </div>
           <div></div>
-          <div class="total">${MockUI.fmtMoney(sell)}</div>
+          <div class="total" data-svc-sell="${s.id}">${MockUI.fmtMoney(sell)}</div>
         </div>`;
       }).join('');
+
+      // Wire toggles + edits
+      host.querySelectorAll('[data-svc-edit-toggle]').forEach(b => {
+        b.addEventListener('click', () => {
+          const id = b.getAttribute('data-svc-edit-toggle');
+          const block = host.querySelector(`[data-svc-inline="${id}"]`);
+          if (block) block.hidden = !block.hidden;
+        });
+      });
+      host.querySelectorAll('[data-svc-inline] input').forEach(input => {
+        const id = input.closest('[data-svc-inline]').getAttribute('data-svc-inline');
+        const field = input.getAttribute('data-svc-field');
+        input.addEventListener('input', () => {
+          const v = parseFloat(input.value) || 0;
+          MockState.updateService(MockState.getCurrentQuote().id, id, { [field]: v });
+          // Re-render JUST this row's meta + sell + the overall totals
+          renderServicesSummary(); renderCostBreakdown(); renderTotals(); renderLabourOverview();
+          MockUI.toast('Updated â€” feeds back to Area Builder', 'success');
+        });
+      });
     }
 
-    // -------- Cost breakdown --------
+    // -------- Cost breakdown (restructured with sub-headers) --------
     function renderCostBreakdown() {
       const q = MockState.getCurrentQuote();
       const t = MockState.quoteTotal(q);
       const host = document.getElementById('cost-breakdown');
+      const matMarginPct = t.materialsSell > 0 ? ((t.materialsSell - t.materialsCost) / t.materialsSell) * 100 : 0;
+      const labMarginPct = t.labourSell > 0 ? ((t.labourSell - t.labourCost) / t.labourSell) * 100 : 0;
+      const svcMarginPct = t.servicesSell > 0 ? ((t.servicesSell - t.servicesCost) / t.servicesSell) * 100 : 0;
       host.innerHTML = `
-        <div class="area-summary-row"><div class="name">Materials cost</div><div></div><div class="total">${MockUI.fmtMoney(t.materialsCost)}</div></div>
-        <div class="area-summary-row"><div class="name">Materials sell <div class="sub">Margin: ${MockUI.fmtMoney(t.materialsSell - t.materialsCost)} (${t.materialsSell > 0 ? Math.round(((t.materialsSell - t.materialsCost) / t.materialsSell) * 100) : 0}%)</div></div><div></div><div class="total">${MockUI.fmtMoney(t.materialsSell)}</div></div>
-        <div class="area-summary-row"><div class="name">Labour sell <div class="sub">${MockUI.fmtHours(t.labourHours)} total</div></div><div></div><div class="total">${MockUI.fmtMoney(t.labourSell)}</div></div>
-        <div class="area-summary-row"><div class="name">Services sell <div class="sub">cost: ${MockUI.fmtMoney(t.servicesCost)}</div></div><div></div><div class="total">${MockUI.fmtMoney(t.servicesSell)}</div></div>
-        <div class="area-summary-row" style="border-top:2px solid var(--border);"><div class="name"><b>Total margin $</b></div><div></div><div class="total">${MockUI.fmtMoney(t.margin)}</div></div>
-        <div class="area-summary-row"><div class="name"><b>Overall margin %</b></div><div></div><div class="total">${MockUI.fmtPct(t.marginPct)}</div></div>
+        <div class="cb-section">
+          <div class="h"><span class="material-symbols-outlined">inventory_2</span> Materials</div>
+          <div class="r"><span class="lab">Cost</span><span class="num">${MockUI.fmtMoney(t.materialsCost)}</span><span></span><span></span></div>
+          <div class="r"><span class="lab">Sell</span><span></span><span></span><span class="num sell">${MockUI.fmtMoney(t.materialsSell)}</span></div>
+          <div class="r"><span class="lab pct">Margin</span><span></span><span class="num pct">${MockUI.fmtMoney(t.materialsSell - t.materialsCost)}</span><span class="num pct">${MockUI.fmtPct(matMarginPct)}</span></div>
+        </div>
+        <div class="cb-section">
+          <div class="h"><span class="material-symbols-outlined">engineering</span> Labour</div>
+          <div class="r"><span class="lab">Hours</span><span class="num">${MockUI.fmtHours(t.labourHours)}</span><span></span><span></span></div>
+          <div class="r"><span class="lab">Cost</span><span class="num">${MockUI.fmtMoney(t.labourCost)}</span><span></span><span></span></div>
+          <div class="r"><span class="lab">Sell</span><span></span><span></span><span class="num sell">${MockUI.fmtMoney(t.labourSell)}</span></div>
+          <div class="r"><span class="lab pct">Margin</span><span></span><span class="num pct">${MockUI.fmtMoney(t.labourSell - t.labourCost)}</span><span class="num pct">${MockUI.fmtPct(labMarginPct)}</span></div>
+        </div>
+        <div class="cb-section">
+          <div class="h"><span class="material-symbols-outlined">build</span> Services</div>
+          <div class="r"><span class="lab">Cost</span><span class="num">${MockUI.fmtMoney(t.servicesCost)}</span><span></span><span></span></div>
+          <div class="r"><span class="lab">Sell</span><span></span><span></span><span class="num sell">${MockUI.fmtMoney(t.servicesSell)}</span></div>
+          <div class="r"><span class="lab pct">Margin</span><span></span><span class="num pct">${MockUI.fmtMoney(t.servicesSell - t.servicesCost)}</span><span class="num pct">${MockUI.fmtPct(svcMarginPct)}</span></div>
+        </div>
+        <div class="cb-section totals-section">
+          <div class="totals-row"><span class="l">Subtotal (ex-GST)</span><span class="v">${MockUI.fmtMoney(t.sellExGST)}</span></div>
+          <div class="totals-row"><span class="l">GST (10%)</span><span class="v">${MockUI.fmtMoney(t.gst)}</span></div>
+          <div class="totals-row grand"><span class="l">Total inc-GST</span><span class="v">${MockUI.fmtMoney(t.incGST)}</span></div>
+          <div class="totals-row" style="font-weight:500;font-size:12.5px;color:var(--text-muted);"><span class="l">Total margin / overall %</span><span class="v">${MockUI.fmtMoney(t.margin)} Â· ${MockUI.fmtPct(t.marginPct)}</span></div>
+        </div>
       `;
     }
+
+    // -------- Attachments --------
+    function renderAttachments() {
+      const q = MockState.getCurrentQuote();
+      const list = document.getElementById('att-list');
+      const atts = q.attachments || [];
+      if (atts.length === 0) {
+        list.innerHTML = '<div style="color:var(--text-muted);font-size:12px;grid-column:1/-1;text-align:center;padding:8px;">No attachments yet.</div>';
+        return;
+      }
+      list.innerHTML = atts.map(a => `
+        <div class="att-card">
+          <button class="rm" data-att-rm="${a.id}" title="Remove"><span class="material-symbols-outlined">close</span></button>
+          <div class="thumb">${a.type && a.type.startsWith('image/')
+            ? `<img src="${a.dataUrl}" alt="">`
+            : `<span class="material-symbols-outlined" style="font-size:32px;">picture_as_pdf</span>`}</div>
+          <div class="name" title="${a.name}">${a.name}</div>
+          <div class="size">${Math.max(1, Math.round((a.size || 0) / 1024))} KB</div>
+        </div>
+      `).join('');
+      list.querySelectorAll('[data-att-rm]').forEach(b => {
+        b.addEventListener('click', () => {
+          MockState.removeAttachment(MockState.getCurrentQuote().id, b.getAttribute('data-att-rm'));
+          renderAttachments();
+        });
+      });
+    }
+
+    function handleAttachFiles(files) {
+      const q = MockState.getCurrentQuote();
+      Array.from(files || []).forEach(f => {
+        const reader = new FileReader();
+        reader.onload = () => {
+          MockState.addAttachment(q.id, { name: f.name, size: f.size, type: f.type, dataUrl: reader.result });
+          renderAttachments();
+        };
+        reader.readAsDataURL(f);
+      });
+    }
+    document.getElementById('att-input').addEventListener('change', e => handleAttachFiles(e.target.files));
+    const dropZone = document.getElementById('att-drop');
+    ['dragenter','dragover'].forEach(ev => dropZone.addEventListener(ev, e => { e.preventDefault(); dropZone.classList.add('dragover'); }));
+    ['dragleave','drop'].forEach(ev => dropZone.addEventListener(ev, e => { e.preventDefault(); dropZone.classList.remove('dragover'); }));
+    dropZone.addEventListener('drop', e => handleAttachFiles(e.dataTransfer.files));
 
     // -------- Exclusions --------
     function renderExclusions() {
@@ -277,7 +488,7 @@
       });
     }
     document.getElementById('add-exclusion').addEventListener('click', () => {
-      const text = prompt('New exclusion:', 'Any exclusion text…');
+      const text = prompt('New exclusion:', 'Any exclusion textâ€¦');
       if (!text) return;
       const cur = MockState.getCurrentQuote();
       cur.exclusions.push(text);
@@ -310,29 +521,41 @@
       MockState.updateQuote(cur.id, cur);
     });
 
-    // -------- Totals + margin slider --------
-    const slider = document.getElementById('global-margin');
-    const sliderVal = document.getElementById('global-margin-val');
-    slider.value = quote.globalMarginPct;
-    sliderVal.textContent = quote.globalMarginPct + '%';
-    slider.addEventListener('input', () => {
-      sliderVal.textContent = slider.value + '%';
-      MockState.updateQuote(quote.id, { globalMarginPct: parseFloat(slider.value) });
-      renderTotals();
-      renderCostBreakdown();
-      renderAreasSummary();
-    });
+    // -------- Totals + dual margin sliders --------
+    function setupSliders() {
+      const q = MockState.getCurrentQuote();
+      const matSlider = document.getElementById('materials-margin');
+      const matVal    = document.getElementById('materials-margin-val');
+      const labSlider = document.getElementById('labour-margin');
+      const labVal    = document.getElementById('labour-margin-val');
+
+      matSlider.value = q.materialsMarginPct ?? q.globalMarginPct ?? 25;
+      matVal.textContent = matSlider.value + '%';
+      labSlider.value = q.labourMarginPct ?? 0;
+      labVal.textContent = labSlider.value + '%';
+
+      matSlider.addEventListener('input', () => {
+        matVal.textContent = matSlider.value + '%';
+        MockState.updateQuote(q.id, { materialsMarginPct: parseFloat(matSlider.value) });
+        renderTotals(); renderCostBreakdown(); renderAreasSummary(); renderLabourOverview();
+      });
+      labSlider.addEventListener('input', () => {
+        labVal.textContent = labSlider.value + '%';
+        MockState.updateQuote(q.id, { labourMarginPct: parseFloat(labSlider.value) });
+        renderTotals(); renderCostBreakdown(); renderAreasSummary(); renderLabourOverview();
+      });
+    }
 
     function renderTotals() {
       const t = MockState.quoteTotal(MockState.getCurrentQuote());
       document.getElementById('t-materials').textContent  = MockUI.fmtMoney(t.materialsSell);
       document.getElementById('t-labour').textContent     = MockUI.fmtMoney(t.labourSell);
       document.getElementById('t-services').textContent   = MockUI.fmtMoney(t.servicesSell);
-      document.getElementById('t-margin-pct').textContent = MockUI.fmtPct(t.marginPct);
       document.getElementById('t-sell').textContent       = MockUI.fmtMoney(t.sellExGST);
       document.getElementById('t-gst').textContent        = MockUI.fmtMoney(t.gst);
       document.getElementById('t-total').textContent      = MockUI.fmtMoney(t.incGST);
       document.getElementById('f-total').textContent      = MockUI.fmtMoney(t.incGST);
+      document.getElementById('global-margin-readout').textContent = MockUI.fmtPct(t.marginPct);
     }
 
     // -------- Buttons --------
@@ -357,11 +580,14 @@
     function renderAll() {
       renderWarnings();
       renderAreasSummary();
+      renderLabourOverview();
       renderServicesSummary();
       renderCostBreakdown();
+      renderAttachments();
       renderExclusions();
       renderTotals();
     }
+    setupSliders();
     renderAll();
   </script>
 </body>

@@ -163,6 +163,12 @@ window.MockReview = (function () {
     return { tag: el.tagName.toLowerCase(), text: '' };
   }
   function escapeHtml(s) { return (s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
+  function dateLong(iso) {
+    if (!iso) return '';
+    const d = new Date(iso);
+    if (isNaN(d)) return '';
+    return d.toLocaleString('en-AU', { day:'numeric', month:'short', year:'numeric', hour:'numeric', minute:'2-digit', hour12:true });
+  }
 
   // ---------- DOM-anchoring (so pins survive layout reflow) ----------
   // Build a CSS selector path that re-finds the element after navigation/resize.
@@ -224,13 +230,23 @@ window.MockReview = (function () {
   }
 
   // Compute (left, top) in document coords for a pin.
+  // Scaling-safe: stored offset is a fraction of the element's size at click
+  // time, so we multiply by the element's current size on render. Legacy pins
+  // (created before the fractional model) fall back to the absolute pixel
+  // offset, which is still close enough on similar viewport widths.
   function pinPosition(pin) {
     const el = resolveAnchorElement(pin);
     if (el) {
       const rect = el.getBoundingClientRect();
+      const ox = (typeof pin.offsetXFrac === 'number')
+        ? pin.offsetXFrac * rect.width
+        : (pin.offsetX || 0);
+      const oy = (typeof pin.offsetYFrac === 'number')
+        ? pin.offsetYFrac * rect.height
+        : (pin.offsetY || 0);
       return {
-        left: Math.round(rect.left + (pin.offsetX || 0) + window.scrollX),
-        top:  Math.round(rect.top  + (pin.offsetY || 0) + window.scrollY)
+        left: Math.round(rect.left + ox + window.scrollX),
+        top:  Math.round(rect.top  + oy + window.scrollY)
       };
     }
     // Fallback for legacy pins without selector/offset (or anchor element gone)
@@ -325,6 +341,17 @@ window.MockReview = (function () {
       .mr-drawer .mr-c .mr-c-actions button:hover { color: #c0553a; }
       .mr-empty { padding: 30px 20px; text-align: center; color: #8a8880; }
 
+      /* History drawer rows */
+      .mr-rev-row { display: flex; align-items: center; gap: 8px; padding: 10px 12px;
+        background: white; border: 1px solid #e8e6e1; border-radius: 8px; margin-bottom: 8px; }
+      .mr-rev-row .mr-rev-meta { flex: 1; min-width: 0; }
+      .mr-rev-row .mr-rev-label { font-family: 'IBM Plex Sans', sans-serif; font-weight: 600; font-size: 13px; color: #2d2d2a; overflow: hidden; text-overflow: ellipsis; }
+      .mr-rev-row .mr-rev-sub { font-size: 11px; color: #8a8880; margin-top: 2px; }
+      .mr-rev-row .mr-btn-sm { padding: 5px 10px; font-size: 11px; }
+      .mr-rev-row .mr-rev-del { padding: 5px 8px; color: #c0553a; }
+      .mr-rev-row .mr-rev-del:hover { background: #ffebee; }
+      .mr-btn.mr-success { background: #3d7c3f; color: white; }
+
       .mr-name-prompt { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 9999;
         display: flex; align-items: center; justify-content: center; font-family: 'Inter', sans-serif; }
       .mr-name-prompt .card { background: white; border-radius: 12px; padding: 24px;
@@ -360,11 +387,13 @@ window.MockReview = (function () {
       <button class="mr-btn" id="mr-add-pin" title="Drop a pin and write a note"><span class="material-symbols-outlined">push_pin</span> Pin a note</button>
       <button class="mr-btn mr-secondary" id="mr-add-page-note" title="General note about this page"><span class="material-symbols-outlined">sticky_note_2</span> Note this page</button>
       <button class="mr-btn mr-secondary" id="mr-view-all" title="See every note across every page"><span class="material-symbols-outlined">checklist</span> All notes <span class="mr-count">${total}</span></button>
+      <button class="mr-btn mr-secondary" id="mr-history" title="Browse past snapshots of the feedback set"><span class="material-symbols-outlined">history</span> History</button>
       <span class="mr-status ${statusCls}" title="Click to refresh"><span class="mr-dot"></span> ${statusText}${reviewer ? ' · ' + escapeHtml(reviewer) : ''}</span>
     `;
     document.getElementById('mr-add-pin').addEventListener('click', enterPinMode);
     document.getElementById('mr-add-page-note').addEventListener('click', addPageNote);
     document.getElementById('mr-view-all').addEventListener('click', openDrawer);
+    document.getElementById('mr-history').addEventListener('click', openHistoryDrawer);
     document.getElementById('mr-toggle').addEventListener('click', () => toolbarEl.classList.toggle('collapsed'));
     toolbarEl.querySelector('.mr-status').addEventListener('click', () => fetchAll());
   }
@@ -405,6 +434,9 @@ window.MockReview = (function () {
     const tRect = target.getBoundingClientRect();
     const offsetX = e.clientX - tRect.left;
     const offsetY = e.clientY - tRect.top;
+    // Fractional offset within the element — survives viewport scaling.
+    const offsetXFrac = tRect.width  > 0 ? offsetX / tRect.width  : 0;
+    const offsetYFrac = tRect.height > 0 ? offsetY / tRect.height : 0;
 
     const pin = {
       id: uid(),
@@ -413,7 +445,8 @@ window.MockReview = (function () {
       type: 'pin',
       // Element-anchored position (the source of truth on render):
       selector: cssPathOf(target),
-      offsetX, offsetY,
+      offsetX, offsetY,           // legacy fallback (absolute px within element)
+      offsetXFrac, offsetYFrac,   // scaling-safe (fraction of element size)
       // Absolute coords kept as fallback (used if the selector fails to resolve):
       x: e.pageX, y: e.pageY,
       anchor: nearestAnchor(target),
@@ -750,7 +783,200 @@ window.MockReview = (function () {
     }
   }
 
-  return { start, _state: () => ({ comments, pageNotes, reviewer }) };
+  // -------------------------------------------------------------
+  // Notes revisions — snapshot + history drawer
+  // -------------------------------------------------------------
+  async function fetchRevisions() {
+    try {
+      const r = await fetch(API + '/revisions', { cache: 'no-store' });
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      const j = await r.json();
+      return Array.isArray(j.revisions) ? j.revisions : [];
+    } catch (e) { console.warn('revisions fetch failed:', e); return null; }
+  }
+  async function fetchRevision(id) {
+    try {
+      const r = await fetch(API + '/revisions/' + encodeURIComponent(id), { cache: 'no-store' });
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      return await r.json();
+    } catch (e) { console.warn('revision fetch failed:', e); return null; }
+  }
+  async function snapshotNow(label) {
+    inFlight++; renderToolbar();
+    try {
+      const r = await fetch(API + '/revisions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ label: label || '', createdBy: reviewer || '' })
+      });
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      return await r.json();
+    } catch (e) { console.warn('snapshot failed:', e); return null; }
+    finally { inFlight--; renderToolbar(); }
+  }
+  async function deleteRevision(id) {
+    try {
+      const r = await fetch(API + '/revisions/' + encodeURIComponent(id), { method: 'DELETE' });
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      return true;
+    } catch (e) { console.warn('revision delete failed:', e); return false; }
+  }
+
+  async function openHistoryDrawer() {
+    closeDrawer();
+    closeHistoryDrawer();
+    const bg = document.createElement('div');
+    bg.className = 'mr-drawer-bg open';
+    bg.id = 'mr-hist-bg';
+    bg.addEventListener('click', closeHistoryDrawer);
+    document.body.appendChild(bg);
+
+    const drawer = document.createElement('div');
+    drawer.className = 'mr-drawer';
+    drawer.id = 'mr-hist-drawer';
+    document.body.appendChild(drawer);
+    drawer.innerHTML = `
+      <div class="mr-dh">
+        <span class="material-symbols-outlined" style="color:#c0553a;">history</span>
+        <h3>Notes history</h3>
+        <button id="mr-hist-close" style="background:none;border:none;color:#8a8880;cursor:pointer;font-size:20px;padding:0 6px;">×</button>
+      </div>
+      <div class="mr-db" id="mr-hist-body">
+        <div class="mr-empty">Loading…</div>
+      </div>
+      <div class="mr-df">
+        <span style="font-size:12px;color:#8a8880;flex:1;">Snapshots freeze the current notes set so you can browse past versions of the feedback as the mockup evolves.</span>
+        <button class="mr-btn mr-success" id="mr-hist-snap"><span class="material-symbols-outlined">camera_alt</span> Snapshot now</button>
+      </div>
+    `;
+    drawer.classList.add('open');
+    document.getElementById('mr-hist-close').addEventListener('click', closeHistoryDrawer);
+    document.getElementById('mr-hist-snap').addEventListener('click', async () => {
+      ensureReviewerName(async () => {
+        const label = prompt('Label for this snapshot:', `${(reviewer || 'reviewer')} — ${new Date().toLocaleString('en-AU', { day:'numeric', month:'short', hour:'numeric', minute:'2-digit', hour12:true })}`);
+        if (label === null) return;
+        const r = await snapshotNow(label);
+        if (r && r.ok) { /* refresh list */ renderHistoryList(); }
+      });
+    });
+    renderHistoryList();
+  }
+  function closeHistoryDrawer() {
+    document.getElementById('mr-hist-drawer')?.remove();
+    document.getElementById('mr-hist-bg')?.remove();
+    document.getElementById('mr-rev-view-bg')?.remove();
+    document.getElementById('mr-rev-view-drawer')?.remove();
+  }
+
+  async function renderHistoryList() {
+    const body = document.getElementById('mr-hist-body');
+    if (!body) return;
+    body.innerHTML = '<div class="mr-empty">Loading…</div>';
+    const revs = await fetchRevisions();
+    if (!revs) { body.innerHTML = '<div class="mr-empty" style="color:#c0553a;">Failed to load history. Click status to retry.</div>'; return; }
+    if (revs.length === 0) {
+      body.innerHTML = `<div class="mr-empty"><span class="material-symbols-outlined" style="font-size:32px;">history_toggle_off</span><div style="margin-top:6px;">No snapshots yet. Click <b>Snapshot now</b> to freeze the current feedback set as v1.</div></div>`;
+      return;
+    }
+    body.innerHTML = revs.map(r => `
+      <div class="mr-rev-row">
+        <div class="mr-rev-meta">
+          <div class="mr-rev-label">${escapeHtml(r.label || '(unlabelled)')}</div>
+          <div class="mr-rev-sub">${dateLong(r.created_at)}${r.created_by ? ' · by <b>' + escapeHtml(r.created_by) + '</b>' : ''} · ${r.comment_count} pin${r.comment_count === 1 ? '' : 's'}${r.page_note_count ? ', ' + r.page_note_count + ' page note' + (r.page_note_count === 1 ? '' : 's') : ''}</div>
+        </div>
+        <button class="mr-btn mr-secondary mr-btn-sm" data-rev-view="${r.id}"><span class="material-symbols-outlined">visibility</span> View</button>
+        <button class="mr-btn mr-secondary mr-btn-sm mr-rev-del" data-rev-del="${r.id}" title="Delete this snapshot"><span class="material-symbols-outlined">delete_outline</span></button>
+      </div>
+    `).join('');
+    body.querySelectorAll('[data-rev-view]').forEach(b => b.addEventListener('click', () => openRevisionViewer(parseInt(b.getAttribute('data-rev-view'), 10))));
+    body.querySelectorAll('[data-rev-del]').forEach(b => b.addEventListener('click', async () => {
+      const id = b.getAttribute('data-rev-del');
+      if (!confirm('Delete this snapshot? (The current live notes are unaffected.)')) return;
+      await deleteRevision(id);
+      renderHistoryList();
+    }));
+  }
+
+  async function openRevisionViewer(id) {
+    document.getElementById('mr-rev-view-bg')?.remove();
+    document.getElementById('mr-rev-view-drawer')?.remove();
+    const bg = document.createElement('div');
+    bg.className = 'mr-drawer-bg open';
+    bg.id = 'mr-rev-view-bg';
+    bg.style.zIndex = '9993';
+    bg.addEventListener('click', () => { bg.remove(); document.getElementById('mr-rev-view-drawer')?.remove(); });
+    document.body.appendChild(bg);
+    const drawer = document.createElement('div');
+    drawer.className = 'mr-drawer';
+    drawer.id = 'mr-rev-view-drawer';
+    drawer.style.zIndex = '9994';
+    drawer.style.width = '540px';
+    document.body.appendChild(drawer);
+    drawer.innerHTML = `<div class="mr-dh"><span class="material-symbols-outlined" style="color:#4a5699;">history</span><h3>Loading snapshot…</h3><button id="mr-rev-close" style="background:none;border:none;color:#8a8880;cursor:pointer;font-size:20px;padding:0 6px;">×</button></div><div class="mr-db"><div class="mr-empty">Loading…</div></div>`;
+    requestAnimationFrame(() => drawer.classList.add('open'));
+    document.getElementById('mr-rev-close').addEventListener('click', () => { bg.remove(); drawer.remove(); });
+
+    const rev = await fetchRevision(id);
+    if (!rev) { drawer.querySelector('.mr-db').innerHTML = '<div class="mr-empty" style="color:#c0553a;">Failed to load this snapshot.</div>'; return; }
+
+    const pages = {};
+    (rev.comments || []).forEach(c => {
+      pages[c.page] = pages[c.page] || { page: c.page, pageTitle: c.pageTitle, comments: [] };
+      pages[c.page].comments.push(c);
+    });
+    Object.entries(rev.page_notes || rev.pageNotes || {}).forEach(([pid, n]) => {
+      pages[pid] = pages[pid] || { page: pid, pageTitle: n.pageTitle, comments: [] };
+    });
+    const pageList = Object.values(pages).sort((a, b) => a.page.localeCompare(b.page));
+    const pageNotesObj = rev.page_notes || rev.pageNotes || {};
+
+    drawer.innerHTML = `
+      <div class="mr-dh">
+        <span class="material-symbols-outlined" style="color:#4a5699;">history</span>
+        <h3>${escapeHtml(rev.label || '(unlabelled snapshot)')}</h3>
+        <button id="mr-rev-close" style="background:none;border:none;color:#8a8880;cursor:pointer;font-size:20px;padding:0 6px;">×</button>
+      </div>
+      <div class="mr-db">
+        <div style="margin-bottom:12px;font-size:12px;color:#5c5b56;">
+          ${rev.created_by ? 'By <b>' + escapeHtml(rev.created_by) + '</b> · ' : ''}${dateLong(rev.created_at)} · ${rev.comment_count} pin${rev.comment_count === 1 ? '' : 's'}, ${rev.page_note_count} page note${rev.page_note_count === 1 ? '' : 's'}
+          <br><span style="color:#8a8880;">Read-only view — the live notes set is unchanged.</span>
+        </div>
+        ${pageList.length === 0 ? `<div class="mr-empty">No notes in this snapshot.</div>` : ''}
+        ${pageList.map(pg => `
+          <div class="mr-pg">
+            <div class="mr-pg-h"><span style="color:#5c5b56;">${escapeHtml(pg.pageTitle || pg.page)}</span> <span style="font-weight:400;color:#a09e97;">(${pg.page})</span></div>
+            ${pageNotesObj[pg.page] ? `
+              <div class="mr-c">
+                <div class="mr-c-h">
+                  <span style="background:#4a5699;color:white;padding:1px 7px;border-radius:10px;font-weight:600;font-size:10px;">PAGE</span>
+                  ${pageNotesObj[pg.page].author ? '<span class="mr-c-author">' + escapeHtml(pageNotesObj[pg.page].author) + '</span>' : ''}
+                </div>
+                <div class="mr-c-text">${escapeHtml(pageNotesObj[pg.page].text || '')}</div>
+              </div>` : ''}
+            ${pg.comments.map((c, i) => `
+              <div class="mr-c">
+                <div class="mr-c-h">
+                  <span class="mr-c-num">#${i + 1}</span>
+                  ${c.author ? '<span class="mr-c-author">' + escapeHtml(c.author) + '</span>' : ''}
+                  <span class="mr-c-anchor">near <i>"${escapeHtml(((c.anchor && c.anchor.text) || (c.anchor && c.anchor.tag) || '').slice(0, 40))}"</i></span>
+                </div>
+                <div class="mr-c-text">${escapeHtml(c.text || '(empty)')}</div>
+              </div>
+            `).join('')}
+          </div>
+        `).join('')}
+      </div>
+    `;
+    document.getElementById('mr-rev-close').addEventListener('click', () => { bg.remove(); drawer.remove(); });
+  }
+
+  // -------------------------------------------------------------
+  return {
+    start,
+    snapshotNow,                            // programmatic snapshot (e.g. from a deploy hook)
+    openHistory: openHistoryDrawer,
+    _state: () => ({ comments, pageNotes, reviewer })
+  };
 })();
 
 document.addEventListener('DOMContentLoaded', () => window.MockReview.start());

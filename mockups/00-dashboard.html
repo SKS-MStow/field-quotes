@@ -1,13 +1,13 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <title>Dashboard — SKS Quotes</title>
+  <title>Dashboard â€” SKS Quotes</title>
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/icon?family=Material+Symbols+Outlined" rel="stylesheet">
-  <link rel="stylesheet" href="css/theme.css">
-  <link rel="stylesheet" href="css/mockups.css">
+  <link rel="stylesheet" href="css/theme.css?v=20260514r3">
+  <link rel="stylesheet" href="css/mockups.css?v=20260514r3">
   <style>
     .greeting h1 { font-family: var(--font-heading); font-size: 22px; font-weight: 600; color: var(--text-primary); margin-bottom: 4px; }
     .greeting p { color: var(--text-secondary); font-size: 14px; margin-bottom: 18px; }
@@ -141,12 +141,12 @@
 
   </main>
 
-  <script src="js/mock-data.js"></script>
-  <script src="js/mock-state.js"></script>
-  <script src="js/mock-ui.js"></script>
-  <script src="js/mock-shell.js"></script>
-  <script src="js/mock-expiry.js"></script>
-  <script src="js/mock-review.js"></script>
+  <script src="js/mock-data.js?v=20260514r3"></script>
+  <script src="js/mock-state.js?v=20260514r3"></script>
+  <script src="js/mock-ui.js?v=20260514r3"></script>
+  <script src="js/mock-shell.js?v=20260514r3"></script>
+  <script src="js/mock-expiry.js?v=20260514r3"></script>
+  <script src="js/mock-review.js?v=20260514r5"></script>
   <script>
     MockShell.mount({
       title: 'Dashboard',
@@ -199,11 +199,11 @@
       quotes.forEach(q => {
         const dt = new Date(q.createdAt);
         if (q.status === 'accepted') {
-          acts.push({ when: q.createdAt, icon: 'check_circle', kind: 'success', text: `<b>${q.client.name}</b> accepted <a href="#" data-open="${q.id}">${q.number}</a> · <b>${MockUI.fmtMoney(q.value)}</b>` });
+          acts.push({ when: q.createdAt, icon: 'check_circle', kind: 'success', text: `<b>${q.client.name}</b> accepted <a href="#" data-open="${q.id}">${q.number}</a> Â· <b>${MockUI.fmtMoney(q.value)}</b>` });
         } else if (q.status === 'declined') {
           acts.push({ when: q.createdAt, icon: 'cancel', kind: 'danger', text: `<b>${q.client.name}</b> declined <a href="#" data-open="${q.id}">${q.number}</a>` });
         } else if (q.status === 'issued') {
-          acts.push({ when: q.createdAt, icon: 'send', kind: 'info', text: `Issued <a href="#" data-open="${q.id}">${q.number}</a> to <b>${q.client.name}</b> · ${MockUI.fmtMoney(q.value)}` });
+          acts.push({ when: q.createdAt, icon: 'send', kind: 'info', text: `Issued <a href="#" data-open="${q.id}">${q.number}</a> to <b>${q.client.name}</b> Â· ${MockUI.fmtMoney(q.value)}` });
         } else if (q.status === 'expired') {
           acts.push({ when: q.validUntil || q.createdAt, icon: 'schedule', kind: 'warn', text: `<a href="#" data-open="${q.id}">${q.number}</a> for <b>${q.client.name}</b> expired without decision` });
         } else if (q.status === 'revised') {
@@ -249,8 +249,8 @@
       host.innerHTML = soon.slice(0, 5).map(({ q, days }) => `
         <div class="expiring-row" data-open-row="${q.id}">
           <div class="info">
-            <div class="num">${q.number} <span style="color:var(--text-muted);font-weight:500;">· ${MockUI.fmtMoney(q.value)}</span></div>
-            <div class="client">${q.client.name} · ${q.project.name}</div>
+            <div class="num">${q.number} <span style="color:var(--text-muted);font-weight:500;">Â· ${MockUI.fmtMoney(q.value)}</span></div>
+            <div class="client">${q.client.name} Â· ${q.project.name}</div>
           </div>
           <div class="days ${days <= 7 ? 'urgent' : 'soon'}">${days === 0 ? 'today' : days === 1 ? '1 day' : days + ' days'}</div>
         </div>

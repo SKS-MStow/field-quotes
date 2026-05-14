@@ -1,13 +1,13 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <title>Client &amp; Project — SKS Quotes</title>
+  <title>Client &amp; Project â€” SKS Quotes</title>
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/icon?family=Material+Symbols+Outlined" rel="stylesheet">
-  <link rel="stylesheet" href="css/theme.css">
-  <link rel="stylesheet" href="css/mockups.css">
+  <link rel="stylesheet" href="css/theme.css?v=20260514r3">
+  <link rel="stylesheet" href="css/mockups.css?v=20260514r3">
   <style>
     .info-grid { display: grid; grid-template-columns: 1fr 360px; gap: 18px; align-items: start; }
     @media (max-width: 1100px) { .info-grid { grid-template-columns: 1fr; } }
@@ -108,11 +108,26 @@
           </div>
         </div>
 
+        <!-- Scope of works panel (client-facing, flows through to area builder + client doc) -->
+        <div class="panel" id="scope">
+          <div class="panel-header">
+            <h3>Scope of works</h3>
+            <span class="sub">Shown to the client</span>
+          </div>
+          <div class="field-grid">
+            <div class="field" style="grid-column: 1 / -1;">
+              <label>Brief description of what we're delivering</label>
+              <textarea data-bind="project.scopeOfWorks" rows="4" placeholder="e.g. Supply, install and commission a Microsoft Teams Rooms system in the Level 3 boardroom â€” single 75&quot; display, ceiling-array mic, Logitech Rally Bar, Crestron control."></textarea>
+              <div class="help">This text appears at the top of the Area Builder, on the Review screen, and as the executive scope summary on the client quote document.</div>
+            </div>
+          </div>
+        </div>
+
         <!-- Quote validity panel -->
         <div class="panel">
           <div class="panel-header">
             <h3>Quote settings</h3>
-            <span class="sub">Defaults — adjustable</span>
+            <span class="sub">Defaults â€” adjustable</span>
           </div>
           <div class="field-grid">
             <div class="field">
@@ -129,7 +144,50 @@
             </div>
             <div class="field">
               <label>Status</label>
-              <input value="Draft" disabled>
+              <select data-bind="status" class="form-input">
+                <option value="draft">Draft</option>
+                <option value="issued">Issued</option>
+                <option value="accepted">Accepted</option>
+                <option value="declined">Declined</option>
+                <option value="expired">Expired</option>
+                <option value="revised">Revised</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quote-level overrides panel â€” margin defaults + labour rate overrides -->
+        <div class="panel">
+          <div class="panel-header">
+            <h3>Margin &amp; labour-rate defaults</h3>
+            <span class="sub">Quote-level overrides â€” per-line edits still win</span>
+          </div>
+          <div class="field-grid">
+            <div class="field">
+              <label>Materials margin %</label>
+              <input data-bind="materialsMarginPct" type="number" min="0" max="80" step="1">
+              <div class="help">Default markup on products + sundries. Lines and categories can still override.</div>
+            </div>
+            <div class="field">
+              <label>Labour margin %</label>
+              <input data-bind="labourMarginPct" type="number" min="0" max="60" step="1">
+              <div class="help">Extra markup on top of trade rates. Usually 0 â€” rates already carry SKS margin.</div>
+            </div>
+            <div class="field">
+              <label>AV Tech rate ($/hr)</label>
+              <input data-bind="labourRates.AV Tech" type="number" min="0" step="5" placeholder="(default 145)">
+            </div>
+            <div class="field">
+              <label>Data Tech rate ($/hr)</label>
+              <input data-bind="labourRates.Data Tech" type="number" min="0" step="5" placeholder="(default 135)">
+            </div>
+            <div class="field">
+              <label>Electrician rate ($/hr)</label>
+              <input data-bind="labourRates.Electrician" type="number" min="0" step="5" placeholder="(default 165)">
+            </div>
+            <div class="field">
+              <label>PM rate ($/hr)</label>
+              <input data-bind="labourRates.PM" type="number" min="0" step="5" placeholder="(default 175)">
             </div>
           </div>
         </div>
@@ -141,7 +199,7 @@
           <h3><span class="material-symbols-outlined" style="font-size:18px;color:var(--status-info);">auto_awesome</span> Scope helper</h3>
           <p class="sub">Paste a tender email or upload a scope document. We'll suggest client &amp; project details, room/area names, and likely products from the catalogue.</p>
 
-          <textarea id="ai-input" placeholder="Paste the email or scope text here…"></textarea>
+          <textarea id="ai-input" placeholder="Paste the email or scope text hereâ€¦"></textarea>
 
           <div class="upload-row" style="margin-top:8px;">
             <span class="material-symbols-outlined">upload_file</span>
@@ -176,16 +234,16 @@
     </div>
   </main>
 
-  <script src="js/mock-data.js"></script>
-  <script src="js/mock-state.js"></script>
-  <script src="js/mock-ui.js"></script>
-  <script src="js/mock-shell.js"></script>
-  <script src="js/mock-expiry.js"></script>
-  <script src="js/mock-review.js"></script>
+  <script src="js/mock-data.js?v=20260514r3"></script>
+  <script src="js/mock-state.js?v=20260514r3"></script>
+  <script src="js/mock-ui.js?v=20260514r3"></script>
+  <script src="js/mock-shell.js?v=20260514r3"></script>
+  <script src="js/mock-expiry.js?v=20260514r3"></script>
+  <script src="js/mock-review.js?v=20260514r5"></script>
   <script>
     MockShell.mount({
       title: 'Client & Project',
-      subtitle: 'Step 2 of 5 · Capture client and project info',
+      subtitle: 'Step 2 of 5 Â· Capture client and project info',
       actionsHtml: `<a class="btn btn-secondary" href="01-quote-list.html"><span class="material-symbols-outlined">close</span> Cancel</a>`
     });
 
@@ -237,7 +295,7 @@
     // -------- Scope helper (demo extraction) --------
     const demoEmail = `From: tim.bell@adelaide.edu.au
 To: estimates@skstechnologies.com.au
-Subject: AV upgrade quote — Lecture Theatre 2
+Subject: AV upgrade quote â€” Lecture Theatre 2
 
 Hi team,
 
@@ -254,19 +312,20 @@ Budget: aiming around $90-100k. Need quote by next Friday.
 
 Cheers,
 Tim Bell
-Project Manager — University of Adelaide
+Project Manager â€” University of Adelaide
 0411 222 333`;
 
     function doExtract(text) {
-      // Canned "AI" — just pulls things out of demoEmail with regex / heuristics
+      // Canned "AI" â€” just pulls things out of demoEmail with regex / heuristics
       const suggestions = {
         'client.name':    'University of Adelaide',
         'client.contact': 'Tim Bell',
         'client.email':   'tim.bell@adelaide.edu.au',
         'client.phone':   '0411 222 333',
         'client.address': 'North Terrace, Adelaide SA 5005',
-        'project.name':   'Engineering — Lecture Theatre 2 refresh',
+        'project.name':   'Engineering â€” Lecture Theatre 2 refresh',
         'project.address':'Engineering Building, North Terrace campus, University of Adelaide',
+        'project.scopeOfWorks': 'Refresh of the AV system in Engineering Lecture Theatre 2 (90 seats). Supply, install and commission: large front-of-room display + screen, ceiling-array microphones for lecture capture, lectern + handheld mics, Crestron control system aligned to the rest of the campus, and HDBaseT/NVX signal distribution from lectern to display.',
         'project.notes':  '90 seats. Recorded lectures (ceiling mics). Lectern + handheld mics. Budget ~$90-100k. Needed by next Friday.'
       };
       const labels = {
@@ -277,6 +336,7 @@ Project Manager — University of Adelaide
         'client.address': 'Address',
         'project.name': 'Project name',
         'project.address': 'Project address',
+        'project.scopeOfWorks': 'Scope of works',
         'project.notes': 'Notes'
       };
       const rowsHtml = Object.entries(suggestions).map(([k, v]) =>
@@ -308,7 +368,7 @@ Project Manager — University of Adelaide
     document.getElementById('ai-extract').addEventListener('click', () => {
       const text = document.getElementById('ai-input').value.trim();
       if (!text) { MockUI.toast('Paste an email or scope first (try "Use demo text")', 'warn'); return; }
-      MockUI.toast('Extracting…');
+      MockUI.toast('Extractingâ€¦');
       setTimeout(() => doExtract(text), 600);
     });
 

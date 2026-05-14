@@ -1,13 +1,13 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <title>Quotes — SKS Quotes</title>
+  <title>Quotes â€” SKS Quotes</title>
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/icon?family=Material+Symbols+Outlined" rel="stylesheet">
-  <link rel="stylesheet" href="css/theme.css">
-  <link rel="stylesheet" href="css/mockups.css">
+  <link rel="stylesheet" href="css/theme.css?v=20260514r3">
+  <link rel="stylesheet" href="css/mockups.css?v=20260514r3">
   <style>
     .quote-num { font-family: var(--font-heading); font-weight: 600; color: var(--text-primary); }
     .quote-rev { color: var(--text-muted); font-size: 11px; margin-left: 6px; font-weight: 500; }
@@ -20,6 +20,30 @@
     .no-results { padding: 40px 20px; text-align: center; color: var(--text-muted); }
     .no-results .material-symbols-outlined { font-size: 36px; color: var(--border-hover); margin-bottom: 8px; }
     .no-results h4 { font-family: var(--font-heading); font-size: 14px; font-weight: 600; color: var(--text-secondary); margin: 4px 0; }
+
+    /* Status pill-tab bar */
+    .status-tabs { display: flex; align-items: center; gap: 4px; background: var(--surface-card); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 4px; margin-bottom: 4px; flex-wrap: wrap; }
+    .status-tab { background: transparent; border: 1px solid transparent; padding: 7px 14px; border-radius: var(--radius-md); font-size: 12.5px; color: var(--text-secondary); cursor: pointer; font-family: var(--font-body); font-weight: 500; }
+    .status-tab:hover { background: var(--surface-inset); }
+    .status-tab.active { background: var(--accent-primary); color: white; border-color: var(--accent-primary); }
+    .status-tab-spacer { flex: 1; }
+
+    /* More-filters disclosure */
+    .more-filters { display: flex; gap: 10px; align-items: center; margin-top: 8px; padding: 10px 12px; background: var(--surface-inset); border-radius: var(--radius-md); flex-wrap: wrap; }
+    .more-filters select { font-size: 13px; padding: 6px 8px; border: 1px solid var(--border-input); border-radius: var(--radius-md); background: var(--surface-white); font-family: var(--font-body); color: var(--text-primary); }
+
+    /* Column resize stubs */
+    table.data-table thead th { position: relative; }
+    table.data-table thead th .col-resizer { position: absolute; right: 0; top: 0; bottom: 0; width: 5px; cursor: col-resize; opacity: 0; transition: opacity 0.15s; background: var(--accent-primary); }
+    table.data-table thead th:hover .col-resizer { opacity: 0.4; }
+
+    /* Right-click context menu (stub) */
+    .col-ctx-menu { position: fixed; z-index: 9990; background: white; border: 1px solid var(--border); border-radius: var(--radius-md); padding: 6px 0; min-width: 220px; box-shadow: 0 10px 30px rgba(0,0,0,0.15); font-family: var(--font-body); }
+    .col-ctx-menu .item { display: flex; align-items: center; gap: 8px; padding: 8px 14px; font-size: 13px; color: var(--text-primary); cursor: pointer; }
+    .col-ctx-menu .item:hover { background: var(--surface-inset); }
+    .col-ctx-menu .item .material-symbols-outlined { font-size: 16px; color: var(--text-muted); }
+    .col-ctx-menu .divider { height: 1px; background: var(--border-light); margin: 4px 0; }
+    .col-ctx-menu .heading { padding: 6px 14px; font-size: 10px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); font-weight: 600; }
   </style>
 </head>
 <body data-page="quotes">
@@ -29,14 +53,36 @@
     <!-- KPI strip -->
     <div class="kpi-grid" id="kpi-host"></div>
 
-    <!-- Filters -->
-    <div class="filters-row">
+    <!-- Status pill-tab bar â€” prominent, replaces the old dropdown -->
+    <div class="status-tabs" id="status-tabs" role="tablist">
+      <button class="status-tab active" data-status="">All</button>
+      <button class="status-tab" data-status="draft">Draft</button>
+      <button class="status-tab" data-status="issued">Issued</button>
+      <button class="status-tab" data-status="accepted">Accepted</button>
+      <button class="status-tab" data-status="declined">Declined</button>
+      <button class="status-tab" data-status="expired">Expired</button>
+      <button class="status-tab" data-status="revised">Revised</button>
+      <span class="status-tab-spacer"></span>
+      <button class="btn btn-secondary btn-sm" id="reset-data" title="Reset mockup data to defaults"><span class="material-symbols-outlined">restart_alt</span> Reset demo</button>
+    </div>
+
+    <!-- Search row + collapsible "More filters" disclosure -->
+    <div class="filters-row" style="margin-top:10px;">
       <div class="search-wrap">
         <span class="material-symbols-outlined">search</span>
-        <input id="filter-search" type="text" class="form-input" placeholder="Search by quote #, client, project…">
+        <input id="filter-search" type="text" class="form-input" placeholder="Search by quote #, client, projectâ€¦">
       </div>
-      <select class="form-input" id="filter-status">
-        <option value="">All statuses</option>
+      <button class="btn btn-secondary btn-sm" id="more-filters-toggle" type="button">
+        <span class="material-symbols-outlined">tune</span> More filters
+      </button>
+      <span style="flex:1;font-size:11px;color:var(--text-muted);">
+        Right-click a column header for sort &amp; filter options.
+      </span>
+    </div>
+    <div class="more-filters" id="more-filters" hidden>
+      <!-- Hidden status field â€” kept so the URL ?filter= mechanism still works -->
+      <select id="filter-status" hidden>
+        <option value="">All</option>
         <option value="draft">Draft</option>
         <option value="issued">Issued</option>
         <option value="accepted">Accepted</option>
@@ -57,11 +103,10 @@
       <select class="form-input" id="filter-sort">
         <option value="newest">Sort: Newest first</option>
         <option value="oldest">Sort: Oldest first</option>
-        <option value="value-high">Sort: Value high → low</option>
-        <option value="value-low">Sort: Value low → high</option>
-        <option value="client">Sort: Client A–Z</option>
+        <option value="value-high">Sort: Value high â†’ low</option>
+        <option value="value-low">Sort: Value low â†’ high</option>
+        <option value="client">Sort: Client Aâ€“Z</option>
       </select>
-      <button class="btn btn-secondary btn-sm" id="reset-data" title="Reset mockup data to defaults"><span class="material-symbols-outlined">restart_alt</span> Reset demo</button>
     </div>
 
     <!-- Quote table -->
@@ -69,12 +114,12 @@
 
   </main>
 
-  <script src="js/mock-data.js"></script>
-  <script src="js/mock-state.js"></script>
-  <script src="js/mock-ui.js"></script>
-  <script src="js/mock-shell.js"></script>
-  <script src="js/mock-expiry.js"></script>
-  <script src="js/mock-review.js"></script>
+  <script src="js/mock-data.js?v=20260514r3"></script>
+  <script src="js/mock-state.js?v=20260514r3"></script>
+  <script src="js/mock-ui.js?v=20260514r3"></script>
+  <script src="js/mock-shell.js?v=20260514r3"></script>
+  <script src="js/mock-expiry.js?v=20260514r3"></script>
+  <script src="js/mock-review.js?v=20260514r5"></script>
   <script>
     MockShell.mount({
       title: 'Quotes',
@@ -86,9 +131,7 @@
 
     // -------- Read URL filter (e.g. ?filter=draft from sidebar) --------
     const params = new URLSearchParams(location.search);
-    if (params.get('filter')) {
-      document.getElementById('filter-status').value = params.get('filter');
-    }
+    const initialStatus = params.get('filter') || '';
 
     // -------- KPI computations --------
     function renderKpis(quotes) {
@@ -176,12 +219,12 @@
               <span class="quote-rev">Rev ${q.revision}</span>
             </td>
             <td>
-              <div class="quote-client">${q.client.name || '—'}</div>
-              <div class="quote-project">${q.project.name || '—'}</div>
+              <div class="quote-client">${q.client.name || 'â€”'}</div>
+              <div class="quote-project">${q.project.name || 'â€”'}</div>
             </td>
-            <td class="num right">${q.value ? MockUI.fmtMoney(q.value) : '—'}</td>
-            <td class="quote-date">${q.status === 'draft' ? '—' : MockUI.fmtDate(q.createdAt)}</td>
-            <td class="quote-date">${q.status === 'draft' ? '—' : MockUI.fmtDate(q.validUntil)}</td>
+            <td class="num right">${q.value ? MockUI.fmtMoney(q.value) : 'â€”'}</td>
+            <td class="quote-date">${q.status === 'draft' ? 'â€”' : MockUI.fmtDate(q.createdAt)}</td>
+            <td class="quote-date">${q.status === 'draft' ? 'â€”' : MockUI.fmtDate(q.validUntil)}</td>
             <td><span class="${badge.cls}">${badge.label}</span></td>
             <td><span class="badge badge-muted" style="text-transform:capitalize;">${q.mode}</span></td>
             <td class="quote-prepared">${(q.preparedBy || '').replace(/^(\w+)\s+(\w).*/, '$1 $2.')}</td>
@@ -201,14 +244,14 @@
           <table class="data-table">
             <thead>
               <tr>
-                <th>Quote #</th>
-                <th>Client / Project</th>
-                <th class="right">Value</th>
-                <th>Issued</th>
-                <th>Valid Until</th>
-                <th>Status</th>
-                <th>Mode</th>
-                <th>Prepared by</th>
+                <th data-col="number">Quote #<span class="col-resizer"></span></th>
+                <th data-col="client">Client / Project<span class="col-resizer"></span></th>
+                <th class="right" data-col="value">Value<span class="col-resizer"></span></th>
+                <th data-col="issued">Issued<span class="col-resizer"></span></th>
+                <th data-col="validUntil">Valid Until<span class="col-resizer"></span></th>
+                <th data-col="status">Status<span class="col-resizer"></span></th>
+                <th data-col="mode">Mode<span class="col-resizer"></span></th>
+                <th data-col="prep">Prepared by<span class="col-resizer"></span></th>
                 <th class="right"></th>
               </tr>
             </thead>
@@ -218,9 +261,9 @@
         <div class="pagination">
           <div>Showing ${rows.length} of ${all.length}</div>
           <div class="pager">
-            <button class="pager-btn" disabled>‹ Prev</button>
+            <button class="pager-btn" disabled>â€¹ Prev</button>
             <button class="pager-btn active">1</button>
-            <button class="pager-btn" disabled>Next ›</button>
+            <button class="pager-btn" disabled>Next â€º</button>
           </div>
         </div>`;
 
@@ -239,19 +282,97 @@
       host.querySelectorAll('[data-more]').forEach(el => {
         el.addEventListener('click', e => {
           e.stopPropagation();
-          MockUI.toast('Mockup — would open a context menu (duplicate / revise / archive / delete)');
+          MockUI.toast('Mockup â€” would open a context menu (duplicate / revise / archive / delete)');
+        });
+      });
+
+      // Wire column-resize stub (visual only)
+      host.querySelectorAll('th .col-resizer').forEach(handle => {
+        let start = 0, startW = 0, th;
+        handle.addEventListener('mousedown', e => {
+          th = handle.parentElement;
+          start = e.clientX;
+          startW = th.offsetWidth;
+          document.body.style.cursor = 'col-resize';
+          const move = ev => { th.style.width = Math.max(60, startW + (ev.clientX - start)) + 'px'; };
+          const up = () => { document.body.style.cursor = ''; document.removeEventListener('mousemove', move); document.removeEventListener('mouseup', up); };
+          document.addEventListener('mousemove', move);
+          document.addEventListener('mouseup', up);
+        });
+      });
+
+      // Wire right-click context menu (stub â€” shows mock options)
+      host.querySelectorAll('thead th[data-col]').forEach(th => {
+        th.addEventListener('contextmenu', e => {
+          e.preventDefault();
+          openColCtxMenu(e.clientX, e.clientY, th.getAttribute('data-col'), th.textContent.replace(/\s+/g, ' ').trim());
         });
       });
     }
 
+    // Right-click column context menu (stub)
+    function closeColCtxMenu() {
+      document.querySelectorAll('.col-ctx-menu').forEach(m => m.remove());
+    }
+    function openColCtxMenu(x, y, col, label) {
+      closeColCtxMenu();
+      const menu = document.createElement('div');
+      menu.className = 'col-ctx-menu';
+      menu.style.left = x + 'px';
+      menu.style.top  = y + 'px';
+      menu.innerHTML = `
+        <div class="heading">${label}</div>
+        <div class="item" data-act="sort-asc"><span class="material-symbols-outlined">arrow_upward</span> Sort Aâ†’Z (ascending)</div>
+        <div class="item" data-act="sort-desc"><span class="material-symbols-outlined">arrow_downward</span> Sort Zâ†’A (descending)</div>
+        <div class="divider"></div>
+        <div class="item" data-act="filter-by"><span class="material-symbols-outlined">filter_alt</span> Filter by this columnâ€¦</div>
+        <div class="item" data-act="group-by"><span class="material-symbols-outlined">workspaces</span> Group by this column</div>
+        <div class="divider"></div>
+        <div class="item" data-act="autosize"><span class="material-symbols-outlined">width</span> Auto-size column</div>
+        <div class="item" data-act="hide"><span class="material-symbols-outlined">visibility_off</span> Hide column</div>
+      `;
+      document.body.appendChild(menu);
+      // Keep within viewport
+      const r = menu.getBoundingClientRect();
+      if (r.right > window.innerWidth) menu.style.left = (window.innerWidth - r.width - 8) + 'px';
+      if (r.bottom > window.innerHeight) menu.style.top = (window.innerHeight - r.height - 8) + 'px';
+      menu.querySelectorAll('.item').forEach(it => {
+        it.addEventListener('click', () => {
+          MockUI.toast(`Mockup placeholder â€” â€œ${it.textContent.trim()}â€ on ${label} (real menu wired in v2).`, 'warn');
+          closeColCtxMenu();
+        });
+      });
+      setTimeout(() => document.addEventListener('click', closeColCtxMenu, { once: true }), 0);
+    }
+
     // -------- Wire filters --------
     ['filter-search','filter-status','filter-mode','filter-prep','filter-sort'].forEach(id => {
-      document.getElementById(id).addEventListener('input', renderTable);
-      document.getElementById(id).addEventListener('change', renderTable);
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.addEventListener('input', renderTable);
+      el.addEventListener('change', renderTable);
+    });
+
+    // Status tab bar
+    function applyStatusTab(status) {
+      document.querySelectorAll('.status-tab').forEach(b => {
+        b.classList.toggle('active', (b.getAttribute('data-status') || '') === (status || ''));
+      });
+      document.getElementById('filter-status').value = status || '';
+      renderTable();
+    }
+    document.querySelectorAll('.status-tab').forEach(b => {
+      b.addEventListener('click', () => applyStatusTab(b.getAttribute('data-status') || ''));
+    });
+
+    // More-filters toggle
+    document.getElementById('more-filters-toggle').addEventListener('click', () => {
+      const el = document.getElementById('more-filters');
+      el.hidden = !el.hidden;
     });
 
     document.getElementById('reset-data').addEventListener('click', () => {
-      MockUI.confirmAction('Reset mockup data — clears any quote you have in progress. Continue?', () => {
+      MockUI.confirmAction('Reset mockup data â€” clears any quote you have in progress. Continue?', () => {
         MockState.reset();
         MockUI.toast('Demo data reset', 'success');
         renderTable();
@@ -259,10 +380,11 @@
     });
 
     document.getElementById('export-btn').addEventListener('click', () => {
-      MockUI.toast('Mockup — would download a CSV of the current view');
+      MockUI.toast('Mockup â€” would download a CSV of the current view');
     });
 
-    renderTable();
+    // Apply initial status from URL ?filter= (sidebar links use this)
+    applyStatusTab(initialStatus);
   </script>
 </body>
 </html>

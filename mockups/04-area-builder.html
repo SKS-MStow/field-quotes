@@ -1,13 +1,13 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <title>Build Areas — SKS Quotes</title>
+  <title>Build Areas â€” SKS Quotes</title>
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/icon?family=Material+Symbols+Outlined" rel="stylesheet">
-  <link rel="stylesheet" href="css/theme.css">
-  <link rel="stylesheet" href="css/mockups.css">
+  <link rel="stylesheet" href="css/theme.css?v=20260514r3">
+  <link rel="stylesheet" href="css/mockups.css?v=20260514r3">
   <style>
     .quote-meta { display: flex; gap: 18px; padding: 12px 16px; background: var(--surface-inset); border-radius: var(--radius-md); margin-bottom: 14px; flex-wrap: wrap; align-items: center; }
     .quote-meta .mi { display: flex; flex-direction: column; gap: 2px; }
@@ -20,16 +20,59 @@
     .col-unit { width: 50px; }
     .col-num { width: 80px; text-align: right; }
     .col-actions { width: 80px; text-align: right; }
-    .pill-toggle { display: inline-flex; gap: 0; border: 1px solid var(--border-input); border-radius: var(--radius-md); overflow: hidden; }
-    .pill-toggle button { background: var(--surface-white); border: none; padding: 5px 10px; font-size: 11px; color: var(--text-secondary); cursor: pointer; font-family: var(--font-body); }
-    .pill-toggle button.active { background: var(--accent-primary); color: white; }
-    /* Cost/margin columns — hidden by default, shown when cost-view is on */
+    /* Cost + margin columns are always visible now (reviewer note: equipment pricing should
+       appear line by line with manual override; both cost and margin are editable per line). */
     table.lines th.col-cost, table.lines th.col-margin,
-    table.lines td.col-cost, table.lines td.col-margin { display: none; }
-    body.cost-view table.lines th.col-cost,
-    body.cost-view table.lines th.col-margin,
-    body.cost-view table.lines td.col-cost,
-    body.cost-view table.lines td.col-margin { display: table-cell; }
+    table.lines td.col-cost, table.lines td.col-margin { display: table-cell; }
+
+    /* Scope panel at the top of the builder â€” pulled from client-info project.scopeOfWorks */
+    .scope-panel { background: var(--surface-card); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 14px 16px; margin-bottom: 14px; position: relative; }
+    .scope-panel h3 { font-family: var(--font-heading); font-size: 13px; font-weight: 600; color: var(--text-primary); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 6px; display: flex; align-items: center; gap: 8px; }
+    .scope-panel h3 .material-symbols-outlined { color: var(--status-info); font-size: 18px; }
+    .scope-panel .body { font-size: 13.5px; color: var(--text-primary); line-height: 1.5; white-space: pre-wrap; }
+    .scope-panel .body.empty { color: var(--text-muted); font-style: italic; }
+    .scope-panel .edit-link { position: absolute; top: 12px; right: 14px; font-size: 12px; color: var(--accent-primary); text-decoration: none; display: flex; align-items: center; gap: 4px; }
+    .scope-panel .edit-link:hover { text-decoration: underline; }
+    .scope-panel .edit-link .material-symbols-outlined { font-size: 16px; }
+
+    /* Per-area labour block */
+    .labour-block { border-top: 1px solid var(--border-light); background: var(--surface-card); padding: 10px 16px 12px; }
+    .labour-block .lh { font-size: 11px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
+    .labour-block .lh .material-symbols-outlined { font-size: 16px; }
+    table.labour-table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+    table.labour-table th { padding: 6px 8px; font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.04em; text-align: left; font-weight: 600; white-space: nowrap; }
+    table.labour-table td { padding: 6px 8px; border-top: 1px solid var(--border-light); vertical-align: middle; }
+    table.labour-table .row-auto td { background: rgba(0,0,0,0.015); font-style: italic; color: var(--text-secondary); }
+    table.labour-table .right { text-align: right; }
+
+    /* Cables & accessories aggregator */
+    .cables-section { margin-top: 26px; }
+    .cables-section .sub-h { font-family: var(--font-heading); font-size: 13px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.07em; margin: 0 0 10px; }
+    .cables-section .agg-block { background: var(--surface-card); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 0; overflow: hidden; }
+    .cables-section .area-sub-h { padding: 8px 14px; background: var(--surface-inset); font-size: 11px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.04em; }
+    .cables-section table.agg-table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+    .cables-section table.agg-table th, .cables-section table.agg-table td { padding: 8px 12px; border-bottom: 1px solid var(--border-light); }
+    .cables-section table.agg-table th { font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.04em; text-align: left; font-weight: 600; background: var(--surface-card); }
+    .cables-section table.agg-table tr:last-child td { border-bottom: none; }
+    .cables-section .right { text-align: right; }
+    .cables-section .subtotal-row td { background: var(--surface-inset); font-weight: 700; }
+
+    /* Sticky footer totals bar */
+    .totals-bar { position: sticky; bottom: 64px; z-index: 5; background: linear-gradient(180deg, var(--surface-bg) 0%, var(--surface-card) 100%); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 10px 16px; margin-top: 20px; display: grid; grid-template-columns: repeat(6, 1fr); gap: 12px; box-shadow: 0 6px 20px rgba(0,0,0,0.05); }
+    .totals-bar .tb-cell { display: flex; flex-direction: column; gap: 2px; }
+    .totals-bar .tb-cell .l { font-size: 10px; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
+    .totals-bar .tb-cell .v { font-family: var(--font-heading); font-weight: 700; font-size: 15px; color: var(--text-primary); font-variant-numeric: tabular-nums; }
+    .totals-bar .tb-cell.grand .v { font-size: 19px; color: var(--accent-primary); }
+    @media (max-width: 900px) { .totals-bar { grid-template-columns: repeat(2, 1fr); } }
+
+    /* Dual margin sliders */
+    .slider-block { padding: 8px 0; }
+    .slider-block .slr-label { display: flex; justify-content: space-between; align-items: center; font-size: 11px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 2px; }
+    .slider-block .slr-label .v { font-family: var(--font-heading); font-weight: 700; font-size: 14px; color: var(--text-primary); }
+    .slider-block input[type=range] { width: 100%; }
+    .slider-block .readout { display: flex; justify-content: space-between; align-items: center; padding: 10px 0 4px; border-top: 1px dashed var(--border-light); margin-top: 6px; }
+    .slider-block .readout .l { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600; }
+    .slider-block .readout .v { font-family: var(--font-heading); font-weight: 700; font-size: 16px; color: var(--accent-primary); }
 
     .services-table th, .services-table td { padding: 9px 12px; }
     .services-row .name { font-weight: 500; color: var(--text-primary); }
@@ -78,20 +121,35 @@
     <!-- Quote meta strip -->
     <div class="quote-meta" id="quote-meta"></div>
 
+    <!-- Scope of works panel (read from project.scopeOfWorks; edit link back to client info) -->
+    <div class="scope-panel" id="scope-panel">
+      <a class="edit-link" href="03-client-info.html#scope"><span class="material-symbols-outlined">edit</span> Edit on Client &amp; Project</a>
+      <h3><span class="material-symbols-outlined">flag</span> <span id="scope-heading">Scope of works</span></h3>
+      <div class="body" id="scope-body"></div>
+    </div>
+
     <div class="builder-layout">
 
       <!-- Left: Areas -->
       <div>
         <div style="display:flex;gap:8px;align-items:center;margin-bottom:10px;">
           <h2 style="font-family:var(--font-heading);font-size:16px;font-weight:600;color:var(--text-primary);flex:1;" id="builder-heading">Areas</h2>
-          <div class="pill-toggle">
-            <button data-view="sell" class="active">Sell view</button>
-            <button data-view="cost">Cost + margin</button>
-          </div>
           <button class="btn btn-secondary btn-sm" id="add-area-btn"><span class="material-symbols-outlined">add</span> Add Area</button>
         </div>
 
         <div id="areas-host"></div>
+
+        <!-- Cables & Accessories aggregator section -->
+        <div class="cables-section">
+          <div style="display:flex;align-items:center;gap:8px;">
+            <h3 class="sub-h" style="flex:1;">Cables &amp; accessories</h3>
+            <button class="btn btn-secondary btn-sm" id="add-sundry-btn"><span class="material-symbols-outlined">add</span> Add manual sundry line</button>
+          </div>
+          <p style="font-size:12px;color:var(--text-muted);margin:0 0 10px;">
+            Cables / consumables from your area lines are aggregated here for quick review. Add free-text sundries below â€” they roll into the materials total.
+          </p>
+          <div class="agg-block" id="cables-host"></div>
+        </div>
 
         <!-- Services section -->
         <h3 class="section-h" style="margin-top:30px;">Services &amp; Installation</h3>
@@ -118,32 +176,51 @@
         </div>
       </div>
 
-      <!-- Right: Margin / Totals panel -->
+      <!-- Right: Margin sliders + per-line breakdown -->
       <aside>
         <div class="margin-panel">
-          <h3 style="font-family:var(--font-heading);font-size:13px;font-weight:600;color:var(--text-primary);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:10px;">Margin &amp; Totals</h3>
+          <h3 style="font-family:var(--font-heading);font-size:13px;font-weight:600;color:var(--text-primary);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:10px;">Margins</h3>
 
-          <div style="font-size:11px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px;">Global margin</div>
-          <div class="global-margin-row">
-            <input type="range" id="global-margin" min="0" max="60" step="1" style="flex:1;">
-            <span class="value" id="global-margin-val">25%</span>
+          <!-- Materials margin slider -->
+          <div class="slider-block">
+            <div class="slr-label"><span>Materials</span><span class="v" id="materials-margin-val">25%</span></div>
+            <input type="range" id="materials-margin" min="0" max="60" step="1">
           </div>
-          <button class="btn btn-secondary btn-sm" id="apply-all-margin" style="margin-top:6px;width:100%;justify-content:center;">Apply to all lines</button>
+
+          <!-- Labour margin slider -->
+          <div class="slider-block">
+            <div class="slr-label"><span>Labour</span><span class="v" id="labour-margin-val">0%</span></div>
+            <input type="range" id="labour-margin" min="0" max="50" step="1">
+            <div class="readout">
+              <span class="l">Blended global margin</span>
+              <span class="v" id="global-margin-readout">â€”</span>
+            </div>
+          </div>
+
+          <button class="btn btn-secondary btn-sm" id="apply-all-margin" style="margin-top:6px;width:100%;justify-content:center;">Apply materials % to all lines</button>
 
           <hr style="border:none;border-top:1px solid var(--border-light);margin:14px 0;">
 
           <div class="margin-row"><span class="lbl">Materials cost</span><span class="val num" id="t-mat-cost">$0</span></div>
           <div class="margin-row"><span class="lbl">Materials sell</span><span class="val num" id="t-mat-sell">$0</span></div>
           <div class="margin-row"><span class="lbl">Labour hours</span><span class="val num" id="t-lab-hrs">0</span></div>
+          <div class="margin-row"><span class="lbl">Labour cost</span><span class="val num" id="t-lab-cost">$0</span></div>
           <div class="margin-row"><span class="lbl">Labour sell</span><span class="val num" id="t-lab-sell">$0</span></div>
           <div class="margin-row"><span class="lbl">Services</span><span class="val num" id="t-svc-sell">$0</span></div>
           <div class="margin-row"><span class="lbl">Margin $</span><span class="val num" id="t-margin">$0</span></div>
           <div class="margin-row"><span class="lbl">Margin %</span><span class="val num" id="t-margin-pct">0%</span></div>
-          <div class="margin-row"><span class="lbl">Sell (ex-GST)</span><span class="val lg num" id="t-sell">$0</span></div>
-          <div class="margin-row"><span class="lbl">GST (10%)</span><span class="val num" id="t-gst">$0</span></div>
-          <div class="margin-row"><span class="lbl"><b>Total inc-GST</b></span><span class="val lg num" id="t-total">$0</span></div>
         </div>
       </aside>
+    </div>
+
+    <!-- Sticky footer totals bar -->
+    <div class="totals-bar" id="totals-bar">
+      <div class="tb-cell"><span class="l">Materials</span><span class="v" id="tb-mat">$0</span></div>
+      <div class="tb-cell"><span class="l">Labour</span><span class="v" id="tb-lab">$0</span></div>
+      <div class="tb-cell"><span class="l">Services</span><span class="v" id="tb-svc">$0</span></div>
+      <div class="tb-cell"><span class="l">Subtotal (ex-GST)</span><span class="v" id="tb-sub">$0</span></div>
+      <div class="tb-cell"><span class="l">GST (10%)</span><span class="v" id="tb-gst">$0</span></div>
+      <div class="tb-cell grand"><span class="l">Total (inc-GST)</span><span class="v" id="tb-total">$0</span></div>
     </div>
 
     <!-- Wizard footer -->
@@ -173,7 +250,7 @@
           <select id="filter-mfr" class="form-input"><option value="">All brands</option></select>
           <div class="search-wrap" style="max-width:none;">
             <span class="material-symbols-outlined">search</span>
-            <input id="filter-search" type="text" class="form-input" placeholder="Search description or part no…">
+            <input id="filter-search" type="text" class="form-input" placeholder="Search description or part noâ€¦">
           </div>
         </div>
         <div id="product-results"></div>
@@ -200,17 +277,17 @@
     </div>
   </main>
 
-  <script src="js/mock-data.js"></script>
-  <script src="js/mock-state.js"></script>
-  <script src="js/mock-ui.js"></script>
-  <script src="js/mock-shell.js"></script>
-  <script src="js/mock-expiry.js"></script>
-  <script src="js/mock-review.js"></script>
+  <script src="js/mock-data.js?v=20260514r3"></script>
+  <script src="js/mock-state.js?v=20260514r3"></script>
+  <script src="js/mock-ui.js?v=20260514r3"></script>
+  <script src="js/mock-shell.js?v=20260514r3"></script>
+  <script src="js/mock-expiry.js?v=20260514r3"></script>
+  <script src="js/mock-review.js?v=20260514r5"></script>
   <script>
     // -------- Shell --------
     MockShell.mount({
       title: 'Build the Quote',
-      subtitle: 'Step 3 of 5 · Add areas, products, and services',
+      subtitle: 'Step 3 of 5 Â· Add areas, products, and services',
       actionsHtml: `<a class="btn btn-secondary" href="01-quote-list.html"><span class="material-symbols-outlined">close</span> Cancel</a>`
     });
 
@@ -218,7 +295,7 @@
     let quote = MockState.getCurrentQuote();
     if (!quote) {
       location.href = '02-mode-select.html';
-      throw new Error('No active quote — redirecting to mode select');
+      throw new Error('No active quote â€” redirecting to mode select');
     }
 
     // Quick mode UI tweaks
@@ -234,8 +311,8 @@
       const q = MockState.getCurrentQuote();
       document.getElementById('quote-meta').innerHTML = `
         <div class="mi"><span class="l">Quote #</span><span class="v">${q.number}</span></div>
-        <div class="mi"><span class="l">Client</span><span class="v">${q.client.name || '—'}</span></div>
-        <div class="mi"><span class="l">Project</span><span class="v">${q.project.name || '—'}</span></div>
+        <div class="mi"><span class="l">Client</span><span class="v">${q.client.name || 'â€”'}</span></div>
+        <div class="mi"><span class="l">Project</span><span class="v">${q.project.name || 'â€”'}</span></div>
         <div class="mi"><span class="l">Mode</span><span class="v">${q.mode === 'quick' ? 'Quick' : 'Large'}</span></div>
         <div class="mi"><span class="l">Status</span><span class="v">Draft</span></div>
       `;
@@ -266,12 +343,14 @@
     function renderAreaCard(area, idx, q) {
       // Group lines by packageId (consecutive same-package lines collapse under a header)
       const linesHtml = renderLinesForArea(area, q);
+      const labourHtml = renderLabourBlock(area, q);
+      const at = MockState.areaTotals(area, q);
 
       return `
         <div class="area-card" data-area-id="${area.id}">
           <div class="area-head">
             <input class="area-name" value="${area.name}" placeholder="Area name" data-area-input="${area.id}">
-            <span class="area-meta">${area.lines.length} item${area.lines.length === 1 ? '' : 's'} · ${MockUI.fmtMoney(MockState.areaTotals(area, q).materialsSell + MockState.areaTotals(area, q).labourSell)}</span>
+            <span class="area-meta">${area.lines.length} item${area.lines.length === 1 ? '' : 's'} Â· ${MockUI.fmtMoney(at.materialsSell + at.labourSell)}</span>
             <div class="area-actions">
               <button class="icon-btn" title="Duplicate" data-dup="${area.id}"><span class="material-symbols-outlined">content_copy</span></button>
               <button class="icon-btn" title="Move up"  data-up="${area.id}"><span class="material-symbols-outlined">arrow_upward</span></button>
@@ -282,18 +361,102 @@
           <div class="area-body">
             ${linesHtml}
           </div>
+          ${labourHtml}
           <div class="area-foot">
             <button class="btn btn-secondary btn-sm" data-add-line="${area.id}"><span class="material-symbols-outlined">add</span> Add Product</button>
             <button class="btn btn-secondary btn-sm" data-add-pkg="${area.id}"><span class="material-symbols-outlined">layers</span> Apply Package</button>
+            <button class="btn btn-secondary btn-sm" data-add-labour="${area.id}"><span class="material-symbols-outlined">engineering</span> Add labour</button>
             <div style="flex:1;"></div>
             <button class="btn btn-secondary btn-sm" data-notes="${area.id}" title="Internal notes"><span class="material-symbols-outlined">edit_note</span> Notes</button>
           </div>
         </div>`;
     }
 
+    // Per-area Installation labour block â€” auto roll-up + manual entries
+    function renderLabourBlock(area, q) {
+      const at = MockState.areaTotals(area, q);
+      const tradeRows = Object.entries(at.labourByTrade || {})
+        .filter(([, hrs]) => hrs > 0)
+        .sort((a, b) => b[1] - a[1]);
+      const manual = (area.labourLines || []);
+      const rows = [];
+
+      // Auto-aggregated rows (read-only)
+      tradeRows.forEach(([trade, hrs]) => {
+        const rate = MockState.rateForTrade(trade, q);
+        const cost = hrs * rate;
+        const sell = MockState.sellFromCost(cost, MockState.labourMargin(q));
+        const fromManual = (manual.filter(l => (l.trade || 'AV Tech') === trade).reduce((n, l) => n + (Number(l.hours) || 0), 0));
+        const fromProducts = hrs - fromManual;
+        rows.push(`
+          <tr class="row-auto">
+            <td>${trade}</td>
+            <td><div style="font-size:11px;color:var(--text-muted);">auto from products</div></td>
+            <td class="right"><b>${MockUI.fmtHours(fromProducts)}</b></td>
+            <td class="right">${MockUI.fmtMoney(rate)}/hr</td>
+            <td class="right">${MockUI.fmtMoney(fromProducts * rate)}</td>
+            <td class="right">${MockUI.fmtMoney(MockState.sellFromCost(fromProducts * rate, MockState.labourMargin(q)))}</td>
+            <td></td>
+          </tr>
+        `);
+      });
+
+      // Manual entry rows (editable)
+      manual.forEach(l => {
+        const rateUsed = (l.rateOverride !== null && l.rateOverride !== undefined && l.rateOverride !== '')
+          ? Number(l.rateOverride)
+          : MockState.rateForTrade(l.trade || 'AV Tech', q);
+        const cost = (Number(l.hours) || 0) * rateUsed;
+        const sell = MockState.sellFromCost(cost, MockState.labourMargin(q));
+        rows.push(`
+          <tr data-lab-row="${l.id}">
+            <td>
+              <select class="cell-input" data-lab-edit="${l.id}" data-field="trade">
+                <option ${l.trade === 'AV Tech' ? 'selected' : ''}>AV Tech</option>
+                <option ${l.trade === 'Data Tech' ? 'selected' : ''}>Data Tech</option>
+                <option ${l.trade === 'Electrician' ? 'selected' : ''}>Electrician</option>
+                <option ${l.trade === 'PM' ? 'selected' : ''}>PM</option>
+              </select>
+            </td>
+            <td><input class="cell-input" type="text" placeholder="Note (e.g. wiring cleanup)" value="${(l.note || '').replace(/"/g, '&quot;')}" data-lab-edit="${l.id}" data-field="note"></td>
+            <td class="right"><input class="cell-input cell-num" type="number" min="0" step="0.5" value="${l.hours || 0}" data-lab-edit="${l.id}" data-field="hours"></td>
+            <td class="right"><input class="cell-input cell-num cell-narrow" type="number" min="0" step="5" value="${l.rateOverride === null || l.rateOverride === undefined ? '' : l.rateOverride}" placeholder="${MockState.rateForTrade(l.trade || 'AV Tech', q)}" data-lab-edit="${l.id}" data-field="rateOverride"></td>
+            <td class="right">${MockUI.fmtMoney(cost)}</td>
+            <td class="right"><b>${MockUI.fmtMoney(sell)}</b></td>
+            <td class="right"><button class="icon-btn danger" data-lab-remove="${l.id}"><span class="material-symbols-outlined">delete_outline</span></button></td>
+          </tr>
+        `);
+      });
+
+      if (rows.length === 0) {
+        return `<div class="labour-block">
+          <div class="lh"><span class="material-symbols-outlined">engineering</span> Installation labour</div>
+          <div style="font-size:12px;color:var(--text-muted);">No labour yet â€” add products with subcategory defaults, or click "+ Add labour" below.</div>
+        </div>`;
+      }
+
+      return `
+        <div class="labour-block">
+          <div class="lh"><span class="material-symbols-outlined">engineering</span> Installation labour</div>
+          <table class="labour-table">
+            <thead><tr>
+              <th style="width:120px;">Trade</th>
+              <th>Note</th>
+              <th class="right" style="width:80px;">Hours</th>
+              <th class="right" style="width:90px;">Rate</th>
+              <th class="right" style="width:90px;">Cost</th>
+              <th class="right" style="width:90px;">Sell</th>
+              <th class="right" style="width:30px;"></th>
+            </tr></thead>
+            <tbody>${rows.join('')}</tbody>
+          </table>
+        </div>
+      `;
+    }
+
     function renderLinesForArea(area, q) {
       if (area.lines.length === 0) {
-        return `<div class="area-empty">No products yet — click <b>+ Add Product</b> below to start.</div>`;
+        return `<div class="area-empty">No products yet â€” click <b>+ Add Product</b> below to start.</div>`;
       }
       let html = `
         <div class="table-scroll">
@@ -336,13 +499,13 @@
             <td><div style="font-family:var(--font-heading);font-weight:500;font-size:12px;">${line.model}</div></td>
             <td>
               <div>${line.description}</div>
-              <div style="font-size:10px;color:var(--text-muted);margin-top:2px;">${line.cat} · ${line.sub} ${supplyTag} ${provTag}</div>
+              <div style="font-size:10px;color:var(--text-muted);margin-top:2px;">${line.cat} Â· ${line.sub} ${supplyTag} ${provTag}</div>
             </td>
             <td><input class="cell-input cell-num" type="number" min="0" step="1" value="${line.qty}" data-line-edit="${line.id}" data-field="qty"></td>
             <td><div style="font-size:11px;color:var(--text-muted);">${line.unit}</div></td>
             <td><input class="cell-input cell-num" type="number" min="0" step="0.1" value="${line.labourHours}" data-line-edit="${line.id}" data-field="labourHours" ${line.isSupplyOnly ? 'disabled' : ''}></td>
-            <td class="col-num col-cost"><div class="num" style="color:var(--text-tertiary);">${MockUI.fmtMoney(line.costPrice)}</div></td>
-            <td class="col-num col-margin"><input class="cell-input cell-num cell-narrow" type="number" min="0" max="90" step="1" value="${line.marginPct === null ? '' : line.marginPct}" placeholder="${q.globalMarginPct}" data-line-edit="${line.id}" data-field="marginPct" title="Leave blank to inherit (${effMargin}%)"></td>
+            <td class="col-num col-cost"><input class="cell-input cell-num cell-narrow" type="number" min="0" step="1" value="${line.costPrice}" data-line-edit="${line.id}" data-field="costPrice" title="Manual cost override"></td>
+            <td class="col-num col-margin"><input class="cell-input cell-num cell-narrow" type="number" min="0" max="90" step="1" value="${line.marginPct === null ? '' : line.marginPct}" placeholder="${q.materialsMarginPct ?? q.globalMarginPct ?? 25}" data-line-edit="${line.id}" data-field="marginPct" title="Leave blank to inherit (${effMargin}%)"></td>
             <td><div class="num"><b>${MockUI.fmtMoney(t.sellTotal)}</b></div></td>
             <td class="right">
               <div style="display:inline-flex;gap:2px;">
@@ -417,6 +580,7 @@
           const t = MockState.lineTotals(cur, MockState.getCurrentQuote().areas.find(a => a.id === areaId), MockState.getCurrentQuote());
           const row = card.querySelector(`[data-line-row="${lineId}"]`);
           if (row) row.querySelector('td:nth-last-child(2) b').textContent = MockUI.fmtMoney(t.sellTotal);
+          renderCables();
         });
       });
       card.querySelectorAll('[data-line-toggle]').forEach(btn => {
@@ -438,6 +602,33 @@
           MockState.removeLine(q.id, areaId, lineId);
           renderAll();
         });
+      });
+
+      // Manual labour edit / remove
+      card.querySelectorAll('[data-lab-edit]').forEach(input => {
+        const lineId = input.getAttribute('data-lab-edit');
+        const field = input.getAttribute('data-field');
+        const evt = (input.tagName === 'SELECT') ? 'change' : 'input';
+        input.addEventListener(evt, () => {
+          let val = input.value;
+          if (field === 'hours') val = parseFloat(input.value) || 0;
+          else if (field === 'rateOverride') val = input.value === '' ? null : parseFloat(input.value);
+          MockState.updateAreaLabourLine(q.id, areaId, lineId, { [field]: val });
+          renderAreas(); renderTotals();
+        });
+      });
+      card.querySelectorAll('[data-lab-remove]').forEach(btn => {
+        const lineId = btn.getAttribute('data-lab-remove');
+        btn.addEventListener('click', () => {
+          MockState.removeAreaLabourLine(q.id, areaId, lineId);
+          renderAll();
+        });
+      });
+
+      // "Add labour" button
+      card.querySelector(`[data-add-labour="${areaId}"]`)?.addEventListener('click', () => {
+        MockState.addAreaLabourLine(q.id, areaId, { trade: 'AV Tech', hours: 1, note: '' });
+        renderAll();
       });
     }
 
@@ -523,9 +714,9 @@
         <div class="product-result" data-add-pid="${p.id}">
           <div>
             <div class="pr-mfr">${p.mfr}</div>
-            <div class="pr-name">${p.mpn} — ${p.short}</div>
+            <div class="pr-name">${p.mpn} â€” ${p.short}</div>
             <div class="pr-desc">${p.desc}</div>
-            <div class="pr-cat">${p.cat} · ${p.sub}</div>
+            <div class="pr-cat">${p.cat} Â· ${p.sub}</div>
           </div>
           <div>
             <div class="pr-price">${MockUI.fmtMoney(p.cost)}</div>
@@ -550,7 +741,7 @@
       list.innerHTML = MockData.packages.map(p => `
         <div class="package-card" data-pkg-id="${p.id}" data-area-id="${areaId}">
           <h5>${p.name}</h5>
-          <div class="meta">${p.description} · ${p.items.length} items</div>
+          <div class="meta">${p.description} Â· ${p.items.length} items</div>
           <div class="tags">${p.tags.map(t => `<span class="tag">${t}</span>`).join('')}</div>
         </div>
       `).join('');
@@ -580,7 +771,7 @@
       const orderedRows = MockData.services.map(def => {
         const existing = q.services.find(sv => sv.serviceId === def.id);
         return existing ? { ...existing, defaults: def } : {
-          // Not yet added — show as a togglable row
+          // Not yet added â€” show as a togglable row
           id: 'pending_' + def.id, serviceId: def.id, name: def.name, category: def.category,
           unit: def.unit, qty: def.defaultQty, rate: def.defaultRate, marginPct: def.marginPct,
           included: false, defaults: def
@@ -643,46 +834,172 @@
       document.getElementById('t-mat-cost').textContent = MockUI.fmtMoney(t.materialsCost);
       document.getElementById('t-mat-sell').textContent = MockUI.fmtMoney(t.materialsSell);
       document.getElementById('t-lab-hrs').textContent  = MockUI.fmtHours(t.labourHours);
+      document.getElementById('t-lab-cost').textContent = MockUI.fmtMoney(t.labourCost);
       document.getElementById('t-lab-sell').textContent = MockUI.fmtMoney(t.labourSell);
       document.getElementById('t-svc-sell').textContent = MockUI.fmtMoney(t.servicesSell);
       document.getElementById('t-margin').textContent   = MockUI.fmtMoney(t.margin);
       document.getElementById('t-margin-pct').textContent = MockUI.fmtPct(t.marginPct);
-      document.getElementById('t-sell').textContent     = MockUI.fmtMoney(t.sellExGST);
-      document.getElementById('t-gst').textContent      = MockUI.fmtMoney(t.gst);
-      document.getElementById('t-total').textContent    = MockUI.fmtMoney(t.incGST);
+      // Sticky footer totals bar
+      document.getElementById('tb-mat').textContent     = MockUI.fmtMoney(t.materialsSell);
+      document.getElementById('tb-lab').textContent     = MockUI.fmtMoney(t.labourSell);
+      document.getElementById('tb-svc').textContent     = MockUI.fmtMoney(t.servicesSell);
+      document.getElementById('tb-sub').textContent     = MockUI.fmtMoney(t.sellExGST);
+      document.getElementById('tb-gst').textContent     = MockUI.fmtMoney(t.gst);
+      document.getElementById('tb-total').textContent   = MockUI.fmtMoney(t.incGST);
+      // Wizard footer mini-totals
       document.getElementById('f-sell').textContent     = MockUI.fmtMoney(t.sellExGST);
       document.getElementById('f-margin').textContent   = MockUI.fmtPct(t.marginPct);
+      // Global margin readout (blended overall margin %)
+      document.getElementById('global-margin-readout').textContent = MockUI.fmtPct(t.marginPct);
     }
 
-    // -------- Global margin --------
-    const slider = document.getElementById('global-margin');
-    const sliderVal = document.getElementById('global-margin-val');
-    slider.value = quote.globalMarginPct;
-    sliderVal.textContent = quote.globalMarginPct + '%';
-    slider.addEventListener('input', () => {
-      sliderVal.textContent = slider.value + '%';
-      MockState.updateQuote(quote.id, { globalMarginPct: parseFloat(slider.value) });
-      renderTotals();
-      // Update per-line displayed sell prices (lines inheriting margin will re-compute)
-      renderAreas();
+    // -------- Scope panel --------
+    function renderScope() {
+      const q = MockState.getCurrentQuote();
+      const body = document.getElementById('scope-body');
+      const heading = document.getElementById('scope-heading');
+      heading.textContent = q.mode === 'quick' ? 'Scope' : 'Scope of works';
+      const text = (q.project && q.project.scopeOfWorks) ? q.project.scopeOfWorks.trim() : '';
+      if (text) {
+        body.classList.remove('empty');
+        body.textContent = text;
+      } else {
+        body.classList.add('empty');
+        body.textContent = 'No scope yet â€” add it on Client & Project (top-right link) so it flows through to the client document.';
+      }
+    }
+
+    // -------- Cables & Accessories aggregator --------
+    function renderCables() {
+      const q = MockState.getCurrentQuote();
+      const host = document.getElementById('cables-host');
+      // Collect cabling/consumable lines grouped by area
+      const groups = [];
+      (q.areas || []).forEach(a => {
+        const items = (a.lines || []).filter(l =>
+          l.cat === 'Cabling & Pathways' || l.cat === 'Consumables');
+        if (items.length) groups.push({ area: a, items });
+      });
+      const sundries = q.sundries || [];
+
+      let html = '';
+      if (groups.length === 0 && sundries.length === 0) {
+        html = `<div class="empty-state" style="padding:18px;"><div>No cabling, consumables or sundries yet. Add a manual sundry line above, or add cables to any area via the product picker.</div></div>`;
+        host.innerHTML = html;
+        return;
+      }
+
+      let runningCost = 0, runningSell = 0;
+      groups.forEach(g => {
+        html += `<div class="area-sub-h">From ${g.area.name}</div>`;
+        html += `<table class="agg-table"><thead><tr><th>Item</th><th class="right" style="width:60px;">Qty</th><th style="width:70px;">Unit</th><th class="right" style="width:90px;">Cost</th><th class="right" style="width:100px;">Sell</th></tr></thead><tbody>`;
+        g.items.forEach(line => {
+          const t = MockState.lineTotals(line, g.area, q);
+          runningCost += t.costTotal; runningSell += t.sellTotal;
+          html += `<tr>
+            <td><b>${line.manufacturer} ${line.model}</b><div style="font-size:11px;color:var(--text-muted);">${line.description}</div></td>
+            <td class="right">${line.qty}</td>
+            <td>${line.unit}</td>
+            <td class="right">${MockUI.fmtMoney(t.costTotal)}</td>
+            <td class="right"><b>${MockUI.fmtMoney(t.sellTotal)}</b></td>
+          </tr>`;
+        });
+        html += `</tbody></table>`;
+      });
+
+      if (sundries.length) {
+        html += `<div class="area-sub-h">Manual sundries</div>`;
+        html += `<table class="agg-table"><thead><tr>
+          <th>Description</th>
+          <th class="right" style="width:60px;">Qty</th>
+          <th style="width:70px;">Unit</th>
+          <th class="right" style="width:90px;">Cost ea</th>
+          <th class="right" style="width:80px;">Margin %</th>
+          <th class="right" style="width:100px;">Sell</th>
+          <th class="right" style="width:30px;"></th>
+        </tr></thead><tbody>`;
+        sundries.forEach(sn => {
+          const cost = (Number(sn.qty) || 0) * (Number(sn.costPrice) || 0);
+          const m = (sn.marginPct !== null && sn.marginPct !== undefined && sn.marginPct !== '') ? Number(sn.marginPct) : MockState.effectiveMargin({ marginPct: null }, null, q);
+          const sell = MockState.sellFromCost(cost, m);
+          runningCost += cost; runningSell += sell;
+          html += `<tr data-sn-row="${sn.id}">
+            <td><input class="cell-input" type="text" value="${(sn.description || '').replace(/"/g, '&quot;')}" data-sn-edit="${sn.id}" data-field="description"></td>
+            <td class="right"><input class="cell-input cell-num" type="number" min="0" step="1" value="${sn.qty}" data-sn-edit="${sn.id}" data-field="qty"></td>
+            <td><input class="cell-input" type="text" value="${sn.unit || 'lot'}" data-sn-edit="${sn.id}" data-field="unit" style="width:60px;"></td>
+            <td class="right"><input class="cell-input cell-num" type="number" min="0" step="1" value="${sn.costPrice}" data-sn-edit="${sn.id}" data-field="costPrice"></td>
+            <td class="right"><input class="cell-input cell-num cell-narrow" type="number" min="0" max="80" step="1" value="${sn.marginPct === null || sn.marginPct === undefined ? '' : sn.marginPct}" placeholder="${q.materialsMarginPct ?? 25}" data-sn-edit="${sn.id}" data-field="marginPct"></td>
+            <td class="right"><b>${MockUI.fmtMoney(sell)}</b></td>
+            <td class="right"><button class="icon-btn danger" data-sn-remove="${sn.id}"><span class="material-symbols-outlined">delete_outline</span></button></td>
+          </tr>`;
+        });
+        html += `</tbody></table>`;
+      }
+
+      // Subtotal row
+      html += `<table class="agg-table"><tbody><tr class="subtotal-row"><td>Cables, consumables &amp; sundries â€” subtotal</td><td class="right" colspan="3">Cost ${MockUI.fmtMoney(runningCost)}</td><td class="right">${MockUI.fmtMoney(runningSell)}</td></tr></tbody></table>`;
+
+      host.innerHTML = html;
+
+      // Wire sundry edits
+      host.querySelectorAll('[data-sn-edit]').forEach(input => {
+        const id = input.getAttribute('data-sn-edit');
+        const field = input.getAttribute('data-field');
+        input.addEventListener('input', () => {
+          let val = input.value;
+          if (field === 'qty' || field === 'costPrice') val = parseFloat(input.value) || 0;
+          else if (field === 'marginPct') val = input.value === '' ? null : parseFloat(input.value);
+          MockState.updateSundry(MockState.getCurrentQuote().id, id, { [field]: val });
+          renderCables(); renderTotals();
+        });
+      });
+      host.querySelectorAll('[data-sn-remove]').forEach(btn => {
+        const id = btn.getAttribute('data-sn-remove');
+        btn.addEventListener('click', () => {
+          MockState.removeSundry(MockState.getCurrentQuote().id, id);
+          renderCables(); renderTotals();
+        });
+      });
+    }
+
+    document.getElementById('add-sundry-btn').addEventListener('click', () => {
+      MockState.addSundry(MockState.getCurrentQuote().id, { description: 'Custom sundry', qty: 1, unit: 'lot', costPrice: 0 });
+      renderCables(); renderTotals();
     });
+
+    // -------- Dual margin sliders --------
+    function setupSliders() {
+      const q = MockState.getCurrentQuote();
+      const matSlider = document.getElementById('materials-margin');
+      const matVal    = document.getElementById('materials-margin-val');
+      const labSlider = document.getElementById('labour-margin');
+      const labVal    = document.getElementById('labour-margin-val');
+
+      matSlider.value = q.materialsMarginPct ?? q.globalMarginPct ?? 25;
+      matVal.textContent = matSlider.value + '%';
+      labSlider.value = q.labourMarginPct ?? 0;
+      labVal.textContent = labSlider.value + '%';
+
+      matSlider.addEventListener('input', () => {
+        matVal.textContent = matSlider.value + '%';
+        MockState.updateQuote(q.id, { materialsMarginPct: parseFloat(matSlider.value) });
+        renderAreas(); renderCables(); renderTotals();
+      });
+      labSlider.addEventListener('input', () => {
+        labVal.textContent = labSlider.value + '%';
+        MockState.updateQuote(q.id, { labourMarginPct: parseFloat(labSlider.value) });
+        renderAreas(); renderTotals();
+      });
+    }
+
     document.getElementById('apply-all-margin').addEventListener('click', () => {
-      MockUI.confirmAction(`Apply ${slider.value}% margin to every line (clearing per-line overrides)?`, () => {
+      const matSlider = document.getElementById('materials-margin');
+      MockUI.confirmAction(`Apply ${matSlider.value}% materials margin to every line (clearing per-line overrides)?`, () => {
         const q = MockState.getCurrentQuote();
         q.areas.forEach(a => a.lines.forEach(l => l.marginPct = null));
         MockState.updateQuote(q.id, q);
         MockUI.toast('Applied to all lines');
         renderAll();
-      });
-    });
-
-    // -------- View toggle --------
-    document.querySelectorAll('.pill-toggle button').forEach(b => {
-      b.addEventListener('click', () => {
-        document.querySelectorAll('.pill-toggle button').forEach(x => x.classList.remove('active'));
-        b.classList.add('active');
-        document.body.classList.toggle('cost-view', b.getAttribute('data-view') === 'cost');
-        // Re-render to apply hidden columns (CSS handles it but we ensure data is fresh)
       });
     });
 
@@ -701,10 +1018,13 @@
     // -------- Render everything --------
     function renderAll() {
       renderMeta();
+      renderScope();
       renderAreas();
+      renderCables();
       renderServices();
       renderTotals();
     }
+    setupSliders();
     renderAll();
   </script>
 </body>

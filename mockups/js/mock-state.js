@@ -30,6 +30,8 @@ window.MockState = (function () {
     const quotes = MockData.sampleQuotes.map(q => {
       const quote = {
         ...q,
+        // Ensure project has the new client-facing scopeOfWorks field
+        project: { scopeOfWorks: '', ...(q.project || {}) },
         areas: [],
         services: MockData.services.filter(svc => svc.includedByDefault).map(svc => ({
           id: uid('sv'), serviceId: svc.id, name: svc.name, category: svc.category,
@@ -37,7 +39,16 @@ window.MockState = (function () {
         })),
         exclusions: [...MockData.exclusionsLibrary].slice(0, 6),
         terms: MockData.standardTerms,
-        globalMarginPct: 25,
+        // Margin model — two independent sliders, global is a computed readout
+        materialsMarginPct: 25,
+        labourMarginPct: 0,
+        globalMarginPct: 25,            // kept for backward compat with seeded data
+        // Quote-level labour rate overrides ({} = inherit MockData.labourRates)
+        labourRates: {},
+        // Quote-level sundries (cables/accessories manual lines)
+        sundries: [],
+        // Attachments for the client doc (images / PDF markups)
+        attachments: [],
         notesToClient: ''
       };
       // Apply seeded content if defined
@@ -58,7 +69,15 @@ window.MockState = (function () {
   // Pure helper — populates a quote object in-place from a seed spec.
   // No state side-effects, used during defaultState() construction.
   function materializeSeed(quote, spec) {
-    if (spec.globalMarginPct !== undefined) quote.globalMarginPct = spec.globalMarginPct;
+    if (spec.globalMarginPct !== undefined) {
+      quote.globalMarginPct = spec.globalMarginPct;
+      // Default the new split margins from the legacy global if spec doesn't say otherwise
+      if (spec.materialsMarginPct === undefined) quote.materialsMarginPct = spec.globalMarginPct;
+    }
+    if (spec.materialsMarginPct !== undefined) quote.materialsMarginPct = spec.materialsMarginPct;
+    if (spec.labourMarginPct !== undefined)    quote.labourMarginPct    = spec.labourMarginPct;
+    if (spec.labourRates) quote.labourRates = { ...quote.labourRates, ...spec.labourRates };
+    if (spec.scopeOfWorks) quote.project.scopeOfWorks = spec.scopeOfWorks;
     if (spec.mode) quote.mode = spec.mode;
 
     (spec.areas || []).forEach(specArea => {
@@ -67,7 +86,8 @@ window.MockState = (function () {
         name: specArea.name,
         type: specArea.type || '',
         notes: specArea.notes || '',
-        lines: []
+        lines: [],
+        labourLines: []
       };
       (specArea.lines || []).forEach(specLine => {
         const p = MockData.productById(specLine.productId);
@@ -159,7 +179,7 @@ window.MockState = (function () {
       validUntil: valid.toISOString().slice(0, 10),
       value: 0,
       client: { name: '', contact: '', email: '', phone: '', address: '' },
-      project: { name: '', address: '', internalRef: '', headContractor: '', notes: '' },
+      project: { name: '', address: '', internalRef: '', headContractor: '', notes: '', scopeOfWorks: '' },
       areas: [],
       services: MockData.services.filter(svc => svc.includedByDefault).map(svc => ({
         id: uid('sv'), serviceId: svc.id, name: svc.name, category: svc.category,
@@ -167,12 +187,17 @@ window.MockState = (function () {
       })),
       exclusions: [...MockData.exclusionsLibrary].slice(0, 6),
       terms: MockData.standardTerms,
+      materialsMarginPct: 25,
+      labourMarginPct: 0,
       globalMarginPct: 25,
+      labourRates: {},
+      sundries: [],
+      attachments: [],
       notesToClient: ''
     };
     // Quick mode starts with one default area; Large starts empty
     if (mode === 'quick') {
-      q.areas.push({ id: uid('ar'), name: 'Scope', type: 'General', notes: '', lines: [] });
+      q.areas.push({ id: uid('ar'), name: 'Scope', type: 'General', notes: '', lines: [], labourLines: [] });
     }
     s.quotes.unshift(q);
     s.currentQuoteId = id;
@@ -219,7 +244,7 @@ window.MockState = (function () {
     const s = load();
     const q = s.quotes.find(q => q.id === quoteId);
     if (!q) return null;
-    const area = { id: uid('ar'), name: name || `Area ${q.areas.length + 1}`, type: '', notes: '', lines: [] };
+    const area = { id: uid('ar'), name: name || `Area ${q.areas.length + 1}`, type: '', notes: '', lines: [], labourLines: [] };
     q.areas.push(area);
     q.value = quoteTotal(q).sellExGST;
     save(s);
@@ -244,7 +269,8 @@ window.MockState = (function () {
     const copy = JSON.parse(JSON.stringify(src));
     copy.id = uid('ar');
     copy.name = src.name + ' (copy)';
-    copy.lines = copy.lines.map(l => ({ ...l, id: uid('ln') }));
+    copy.lines = (copy.lines || []).map(l => ({ ...l, id: uid('ln') }));
+    copy.labourLines = (copy.labourLines || []).map(l => ({ ...l, id: uid('lab') }));
     q.areas.push(copy);
     q.value = quoteTotal(q).sellExGST;
     save(s);
@@ -393,72 +419,264 @@ window.MockState = (function () {
   }
 
   // -------------------------------------------------------------
+  // Manual area-labour lines (sundries entered per area)
+  // -------------------------------------------------------------
+  function addAreaLabourLine(quoteId, areaId, patch) {
+    const s = load();
+    const q = s.quotes.find(q => q.id === quoteId);
+    if (!q) return null;
+    const a = q.areas.find(a => a.id === areaId);
+    if (!a) return null;
+    a.labourLines = a.labourLines || [];
+    const line = {
+      id: uid('lab'),
+      trade: patch?.trade || 'AV Tech',
+      hours: patch?.hours ?? 0,
+      rateOverride: patch?.rateOverride ?? null,    // null = use quote/MockData rate
+      note: patch?.note || ''
+    };
+    a.labourLines.push(line);
+    q.value = quoteTotal(q).sellExGST;
+    save(s);
+    return line;
+  }
+  function updateAreaLabourLine(quoteId, areaId, lineId, patch) {
+    const s = load();
+    const q = s.quotes.find(q => q.id === quoteId);
+    if (!q) return;
+    const a = q.areas.find(a => a.id === areaId);
+    if (!a || !a.labourLines) return;
+    const l = a.labourLines.find(l => l.id === lineId);
+    if (!l) return;
+    Object.assign(l, patch);
+    q.value = quoteTotal(q).sellExGST;
+    save(s);
+  }
+  function removeAreaLabourLine(quoteId, areaId, lineId) {
+    const s = load();
+    const q = s.quotes.find(q => q.id === quoteId);
+    if (!q) return;
+    const a = q.areas.find(a => a.id === areaId);
+    if (!a || !a.labourLines) return;
+    a.labourLines = a.labourLines.filter(l => l.id !== lineId);
+    q.value = quoteTotal(q).sellExGST;
+    save(s);
+  }
+
+  // -------------------------------------------------------------
+  // Quote-level cables/accessories sundries
+  // -------------------------------------------------------------
+  function addSundry(quoteId, patch) {
+    const s = load();
+    const q = s.quotes.find(q => q.id === quoteId);
+    if (!q) return null;
+    q.sundries = q.sundries || [];
+    const sundry = {
+      id: uid('sn'),
+      description: patch?.description || 'Custom sundry',
+      qty: patch?.qty ?? 1,
+      unit: patch?.unit || 'lot',
+      costPrice: patch?.costPrice ?? 0,
+      marginPct: patch?.marginPct ?? null,   // null = inherit materials margin
+      note: patch?.note || ''
+    };
+    q.sundries.push(sundry);
+    q.value = quoteTotal(q).sellExGST;
+    save(s);
+    return sundry;
+  }
+  function updateSundry(quoteId, sundryId, patch) {
+    const s = load();
+    const q = s.quotes.find(q => q.id === quoteId);
+    if (!q || !q.sundries) return;
+    const sn = q.sundries.find(x => x.id === sundryId);
+    if (!sn) return;
+    Object.assign(sn, patch);
+    q.value = quoteTotal(q).sellExGST;
+    save(s);
+  }
+  function removeSundry(quoteId, sundryId) {
+    const s = load();
+    const q = s.quotes.find(q => q.id === quoteId);
+    if (!q || !q.sundries) return;
+    q.sundries = q.sundries.filter(x => x.id !== sundryId);
+    q.value = quoteTotal(q).sellExGST;
+    save(s);
+  }
+
+  // -------------------------------------------------------------
+  // Attachments (file uploads stored as data URLs)
+  // -------------------------------------------------------------
+  function addAttachment(quoteId, att) {
+    const s = load();
+    const q = s.quotes.find(q => q.id === quoteId);
+    if (!q) return null;
+    q.attachments = q.attachments || [];
+    const a = {
+      id: uid('att'),
+      name: att?.name || 'file',
+      size: att?.size || 0,
+      type: att?.type || 'application/octet-stream',
+      dataUrl: att?.dataUrl || '',
+      caption: att?.caption || '',
+      addedAt: new Date().toISOString()
+    };
+    q.attachments.push(a);
+    save(s);
+    return a;
+  }
+  function removeAttachment(quoteId, attId) {
+    const s = load();
+    const q = s.quotes.find(q => q.id === quoteId);
+    if (!q || !q.attachments) return;
+    q.attachments = q.attachments.filter(a => a.id !== attId);
+    save(s);
+  }
+
+  // -------------------------------------------------------------
   // Math
   // -------------------------------------------------------------
+
+  // Trade rate honouring quote-level overrides
+  function rateForTrade(trade, quote) {
+    if (quote && quote.labourRates && quote.labourRates[trade] !== undefined && quote.labourRates[trade] !== null && quote.labourRates[trade] !== '') {
+      const v = Number(quote.labourRates[trade]);
+      if (!isNaN(v) && v > 0) return v;
+    }
+    return MockData.rateForTrade(trade);
+  }
+
+  // Effective margin for a PRODUCT line:
+  //   line override > area override > quote.materialsMarginPct > legacy global > 25
   function effectiveMargin(line, area, quote) {
-    if (line.marginPct !== null && line.marginPct !== undefined) return line.marginPct;
-    if (area && area.marginPct !== null && area.marginPct !== undefined) return area.marginPct;
-    return quote.globalMarginPct ?? 25;
+    if (line && line.marginPct !== null && line.marginPct !== undefined) return Number(line.marginPct);
+    if (area && area.marginPct !== null && area.marginPct !== undefined) return Number(area.marginPct);
+    if (quote && quote.materialsMarginPct !== undefined && quote.materialsMarginPct !== null) return Number(quote.materialsMarginPct);
+    return quote && quote.globalMarginPct !== undefined ? Number(quote.globalMarginPct) : 25;
+  }
+
+  // Labour margin (separate slider)
+  function labourMargin(quote) {
+    if (quote && quote.labourMarginPct !== undefined && quote.labourMarginPct !== null) return Number(quote.labourMarginPct);
+    return 0;
+  }
+
+  function sellFromCost(cost, marginPct) {
+    const m = Number(marginPct) || 0;
+    const denom = 1 - (m / 100);
+    if (denom <= 0) return cost;
+    return cost / denom;
   }
 
   function lineSellPrice(line, area, quote) {
-    const m = effectiveMargin(line, area, quote);
-    // Margin = (sell - cost) / sell  →  sell = cost / (1 - m/100)
-    const denom = 1 - (m / 100);
-    if (denom <= 0) return line.costPrice;
-    return line.costPrice / denom;
+    return sellFromCost(line.costPrice, effectiveMargin(line, area, quote));
   }
 
   function lineTotals(line, area, quote) {
     const sellEach = lineSellPrice(line, area, quote);
     const costTotal = line.costPrice * line.qty;
     const sellTotal = sellEach * line.qty;
-    const labourTotalHrs = line.isSupplyOnly ? 0 : line.labourHours * line.qty;
-    const labourSell = labourTotalHrs * MockData.rateForTrade(line.labourTrade || 'AV Tech');
-    return { sellEach, costTotal, sellTotal, labourTotalHrs, labourSell };
+    const labourTotalHrs = line.isSupplyOnly ? 0 : (Number(line.labourHours) || 0) * line.qty;
+    const trade = line.labourTrade || 'AV Tech';
+    const rate = rateForTrade(trade, quote);
+    const labourCost = labourTotalHrs * rate;
+    const labourSell = sellFromCost(labourCost, labourMargin(quote));
+    return { sellEach, costTotal, sellTotal, labourTotalHrs, labourCost, labourSell };
+  }
+
+  // Convert a manual area-labour entry into cost + sell using the same rules
+  function areaLabourLineTotals(labLine, quote) {
+    const hours = Number(labLine.hours) || 0;
+    const trade = labLine.trade || 'AV Tech';
+    const rate = (labLine.rateOverride !== null && labLine.rateOverride !== undefined && labLine.rateOverride !== '')
+      ? (Number(labLine.rateOverride) || rateForTrade(trade, quote))
+      : rateForTrade(trade, quote);
+    const cost = hours * rate;
+    const sell = sellFromCost(cost, labourMargin(quote));
+    return { trade, hours, rate, cost, sell };
   }
 
   function areaTotals(area, quote) {
-    const init = { materialsCost: 0, materialsSell: 0, labourHours: 0, labourSell: 0 };
-    return area.lines.reduce((acc, line) => {
+    const init = { materialsCost: 0, materialsSell: 0, labourHours: 0, labourCost: 0, labourSell: 0, labourByTrade: {} };
+    const acc = (area.lines || []).reduce((a, line) => {
       const t = lineTotals(line, area, quote);
-      acc.materialsCost += t.costTotal;
-      acc.materialsSell += t.sellTotal;
-      acc.labourHours   += t.labourTotalHrs;
-      acc.labourSell    += t.labourSell;
-      return acc;
+      a.materialsCost += t.costTotal;
+      a.materialsSell += t.sellTotal;
+      a.labourHours   += t.labourTotalHrs;
+      a.labourCost    += t.labourCost;
+      a.labourSell    += t.labourSell;
+      const trade = line.labourTrade || 'AV Tech';
+      a.labourByTrade[trade] = (a.labourByTrade[trade] || 0) + t.labourTotalHrs;
+      return a;
     }, init);
+    (area.labourLines || []).forEach(ll => {
+      const t = areaLabourLineTotals(ll, quote);
+      acc.labourHours += t.hours;
+      acc.labourCost  += t.cost;
+      acc.labourSell  += t.sell;
+      acc.labourByTrade[t.trade] = (acc.labourByTrade[t.trade] || 0) + t.hours;
+    });
+    return acc;
   }
 
   function servicesTotal(quote) {
     const init = { cost: 0, sell: 0 };
-    return quote.services.filter(s => s.included).reduce((acc, sv) => {
-      const cost = (sv.qty || 0) * (sv.rate || 0);
-      const sell = cost / (1 - ((sv.marginPct || 0) / 100));
+    return (quote.services || []).filter(s => s.included).reduce((acc, sv) => {
+      const cost = (Number(sv.qty) || 0) * (Number(sv.rate) || 0);
+      const sell = sellFromCost(cost, sv.marginPct || 0);
       acc.cost += cost;
       acc.sell += isFinite(sell) ? sell : cost;
       return acc;
     }, init);
   }
 
+  function sundriesTotal(quote) {
+    const init = { cost: 0, sell: 0 };
+    return (quote.sundries || []).reduce((acc, sn) => {
+      const cost = (Number(sn.qty) || 0) * (Number(sn.costPrice) || 0);
+      const m = (sn.marginPct !== null && sn.marginPct !== undefined && sn.marginPct !== '')
+        ? Number(sn.marginPct)
+        : effectiveMargin({ marginPct: null }, null, quote);
+      const sell = sellFromCost(cost, m);
+      acc.cost += cost;
+      acc.sell += isFinite(sell) ? sell : cost;
+      return acc;
+    }, init);
+  }
+
+  // Aggregate hours per trade across the whole quote (used by Review's labour overview)
+  function quoteLabourByTrade(quote) {
+    const out = {};
+    (quote.areas || []).forEach(a => {
+      const t = areaTotals(a, quote);
+      Object.entries(t.labourByTrade || {}).forEach(([trade, hrs]) => {
+        out[trade] = (out[trade] || 0) + hrs;
+      });
+    });
+    return out;
+  }
+
   function quoteTotal(quote) {
-    let matCost = 0, matSell = 0, labHrs = 0, labSell = 0;
-    quote.areas.forEach(a => {
+    let matCost = 0, matSell = 0, labHrs = 0, labCost = 0, labSell = 0;
+    (quote.areas || []).forEach(a => {
       const t = areaTotals(a, quote);
       matCost += t.materialsCost; matSell += t.materialsSell;
-      labHrs  += t.labourHours;   labSell += t.labourSell;
+      labHrs  += t.labourHours;   labCost += t.labourCost;  labSell += t.labourSell;
     });
     const svc = servicesTotal(quote);
+    const snd = sundriesTotal(quote);
+    matCost += snd.cost; matSell += snd.sell;     // sundries roll into materials
     const sellExGST = matSell + labSell + svc.sell;
-    const costTotal = matCost + svc.cost;        // labour cost is folded into trade rates
+    const costTotal = matCost + labCost + svc.cost;
     const margin    = sellExGST - costTotal;
     const marginPct = sellExGST > 0 ? (margin / sellExGST) * 100 : 0;
     const gst = sellExGST * 0.10;
     const incGST = sellExGST + gst;
     return {
       materialsCost: matCost, materialsSell: matSell,
-      labourHours: labHrs, labourSell: labSell,
+      labourHours: labHrs, labourCost: labCost, labourSell: labSell,
       servicesCost: svc.cost, servicesSell: svc.sell,
+      sundriesCost: snd.cost, sundriesSell: snd.sell,
       sellExGST, costTotal, margin, marginPct, gst, incGST
     };
   }
@@ -471,9 +689,17 @@ window.MockState = (function () {
     // areas/lines
     addArea, removeArea, duplicateArea, updateArea,
     addLineFromProduct, addPackageToArea, updateLine, removeLine,
+    // per-area manual labour
+    addAreaLabourLine, updateAreaLabourLine, removeAreaLabourLine,
+    // quote-level cables/accessories sundries
+    addSundry, updateSundry, removeSundry,
+    // attachments
+    addAttachment, removeAttachment,
     // services
     toggleService, updateService, addCustomService,
     // math
-    effectiveMargin, lineSellPrice, lineTotals, areaTotals, servicesTotal, quoteTotal
+    rateForTrade, effectiveMargin, labourMargin, sellFromCost,
+    lineSellPrice, lineTotals, areaLabourLineTotals, areaTotals,
+    servicesTotal, sundriesTotal, quoteLabourByTrade, quoteTotal
   };
 })();

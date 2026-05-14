@@ -529,9 +529,36 @@ SKS Technologies Pty Ltd · ABN 12 345 678 901`;
   function labourForSub(sub){ return labourDefaults[sub] || { hours: 0, trade: 'AV Tech', task: '' }; }
   function rateForTrade(t)  { return labourRates[t] ?? 145; }
 
+  // -------------------------------------------------------------
+  // Supplier price-sheet version history (mockup-only seed)
+  // Drives the Admin → Products "Import history" modal and the Files tab.
+  // Each entry represents a price list imported on a given date with diff stats.
+  // -------------------------------------------------------------
+  const priceSheetHistory = [
+    // Amber Technology — supplier-wide trade list
+    { id:'ph_amber_4',  supplierId:'sup_amber',   file:'amber-tradelist-q2-2026.xlsx', uploadedAt:'2026-05-08', uploadedBy:'Steven Carmichael', added:42, updated:188, removed:6,  active:true,  notes:'Q2 trade list — Biamp + Shure increases' },
+    { id:'ph_amber_3',  supplierId:'sup_amber',   file:'amber-tradelist-q1-2026.xlsx', uploadedAt:'2026-02-14', uploadedBy:'Steven Carmichael', added:30, updated:151, removed:2,  active:false, notes:'Q1 trade list' },
+    { id:'ph_amber_2',  supplierId:'sup_amber',   file:'amber-tradelist-q4-2025.xlsx', uploadedAt:'2025-11-02', uploadedBy:'Mark Stowell',      added:18, updated:97,  removed:0,  active:false, notes:'Q4 2025 trade list — initial import' },
+    { id:'ph_amber_1',  supplierId:'sup_amber',   file:'amber-tradelist-q3-2025.xlsx', uploadedAt:'2025-08-19', uploadedBy:'Mark Stowell',      added:240,updated:0,   removed:0,  active:false, notes:'First-ever Amber import' },
+
+    // Rutledge AV — Crestron workbook + ancillary
+    { id:'ph_rutl_3',   supplierId:'sup_rutledge',file:'rutledge-crestron-may-2026.xlsx',  uploadedAt:'2026-05-02', uploadedBy:'Steven Carmichael', added:12, updated:88,  removed:1,  active:true,  notes:'Crestron May 2026 — touch panel range update' },
+    { id:'ph_rutl_2',   supplierId:'sup_rutledge',file:'rutledge-atlona-feb-2026.xlsx',    uploadedAt:'2026-02-21', uploadedBy:'Mark Stowell',      added:6,  updated:32,  removed:0,  active:false, notes:'Atlona Feb 2026' },
+    { id:'ph_rutl_1',   supplierId:'sup_rutledge',file:'rutledge-crestron-jan-2026.xlsx',  uploadedAt:'2026-01-10', uploadedBy:'Steven Carmichael', added:118,updated:0,   removed:0,  active:false, notes:'Crestron starter import' },
+
+    // Hills — Cabling + power
+    { id:'ph_hills_2',  supplierId:'sup_hills',   file:'hills-pricelist-apr-2026.csv',  uploadedAt:'2026-04-04', uploadedBy:'Mark Stowell', added:8,  updated:47,  removed:3,  active:true,  notes:'Quarterly update — Cat6A + APC' },
+    { id:'ph_hills_1',  supplierId:'sup_hills',   file:'hills-pricelist-jan-2026.csv',  uploadedAt:'2026-01-12', uploadedBy:'Mark Stowell', added:75, updated:0,   removed:0,  active:false, notes:'Initial Hills import' },
+
+    // Madison Technologies — Samsung displays
+    { id:'ph_mad_2',    supplierId:'sup_madison', file:'madison-samsung-may-2026.xlsx', uploadedAt:'2026-05-12', uploadedBy:'Steven Carmichael', added:5,  updated:54,  removed:0,  active:true,  notes:'Samsung Q2 RRP refresh' },
+    { id:'ph_mad_1',    supplierId:'sup_madison', file:'madison-samsung-feb-2026.xlsx', uploadedAt:'2026-02-09', uploadedBy:'Mark Stowell',      added:42, updated:0,   removed:0,  active:false, notes:'Initial Samsung catalogue' }
+  ];
+
   return {
     suppliers, categories, products, labourDefaults, labourRates, services,
     packages, exclusionsLibrary, standardTerms, sampleQuotes, seedSpecs,
+    priceSheetHistory,
     productById, supplierById, labourForSub, rateForTrade
   };
 })();
