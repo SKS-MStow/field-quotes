@@ -12,3 +12,6 @@ node_modules/
 .env
 .env.local
 *.log
+
+# Local backup snapshots (do not commit)
+.local-backups/
