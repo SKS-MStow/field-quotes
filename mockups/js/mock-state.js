@@ -16,7 +16,44 @@ window.MockState = (function () {
       const raw = localStorage.getItem(STORAGE_KEY);
       if (!raw) return defaultState();
       const parsed = JSON.parse(raw);
-      return { ...defaultState(), ...parsed };
+      const merged = { ...defaultState(), ...parsed };
+      // One-shot migration: roll any per-area labourLines into quote.services
+      // as labour-flavoured custom service rows. Keeps Steven's existing manual
+      // labour entries when we removed the per-area Installation Labour block.
+      let migrated = false;
+      (merged.quotes || []).forEach(q => {
+        if (!Array.isArray(q.services)) q.services = [];
+        (q.areas || []).forEach(area => {
+          if (Array.isArray(area.labourLines) && area.labourLines.length > 0) {
+            area.labourLines.forEach(l => {
+              const trade = l.trade || 'AV Tech';
+              const rate = (l.rateOverride !== null && l.rateOverride !== undefined && l.rateOverride !== '')
+                ? Number(l.rateOverride)
+                : (MockData.labourRates && MockData.labourRates[trade]) || 145;
+              q.services.push({
+                id: uid('sv'),
+                serviceId: null,
+                name: trade + (l.note ? ' — ' + l.note : '') + ' (' + (area.name || 'Area') + ')',
+                category: 'Labour',
+                unit: 'hr',
+                isLabour: true,
+                hours: Number(l.hours) || 0,
+                qty: 1,
+                rate,
+                marginPct: q.labourMarginPct || 0,
+                included: true
+              });
+              migrated = true;
+            });
+            area.labourLines = [];
+          }
+        });
+      });
+      if (migrated) {
+        try { console.info('[mock-state] migrated area.labourLines → quote.services'); } catch (e) {}
+        save(merged);
+      }
+      return merged;
     } catch (e) {
       return defaultState();
     }
@@ -295,6 +332,15 @@ window.MockState = (function () {
     if (!a) return null;
     const p = MockData.productById(productId);
     if (!p) return null;
+    // Merge with an existing line for the same product (Steven's note: single
+    // line per product with adjustable qty, instead of N rows for N adds).
+    const existing = a.lines.find(l => l.productId === p.id && !l.packageId);
+    if (existing) {
+      existing.qty = (Number(existing.qty) || 0) + (qty || 1);
+      q.value = quoteTotal(q).sellExGST;
+      save(s);
+      return existing;
+    }
     const labour = MockData.labourForSub(p.sub);
     const line = {
       id: uid('ln'),
@@ -383,10 +429,17 @@ window.MockState = (function () {
       if (existing) { existing.included = true; }
       else {
         const def = MockData.services.find(d => d.id === serviceId);
-        if (def) q.services.push({
-          id: uid('sv'), serviceId: def.id, name: def.name, category: def.category,
-          unit: def.unit, qty: def.defaultQty || 1, rate: def.defaultRate, marginPct: def.marginPct, included: true
-        });
+        if (def) {
+          const isLab = def.category === 'Labour';
+          q.services.push({
+            id: uid('sv'), serviceId: def.id, name: def.name, category: def.category,
+            unit: def.unit,
+            qty: isLab ? 1 : (def.defaultQty || 1),
+            hours: isLab ? (def.defaultQty || 0) : 0,
+            isLabour: isLab,
+            rate: def.defaultRate, marginPct: def.marginPct, included: true
+          });
+        }
       }
     } else if (existing) {
       existing.included = false;
@@ -406,14 +459,17 @@ window.MockState = (function () {
     save(s);
   }
 
-  function addCustomService(quoteId, name, unit, rate, qty) {
+  function addCustomService(quoteId, name, unit, rate, qty, extra) {
     const s = load();
     const q = s.quotes.find(q => q.id === quoteId);
     if (!q) return;
-    q.services.push({
+    const base = {
       id: uid('sv'), serviceId: null, name: name || 'Custom service',
-      category: 'Custom', unit: unit || 'lot', qty: qty || 1, rate: rate || 0, marginPct: 25, included: true
-    });
+      category: 'Custom', unit: unit || 'lot', qty: qty || 1, rate: rate || 0,
+      marginPct: 25, included: true,
+      isLabour: false, hours: 0
+    };
+    q.services.push(Object.assign(base, extra || {}));
     q.value = quoteTotal(q).sellExGST;
     save(s);
   }
@@ -619,13 +675,29 @@ window.MockState = (function () {
     return acc;
   }
 
+  // For labour-flavoured services hours drives the cost (hrs × rate). For
+  // everything else qty × rate. isLabour is true on migrated rows; we also
+  // treat any 'Labour' category service as labour-style for safety.
+  function isLabourService(sv) {
+    return !!sv.isLabour || (sv.category === 'Labour');
+  }
+  function serviceUnitCount(sv) {
+    return isLabourService(sv) ? (Number(sv.hours) || 0) : (Number(sv.qty) || 0);
+  }
+  function serviceCost(sv) {
+    return serviceUnitCount(sv) * (Number(sv.rate) || 0);
+  }
+  function serviceSell(sv) {
+    const cost = serviceCost(sv);
+    const sell = sellFromCost(cost, sv.marginPct || 0);
+    return isFinite(sell) ? sell : cost;
+  }
+
   function servicesTotal(quote) {
     const init = { cost: 0, sell: 0 };
     return (quote.services || []).filter(s => s.included).reduce((acc, sv) => {
-      const cost = (Number(sv.qty) || 0) * (Number(sv.rate) || 0);
-      const sell = sellFromCost(cost, sv.marginPct || 0);
-      acc.cost += cost;
-      acc.sell += isFinite(sell) ? sell : cost;
+      acc.cost += serviceCost(sv);
+      acc.sell += serviceSell(sv);
       return acc;
     }, init);
   }
@@ -700,6 +772,8 @@ window.MockState = (function () {
     // math
     rateForTrade, effectiveMargin, labourMargin, sellFromCost,
     lineSellPrice, lineTotals, areaLabourLineTotals, areaTotals,
-    servicesTotal, sundriesTotal, quoteLabourByTrade, quoteTotal
+    servicesTotal, sundriesTotal, quoteLabourByTrade, quoteTotal,
+    // service-level helpers (labour vs non-labour)
+    isLabourService, serviceUnitCount, serviceCost, serviceSell
   };
 })();

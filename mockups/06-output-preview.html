@@ -1,13 +1,13 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <title>Output Preview â€” SKS Quotes</title>
+  <title>Output Preview — SKS Quotes</title>
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/icon?family=Material+Symbols+Outlined" rel="stylesheet">
-  <link rel="stylesheet" href="css/theme.css?v=20260514r3">
-  <link rel="stylesheet" href="css/mockups.css?v=20260514r3">
+  <link rel="stylesheet" href="css/theme.css?v=20260515r1">
+  <link rel="stylesheet" href="css/mockups.css?v=20260515r1">
   <style>
     .tab-bar { display: flex; gap: 4px; margin-bottom: 16px; padding: 4px; background: var(--surface-inset); border-radius: var(--radius-md); width: fit-content; }
     .tab-bar button { background: transparent; border: none; padding: 7px 14px; border-radius: var(--radius-sm); font-size: 12px; color: var(--text-secondary); cursor: pointer; font-family: var(--font-body); font-weight: 500; display: flex; align-items: center; gap: 5px; }
@@ -63,7 +63,7 @@
 
     <!-- Toolbar -->
     <div class="toolbar">
-      <div class="opt"><span class="material-symbols-outlined" style="font-size:16px;">visibility</span> Preview only â€” final PDF/Excel generated on Download</div>
+      <div class="opt"><span class="material-symbols-outlined" style="font-size:16px;">visibility</span> Preview only — final PDF/Excel generated on Download</div>
       <div class="grow"></div>
       <button class="btn btn-secondary"><span class="material-symbols-outlined">file_download</span> Download .docx</button>
       <button class="btn btn-secondary"><span class="material-symbols-outlined">file_download</span> Download .xlsx</button>
@@ -98,23 +98,23 @@
     </div>
   </main>
 
-  <script src="js/mock-data.js?v=20260514r3"></script>
-  <script src="js/mock-state.js?v=20260514r3"></script>
-  <script src="js/mock-ui.js?v=20260514r3"></script>
-  <script src="js/mock-shell.js?v=20260514r3"></script>
-  <script src="js/mock-expiry.js?v=20260514r3"></script>
-  <script src="js/mock-review.js?v=20260514r7"></script>
+  <script src="js/mock-data.js?v=20260515r1"></script>
+  <script src="js/mock-state.js?v=20260515r1"></script>
+  <script src="js/mock-ui.js?v=20260515r1"></script>
+  <script src="js/mock-shell.js?v=20260515r1"></script>
+  <script src="js/mock-expiry.js?v=20260515r1"></script>
+  <script src="js/mock-review.js?v=20260515r1"></script>
   <script>
     MockShell.mount({
       title: 'Output Preview',
-      subtitle: 'Step 5 of 5 Â· Preview, download, or issue',
+      subtitle: 'Step 5 of 5 · Preview, download, or issue',
       actionsHtml: `<a class="btn btn-secondary" href="01-quote-list.html"><span class="material-symbols-outlined">close</span> Close</a>`
     });
 
     const quote = MockState.getCurrentQuote();
     if (!quote) {
       location.href = '01-quote-list.html';
-      throw new Error('No active quote â€” redirecting to list');
+      throw new Error('No active quote — redirecting to list');
     }
     const totals = MockState.quoteTotal(quote);
 
@@ -136,11 +136,11 @@
             </div>
           </div>
           <div class="meta">
-            <div><span class="l">Quote No.</span><div class="v">${quote.number} â€” Rev ${quote.revision}</div></div>
+            <div><span class="l">Quote No.</span><div class="v">${quote.number} — Rev ${quote.revision}</div></div>
             <div style="margin-top:8px;"><span class="l">Date</span><div class="v">${MockUI.fmtDate(quote.createdAt)}</div></div>
             <div style="margin-top:8px;"><span class="l">Valid Until</span><div class="v">${MockUI.fmtDate(quote.validUntil)}</div></div>
             <div style="margin-top:8px;"><span class="l">Prepared By</span><div class="v">${quote.preparedBy}</div></div>
-            <div style="margin-top:8px;"><span class="l">Project</span><div class="v">${quote.project.name || 'â€”'}</div></div>
+            <div style="margin-top:8px;"><span class="l">Project</span><div class="v">${quote.project.name || '—'}</div></div>
           </div>
         </div>
 
@@ -229,8 +229,8 @@
       // Footer
       html += `
         <div style="margin-top:30px;padding-top:14px;border-top:1px solid #ddd;display:flex;justify-content:space-between;font-size:10px;color:#888;">
-          <span>SKS Technologies Pty Ltd Â· ABN 12 345 678 901</span>
-          <span>0427 102 113 Â· info@skstechnologies.com.au Â· skstechnologies.com.au</span>
+          <span>SKS Technologies Pty Ltd · ABN 12 345 678 901</span>
+          <span>0427 102 113 · info@skstechnologies.com.au · skstechnologies.com.au</span>
         </div>`;
 
       document.getElementById('client-doc').innerHTML = html;
@@ -245,7 +245,7 @@
       }
       const last = areaNames.pop();
       const list = areaNames.length > 0 ? `${areaNames.join(', ')} and ${last}` : last;
-      return `SKS Technologies is pleased to provide this quotation to ${client} for the ${project}. The proposed scope covers the supply, installation, commissioning and handover of audio-visual systems across the following spaces: ${list}. Each area has been individually scoped â€” see breakdowns below for the products, services and assumptions specific to that space.`;
+      return `SKS Technologies is pleased to provide this quotation to ${client} for the ${project}. The proposed scope covers the supply, installation, commissioning and handover of audio-visual systems across the following spaces: ${list}. Each area has been individually scoped — see breakdowns below for the products, services and assumptions specific to that space.`;
     }
 
     // -------- Internal cost sheet --------
@@ -264,8 +264,8 @@
               }).join('')}
               <tr class="section"><td colspan="5">Subtotals</td></tr>
               <tr><td>All materials</td><td class="right">${MockUI.fmtMoneyCents(totals.materialsCost)}</td><td class="right">${MockUI.fmtMoneyCents(totals.materialsSell)}</td><td class="right">${MockUI.fmtMoneyCents(totals.materialsSell - totals.materialsCost)}</td><td class="right">${MockUI.fmtPct(totals.materialsSell > 0 ? ((totals.materialsSell - totals.materialsCost) / totals.materialsSell) * 100 : 0)}</td></tr>
-              <tr><td>Labour (${MockUI.fmtHours(totals.labourHours)})</td><td class="right">â€”</td><td class="right">${MockUI.fmtMoneyCents(totals.labourSell)}</td><td class="right">â€”</td><td class="right">â€”</td></tr>
-              <tr><td>Services</td><td class="right">${MockUI.fmtMoneyCents(totals.servicesCost)}</td><td class="right">${MockUI.fmtMoneyCents(totals.servicesSell)}</td><td class="right">${MockUI.fmtMoneyCents(totals.servicesSell - totals.servicesCost)}</td><td class="right">â€”</td></tr>
+              <tr><td>Labour (${MockUI.fmtHours(totals.labourHours)})</td><td class="right">—</td><td class="right">${MockUI.fmtMoneyCents(totals.labourSell)}</td><td class="right">—</td><td class="right">—</td></tr>
+              <tr><td>Services</td><td class="right">${MockUI.fmtMoneyCents(totals.servicesCost)}</td><td class="right">${MockUI.fmtMoneyCents(totals.servicesSell)}</td><td class="right">${MockUI.fmtMoneyCents(totals.servicesSell - totals.servicesCost)}</td><td class="right">—</td></tr>
               <tr class="section"><td colspan="5">Grand totals</td></tr>
               <tr><td><b>Sell (ex-GST)</b></td><td class="right">${MockUI.fmtMoneyCents(totals.costTotal)}</td><td class="right"><b>${MockUI.fmtMoneyCents(totals.sellExGST)}</b></td><td class="right">${MockUI.fmtMoneyCents(totals.margin)}</td><td class="right">${MockUI.fmtPct(totals.marginPct)}</td></tr>
               <tr><td><b>GST</b></td><td class="right"></td><td class="right">${MockUI.fmtMoneyCents(totals.gst)}</td><td class="right"></td><td class="right"></td></tr>
@@ -319,7 +319,7 @@
         html += `<tr class="section"><td colspan="4">By area</td></tr>`;
         quote.areas.forEach(a => {
           const t = MockState.areaTotals(a, quote);
-          html += `<tr><td>${a.name}</td><td class="right">${MockUI.fmtHours(t.labourHours)}</td><td class="right">â€”</td><td class="right">${MockUI.fmtMoneyCents(t.labourSell)}</td></tr>`;
+          html += `<tr><td>${a.name}</td><td class="right">${MockUI.fmtHours(t.labourHours)}</td><td class="right">—</td><td class="right">${MockUI.fmtMoneyCents(t.labourSell)}</td></tr>`;
         });
         html += `</tbody></table>`;
         host.innerHTML = html;
@@ -357,7 +357,7 @@
         setTimeout(() => location.href = '01-quote-list.html', 600);
       });
     });
-    document.getElementById('email-btn').addEventListener('click', () => MockUI.toast('Mockup only â€” would open a draft email with the quote attached'));
+    document.getElementById('email-btn').addEventListener('click', () => MockUI.toast('Mockup only — would open a draft email with the quote attached'));
 
     renderClientDoc();
   </script>

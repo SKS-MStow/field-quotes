@@ -10,12 +10,18 @@ window.MockData = (function () {
   // Suppliers
   // -------------------------------------------------------------
   const suppliers = [
-    { id: 'sup_amber',   name: 'Amber Technology',   code: 'AMBER', leadDays: 7,  preferred: true  },
-    { id: 'sup_rutledge',name: 'Rutledge AV',        code: 'RUTL',  leadDays: 5,  preferred: true  },
-    { id: 'sup_hills',   name: 'Hills',              code: 'HILLS', leadDays: 4,  preferred: false },
-    { id: 'sup_madison', name: 'Madison Technologies',code: 'MAD',  leadDays: 10, preferred: false },
-    { id: 'sup_jands',   name: 'Jands',              code: 'JANDS', leadDays: 7,  preferred: true  },
-    { id: 'sup_anixter', name: 'Anixter (Wesco)',    code: 'ANX',   leadDays: 3,  preferred: false }
+    { id: 'sup_amber',    name: 'Amber Technology',    code: 'AMBER', leadDays: 7,  preferred: true,
+      contact: { name: 'Sarah Chen',     phone: '02 9999 1100', email: 'sarah.chen@ambertech.com.au' } },
+    { id: 'sup_rutledge', name: 'Rutledge AV',         code: 'RUTL',  leadDays: 5,  preferred: true,
+      contact: { name: 'James Patel',    phone: '03 8888 4422', email: 'jpatel@rutledgeav.com.au' } },
+    { id: 'sup_hills',    name: 'Hills',               code: 'HILLS', leadDays: 4,  preferred: false,
+      contact: { name: 'Megan Walters',  phone: '02 7777 2233', email: 'megan.walters@hills.com.au' } },
+    { id: 'sup_madison',  name: 'Madison Technologies',code: 'MAD',   leadDays: 10, preferred: false,
+      contact: { name: 'David Nguyen',   phone: '02 6666 5511', email: 'dnguyen@madisontech.com.au' } },
+    { id: 'sup_jands',    name: 'Jands',               code: 'JANDS', leadDays: 7,  preferred: true,
+      contact: { name: 'Rebecca Foster', phone: '02 5555 7788', email: 'r.foster@jands.com.au' } },
+    { id: 'sup_anixter',  name: 'Anixter (Wesco)',     code: 'ANX',   leadDays: 3,  preferred: false,
+      contact: { name: 'Tom Birkhauser', phone: '03 4444 9933', email: 'tom.b@wesco.com' } }
   ];
 
   // -------------------------------------------------------------
@@ -168,7 +174,7 @@ window.MockData = (function () {
     { id:'s_travel', name:'Travel & Accommodation', category:'Expense', unit:'lot', defaultRate: 0,      defaultQty: 1,  marginPct: 0,  includedByDefault: false },
     { id:'s_freight',name:'Freight & Delivery',  category:'Expense',    unit:'lot', defaultRate: 320.00, defaultQty: 1,  marginPct: 0,  includedByDefault: true  },
     { id:'s_ahw',    name:'After-Hours Work',    category:'Labour',     unit:'hr',  defaultRate: 245.00, defaultQty: 0,  marginPct: 30, includedByDefault: false },
-    { id:'s_elec',   name:'Subcontract — Electrical', category:'Subcontract', unit:'lot', defaultRate: 0, defaultQty: 1, marginPct: 15, includedByDefault: false },
+    { id:'s_elec',   name:'Electrical',          category:'Labour',     unit:'hr',  defaultRate: 145.00, defaultQty: 0,  marginPct: 25, includedByDefault: false },
     { id:'s_warr',   name:'Warranty & Support',  category:'Labour',     unit:'lot', defaultRate: 0,      defaultQty: 1,  marginPct: 30, includedByDefault: false }
   ];
 

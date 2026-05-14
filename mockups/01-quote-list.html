@@ -1,13 +1,13 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <title>Quotes â€” SKS Quotes</title>
+  <title>Quotes — SKS Quotes</title>
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/icon?family=Material+Symbols+Outlined" rel="stylesheet">
-  <link rel="stylesheet" href="css/theme.css?v=20260514r3">
-  <link rel="stylesheet" href="css/mockups.css?v=20260514r3">
+  <link rel="stylesheet" href="css/theme.css?v=20260515r1">
+  <link rel="stylesheet" href="css/mockups.css?v=20260515r1">
   <style>
     .quote-num { font-family: var(--font-heading); font-weight: 600; color: var(--text-primary); }
     .quote-rev { color: var(--text-muted); font-size: 11px; margin-left: 6px; font-weight: 500; }
@@ -44,6 +44,12 @@
     .col-ctx-menu .item .material-symbols-outlined { font-size: 16px; color: var(--text-muted); }
     .col-ctx-menu .divider { height: 1px; background: var(--border-light); margin: 4px 0; }
     .col-ctx-menu .heading { padding: 6px 14px; font-size: 10px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); font-weight: 600; }
+
+    .filter-chip { display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; background: var(--accent-primary-bg, var(--surface-inset)); color: var(--accent-primary); border: 1px solid var(--accent-primary); border-radius: 12px; font-size: 11px; font-weight: 500; cursor: pointer; }
+    .filter-chip:hover { background: var(--accent-primary); color: white; }
+    .filter-chip .x { font-weight: 700; opacity: 0.7; margin-left: 2px; }
+    .filter-chip:hover .x { opacity: 1; }
+    .col-sort-ind { display: inline-block; }
   </style>
 </head>
 <body data-page="quotes">
@@ -53,7 +59,7 @@
     <!-- KPI strip -->
     <div class="kpi-grid" id="kpi-host"></div>
 
-    <!-- Status pill-tab bar â€” prominent, replaces the old dropdown -->
+    <!-- Status pill-tab bar — prominent, replaces the old dropdown -->
     <div class="status-tabs" id="status-tabs" role="tablist">
       <button class="status-tab active" data-status="">All</button>
       <button class="status-tab" data-status="draft">Draft</button>
@@ -70,17 +76,17 @@
     <div class="filters-row" style="margin-top:10px;">
       <div class="search-wrap">
         <span class="material-symbols-outlined">search</span>
-        <input id="filter-search" type="text" class="form-input" placeholder="Search by quote #, client, projectâ€¦">
+        <input id="filter-search" type="text" class="form-input" placeholder="Search by quote #, client, project…">
       </div>
       <button class="btn btn-secondary btn-sm" id="more-filters-toggle" type="button">
         <span class="material-symbols-outlined">tune</span> More filters
       </button>
       <span style="flex:1;font-size:11px;color:var(--text-muted);">
-        Right-click a column header for sort &amp; filter options.
+        Click a column header to sort · right-click for filters.
       </span>
     </div>
     <div class="more-filters" id="more-filters" hidden>
-      <!-- Hidden status field â€” kept so the URL ?filter= mechanism still works -->
+      <!-- Hidden status field — kept so the URL ?filter= mechanism still works -->
       <select id="filter-status" hidden>
         <option value="">All</option>
         <option value="draft">Draft</option>
@@ -103,9 +109,9 @@
       <select class="form-input" id="filter-sort">
         <option value="newest">Sort: Newest first</option>
         <option value="oldest">Sort: Oldest first</option>
-        <option value="value-high">Sort: Value high â†’ low</option>
-        <option value="value-low">Sort: Value low â†’ high</option>
-        <option value="client">Sort: Client Aâ€“Z</option>
+        <option value="value-high">Sort: Value high → low</option>
+        <option value="value-low">Sort: Value low → high</option>
+        <option value="client">Sort: Client A–Z</option>
       </select>
     </div>
 
@@ -114,12 +120,12 @@
 
   </main>
 
-  <script src="js/mock-data.js?v=20260514r3"></script>
-  <script src="js/mock-state.js?v=20260514r3"></script>
-  <script src="js/mock-ui.js?v=20260514r3"></script>
-  <script src="js/mock-shell.js?v=20260514r3"></script>
-  <script src="js/mock-expiry.js?v=20260514r3"></script>
-  <script src="js/mock-review.js?v=20260514r7"></script>
+  <script src="js/mock-data.js?v=20260515r1"></script>
+  <script src="js/mock-state.js?v=20260515r1"></script>
+  <script src="js/mock-ui.js?v=20260515r1"></script>
+  <script src="js/mock-shell.js?v=20260515r1"></script>
+  <script src="js/mock-expiry.js?v=20260515r1"></script>
+  <script src="js/mock-review.js?v=20260515r1"></script>
   <script>
     MockShell.mount({
       title: 'Quotes',
@@ -166,6 +172,32 @@
       `;
     }
 
+    // -------- Column accessors (drives sort + filter + chip labels) --------
+    const COL_DEFS = {
+      number:     { label: 'Quote #',          val: q => q.number,                      type: 'string' },
+      client:     { label: 'Client / Project', val: q => (q.client.name || '') + ' — ' + (q.project.name || ''), type: 'string' },
+      value:      { label: 'Value',            val: q => Number(q.value || 0),          type: 'number',
+                    fmt: v => MockUI.fmtMoney(v) },
+      issued:     { label: 'Issued',           val: q => q.createdAt || '',             type: 'date' },
+      validUntil: { label: 'Valid Until',      val: q => q.validUntil || '',            type: 'date' },
+      status:     { label: 'Status',           val: q => q.status || '',                type: 'string' },
+      mode:       { label: 'Mode',             val: q => q.mode || '',                  type: 'string' },
+      prep:       { label: 'Prepared by',      val: q => q.preparedBy || '',            type: 'string' }
+    };
+    // Per-column sort state ('asc' / 'desc' / null) and filter state
+    // ({ values: Set<string>, contains: string }). Both compose with the existing
+    // pill-tab status filter and the legacy filter dropdowns.
+    let colSortCol = null;     // only one column sorted at a time
+    let colSortDir = null;
+    const colFilters = {};     // col → { values?: Set<string>, contains?: string }
+
+    function colValue(q, col) { const def = COL_DEFS[col]; return def ? def.val(q) : ''; }
+    function colDisplay(v, col) {
+      const def = COL_DEFS[col];
+      if (def && def.fmt) return def.fmt(v);
+      return v == null ? '' : String(v);
+    }
+
     // -------- Filter + sort --------
     function filterAndSort(quotes) {
       const q   = document.getElementById('filter-search').value.trim().toLowerCase();
@@ -180,16 +212,39 @@
       if (md) out = out.filter(qq => qq.mode === md);
       if (pr) out = out.filter(qq => qq.preparedBy === pr);
 
-      out.sort((a, b) => {
-        switch (so) {
-          case 'oldest':     return (a.createdAt || '').localeCompare(b.createdAt || '');
-          case 'value-high': return (b.value || 0) - (a.value || 0);
-          case 'value-low':  return (a.value || 0) - (b.value || 0);
-          case 'client':     return (a.client.name || '').localeCompare(b.client.name || '');
-          case 'newest':
-          default:           return (b.createdAt || '').localeCompare(a.createdAt || '');
+      // Per-column filters from the right-click menu
+      Object.entries(colFilters).forEach(([col, f]) => {
+        if (f.values && f.values.size > 0) {
+          out = out.filter(qq => f.values.has(String(colValue(qq, col))));
+        }
+        if (f.contains) {
+          const needle = f.contains.toLowerCase();
+          out = out.filter(qq => String(colValue(qq, col)).toLowerCase().includes(needle));
         }
       });
+
+      // Click-to-sort overrides the legacy "Sort:" dropdown when active
+      if (colSortCol && colSortDir) {
+        const def = COL_DEFS[colSortCol];
+        const dir = colSortDir === 'asc' ? 1 : -1;
+        out.sort((a, b) => {
+          const av = colValue(a, colSortCol);
+          const bv = colValue(b, colSortCol);
+          if (def && def.type === 'number') return (av - bv) * dir;
+          return String(av).localeCompare(String(bv)) * dir;
+        });
+      } else {
+        out.sort((a, b) => {
+          switch (so) {
+            case 'oldest':     return (a.createdAt || '').localeCompare(b.createdAt || '');
+            case 'value-high': return (b.value || 0) - (a.value || 0);
+            case 'value-low':  return (a.value || 0) - (b.value || 0);
+            case 'client':     return (a.client.name || '').localeCompare(b.client.name || '');
+            case 'newest':
+            default:           return (b.createdAt || '').localeCompare(a.createdAt || '');
+          }
+        });
+      }
       return out;
     }
 
@@ -197,6 +252,7 @@
     function renderTable() {
       const all = MockState.getQuotes();
       renderKpis(all);
+      renderFilterChips();
       const rows = filterAndSort(all);
       const host = document.getElementById('table-host');
 
@@ -219,12 +275,12 @@
               <span class="quote-rev">Rev ${q.revision}</span>
             </td>
             <td>
-              <div class="quote-client">${q.client.name || 'â€”'}</div>
-              <div class="quote-project">${q.project.name || 'â€”'}</div>
+              <div class="quote-client">${q.client.name || '—'}</div>
+              <div class="quote-project">${q.project.name || '—'}</div>
             </td>
-            <td class="num right">${q.value ? MockUI.fmtMoney(q.value) : 'â€”'}</td>
-            <td class="quote-date">${q.status === 'draft' ? 'â€”' : MockUI.fmtDate(q.createdAt)}</td>
-            <td class="quote-date">${q.status === 'draft' ? 'â€”' : MockUI.fmtDate(q.validUntil)}</td>
+            <td class="num right">${q.value ? MockUI.fmtMoney(q.value) : '—'}</td>
+            <td class="quote-date">${q.status === 'draft' ? '—' : MockUI.fmtDate(q.createdAt)}</td>
+            <td class="quote-date">${q.status === 'draft' ? '—' : MockUI.fmtDate(q.validUntil)}</td>
             <td><span class="${badge.cls}">${badge.label}</span></td>
             <td><span class="badge badge-muted" style="text-transform:capitalize;">${q.mode}</span></td>
             <td class="quote-prepared">${(q.preparedBy || '').replace(/^(\w+)\s+(\w).*/, '$1 $2.')}</td>
@@ -261,9 +317,9 @@
         <div class="pagination">
           <div>Showing ${rows.length} of ${all.length}</div>
           <div class="pager">
-            <button class="pager-btn" disabled>â€¹ Prev</button>
+            <button class="pager-btn" disabled>‹ Prev</button>
             <button class="pager-btn active">1</button>
-            <button class="pager-btn" disabled>Next â€º</button>
+            <button class="pager-btn" disabled>Next ›</button>
           </div>
         </div>`;
 
@@ -282,7 +338,7 @@
       host.querySelectorAll('[data-more]').forEach(el => {
         el.addEventListener('click', e => {
           e.stopPropagation();
-          MockUI.toast('Mockup â€” would open a context menu (duplicate / revise / archive / delete)');
+          MockUI.toast('Mockup — would open a context menu (duplicate / revise / archive / delete)');
         });
       });
 
@@ -301,20 +357,82 @@
         });
       });
 
-      // Wire right-click context menu (stub â€” shows mock options)
+      // Wire right-click context menu (real) + click-to-sort
       host.querySelectorAll('thead th[data-col]').forEach(th => {
+        const col = th.getAttribute('data-col');
+        // Sort indicator
+        const indicator = (colSortCol === col)
+          ? `<span class="col-sort-ind" style="margin-left:4px;font-size:11px;color:var(--accent-primary);">${colSortDir === 'asc' ? '▲' : '▼'}</span>`
+          : '';
+        if (indicator) th.innerHTML = th.innerHTML.replace('<span class="col-resizer">', indicator + '<span class="col-resizer">');
+        th.style.cursor = 'pointer';
+        th.title = 'Click to sort · right-click for filter / sort menu';
+        th.addEventListener('click', e => {
+          if (e.target.classList && (e.target.classList.contains('col-resizer') || e.target.closest('.col-ctx-menu'))) return;
+          // Cycle: none → asc → desc → none
+          if (colSortCol !== col) { colSortCol = col; colSortDir = 'asc'; }
+          else if (colSortDir === 'asc') { colSortDir = 'desc'; }
+          else if (colSortDir === 'desc') { colSortCol = null; colSortDir = null; }
+          renderTable();
+        });
         th.addEventListener('contextmenu', e => {
           e.preventDefault();
-          openColCtxMenu(e.clientX, e.clientY, th.getAttribute('data-col'), th.textContent.replace(/\s+/g, ' ').trim());
+          openColCtxMenu(e.clientX, e.clientY, col, COL_DEFS[col] ? COL_DEFS[col].label : col, MockState.getQuotes());
         });
       });
     }
 
-    // Right-click column context menu (stub)
-    function closeColCtxMenu() {
-      document.querySelectorAll('.col-ctx-menu').forEach(m => m.remove());
+    // -------- Active filter chips --------
+    function renderFilterChips() {
+      let host = document.getElementById('filter-chips');
+      if (!host) {
+        host = document.createElement('div');
+        host.id = 'filter-chips';
+        host.style.cssText = 'display:flex;flex-wrap:wrap;gap:6px;margin:8px 0;align-items:center;';
+        const tableHost = document.getElementById('table-host');
+        tableHost.parentNode.insertBefore(host, tableHost);
+      }
+      const chips = [];
+      Object.entries(colFilters).forEach(([col, f]) => {
+        const label = COL_DEFS[col] ? COL_DEFS[col].label : col;
+        if (f.values && f.values.size > 0) {
+          const labelText = f.values.size <= 2
+            ? Array.from(f.values).join(', ')
+            : f.values.size + ' values';
+          chips.push(`<span class="filter-chip" data-clear-col="${col}" data-clear-key="values">${label}: ${labelText} <span class="x">×</span></span>`);
+        }
+        if (f.contains) {
+          chips.push(`<span class="filter-chip" data-clear-col="${col}" data-clear-key="contains">${label} contains "${f.contains}" <span class="x">×</span></span>`);
+        }
+      });
+      host.innerHTML = chips.length === 0
+        ? ''
+        : chips.join('') + '<button id="filter-clear-all" style="background:none;border:none;color:var(--text-muted);font-size:12px;cursor:pointer;text-decoration:underline;margin-left:4px;">Clear all</button>';
+      host.querySelectorAll('[data-clear-col]').forEach(chip => {
+        chip.addEventListener('click', () => {
+          const col = chip.getAttribute('data-clear-col');
+          const key = chip.getAttribute('data-clear-key');
+          if (colFilters[col]) {
+            delete colFilters[col][key];
+            if (!colFilters[col].values && !colFilters[col].contains) delete colFilters[col];
+          }
+          renderTable();
+        });
+      });
+      const clearAll = document.getElementById('filter-clear-all');
+      if (clearAll) clearAll.addEventListener('click', () => {
+        Object.keys(colFilters).forEach(c => delete colFilters[c]);
+        renderTable();
+      });
     }
-    function openColCtxMenu(x, y, col, label) {
+
+    // Right-click column context menu (real — sort + filter)
+    function closeColCtxMenu() {
+      document.querySelectorAll('.col-ctx-menu, .col-filter-pop').forEach(m => m.remove());
+      document.removeEventListener('keydown', _ctxEsc, true);
+    }
+    function _ctxEsc(e) { if (e.key === 'Escape') closeColCtxMenu(); }
+    function openColCtxMenu(x, y, col, label, allRows) {
       closeColCtxMenu();
       const menu = document.createElement('div');
       menu.className = 'col-ctx-menu';
@@ -322,27 +440,138 @@
       menu.style.top  = y + 'px';
       menu.innerHTML = `
         <div class="heading">${label}</div>
-        <div class="item" data-act="sort-asc"><span class="material-symbols-outlined">arrow_upward</span> Sort Aâ†’Z (ascending)</div>
-        <div class="item" data-act="sort-desc"><span class="material-symbols-outlined">arrow_downward</span> Sort Zâ†’A (descending)</div>
+        <div class="item" data-act="sort-asc"><span class="material-symbols-outlined">arrow_upward</span> Sort A→Z (ascending)</div>
+        <div class="item" data-act="sort-desc"><span class="material-symbols-outlined">arrow_downward</span> Sort Z→A (descending)</div>
+        <div class="item" data-act="sort-clear"${(colSortCol === col) ? '' : ' style="opacity:0.5;"'}><span class="material-symbols-outlined">close</span> Clear sort on this column</div>
         <div class="divider"></div>
-        <div class="item" data-act="filter-by"><span class="material-symbols-outlined">filter_alt</span> Filter by this columnâ€¦</div>
-        <div class="item" data-act="group-by"><span class="material-symbols-outlined">workspaces</span> Group by this column</div>
+        <div class="item" data-act="filter-by"><span class="material-symbols-outlined">filter_alt</span> Filter by this column…</div>
+        <div class="item" data-act="filter-contains"><span class="material-symbols-outlined">search</span> Filter contains text…</div>
+        <div class="item" data-act="filter-clear"${(colFilters[col]) ? '' : ' style="opacity:0.5;"'}><span class="material-symbols-outlined">backspace</span> Clear filter on this column</div>
         <div class="divider"></div>
-        <div class="item" data-act="autosize"><span class="material-symbols-outlined">width</span> Auto-size column</div>
-        <div class="item" data-act="hide"><span class="material-symbols-outlined">visibility_off</span> Hide column</div>
+        <div class="item" data-act="group-by" style="opacity:0.6;"><span class="material-symbols-outlined">workspaces</span> Group by this column <span style="font-size:10px;color:var(--text-muted);margin-left:auto;">(stub)</span></div>
+        <div class="item" data-act="autosize" style="opacity:0.6;"><span class="material-symbols-outlined">width</span> Auto-size column <span style="font-size:10px;color:var(--text-muted);margin-left:auto;">(stub)</span></div>
+        <div class="item" data-act="hide" style="opacity:0.6;"><span class="material-symbols-outlined">visibility_off</span> Hide column <span style="font-size:10px;color:var(--text-muted);margin-left:auto;">(stub)</span></div>
       `;
       document.body.appendChild(menu);
-      // Keep within viewport
       const r = menu.getBoundingClientRect();
       if (r.right > window.innerWidth) menu.style.left = (window.innerWidth - r.width - 8) + 'px';
       if (r.bottom > window.innerHeight) menu.style.top = (window.innerHeight - r.height - 8) + 'px';
       menu.querySelectorAll('.item').forEach(it => {
-        it.addEventListener('click', () => {
-          MockUI.toast(`Mockup placeholder â€” â€œ${it.textContent.trim()}â€ on ${label} (real menu wired in v2).`, 'warn');
+        it.addEventListener('click', e => {
+          e.stopPropagation();
+          const act = it.getAttribute('data-act');
+          if (act === 'sort-asc')        { colSortCol = col; colSortDir = 'asc';  closeColCtxMenu(); renderTable(); return; }
+          if (act === 'sort-desc')       { colSortCol = col; colSortDir = 'desc'; closeColCtxMenu(); renderTable(); return; }
+          if (act === 'sort-clear')      { if (colSortCol === col) { colSortCol = null; colSortDir = null; } closeColCtxMenu(); renderTable(); return; }
+          if (act === 'filter-by')       { openFilterByPopover(x, y, col, label, allRows); return; }
+          if (act === 'filter-contains') { openFilterContainsPopover(x, y, col, label); return; }
+          if (act === 'filter-clear')    { delete colFilters[col]; closeColCtxMenu(); renderTable(); return; }
+          MockUI.toast(`"${it.textContent.trim().split('  ')[0]}" — mockup stub`, 'warn');
           closeColCtxMenu();
         });
       });
       setTimeout(() => document.addEventListener('click', closeColCtxMenu, { once: true }), 0);
+      document.addEventListener('keydown', _ctxEsc, true);
+    }
+
+    // Sub-popover: multi-select unique values
+    function openFilterByPopover(x, y, col, label, allRows) {
+      closeColCtxMenu();
+      const uniques = Array.from(new Set(allRows.map(q => String(colValue(q, col))))).sort();
+      const current = (colFilters[col] && colFilters[col].values) || new Set();
+      const pop = document.createElement('div');
+      pop.className = 'col-filter-pop col-ctx-menu';
+      pop.style.left = x + 'px'; pop.style.top = y + 'px'; pop.style.minWidth = '240px';
+      pop.innerHTML = `
+        <div class="heading">Filter ${label}</div>
+        <div style="padding:6px 10px;"><input type="text" id="fpop-search" placeholder="Search values…" class="form-input" style="width:100%;padding:4px 6px;font-size:12px;"></div>
+        <div id="fpop-list" style="max-height:240px;overflow-y:auto;padding:0 10px;">
+          ${uniques.map(v => `
+            <label style="display:flex;align-items:center;gap:6px;padding:3px 0;font-size:12px;cursor:pointer;">
+              <input type="checkbox" value="${String(v).replace(/"/g, '&quot;')}" ${current.has(String(v)) ? 'checked' : ''}>
+              <span>${colDisplay(v, col) || '(empty)'}</span>
+            </label>
+          `).join('')}
+        </div>
+        <div style="display:flex;gap:6px;padding:8px 10px;border-top:1px solid var(--border-light);">
+          <button class="btn btn-secondary btn-sm" id="fpop-clear">Clear</button>
+          <div style="flex:1;"></div>
+          <button class="btn btn-secondary btn-sm" id="fpop-cancel">Cancel</button>
+          <button class="btn btn-primary btn-sm" id="fpop-apply">Apply</button>
+        </div>
+      `;
+      document.body.appendChild(pop);
+      const r = pop.getBoundingClientRect();
+      if (r.right > window.innerWidth) pop.style.left = (window.innerWidth - r.width - 8) + 'px';
+      if (r.bottom > window.innerHeight) pop.style.top = (window.innerHeight - r.height - 8) + 'px';
+      pop.addEventListener('click', e => e.stopPropagation());
+      const search = pop.querySelector('#fpop-search');
+      search.addEventListener('input', () => {
+        const needle = search.value.toLowerCase();
+        pop.querySelectorAll('#fpop-list label').forEach(l => {
+          l.style.display = l.textContent.toLowerCase().includes(needle) ? '' : 'none';
+        });
+      });
+      pop.querySelector('#fpop-apply').addEventListener('click', () => {
+        const checked = Array.from(pop.querySelectorAll('#fpop-list input:checked')).map(c => c.value);
+        if (checked.length === 0) {
+          if (colFilters[col]) delete colFilters[col].values;
+        } else {
+          colFilters[col] = colFilters[col] || {};
+          colFilters[col].values = new Set(checked);
+        }
+        if (colFilters[col] && !colFilters[col].values && !colFilters[col].contains) delete colFilters[col];
+        closeColCtxMenu(); renderTable();
+      });
+      pop.querySelector('#fpop-clear').addEventListener('click', () => {
+        if (colFilters[col]) delete colFilters[col].values;
+        if (colFilters[col] && !colFilters[col].values && !colFilters[col].contains) delete colFilters[col];
+        closeColCtxMenu(); renderTable();
+      });
+      pop.querySelector('#fpop-cancel').addEventListener('click', closeColCtxMenu);
+      setTimeout(() => document.addEventListener('click', closeColCtxMenu, { once: true }), 0);
+      document.addEventListener('keydown', _ctxEsc, true);
+      search.focus();
+    }
+
+    // Sub-popover: contains text
+    function openFilterContainsPopover(x, y, col, label) {
+      closeColCtxMenu();
+      const current = (colFilters[col] && colFilters[col].contains) || '';
+      const pop = document.createElement('div');
+      pop.className = 'col-filter-pop col-ctx-menu';
+      pop.style.left = x + 'px'; pop.style.top = y + 'px'; pop.style.minWidth = '260px';
+      pop.innerHTML = `
+        <div class="heading">${label} contains…</div>
+        <div style="padding:8px 10px;"><input type="text" id="fcontains" value="${current.replace(/"/g, '&quot;')}" placeholder="Type to filter…" class="form-input" style="width:100%;padding:4px 6px;font-size:12px;"></div>
+        <div style="display:flex;gap:6px;padding:8px 10px;border-top:1px solid var(--border-light);">
+          <div style="flex:1;"></div>
+          <button class="btn btn-secondary btn-sm" id="fc-cancel">Cancel</button>
+          <button class="btn btn-primary btn-sm" id="fc-apply">Apply</button>
+        </div>
+      `;
+      document.body.appendChild(pop);
+      const r = pop.getBoundingClientRect();
+      if (r.right > window.innerWidth) pop.style.left = (window.innerWidth - r.width - 8) + 'px';
+      if (r.bottom > window.innerHeight) pop.style.top = (window.innerHeight - r.height - 8) + 'px';
+      pop.addEventListener('click', e => e.stopPropagation());
+      const apply = () => {
+        const v = pop.querySelector('#fcontains').value.trim();
+        if (!v) {
+          if (colFilters[col]) delete colFilters[col].contains;
+        } else {
+          colFilters[col] = colFilters[col] || {};
+          colFilters[col].contains = v;
+        }
+        if (colFilters[col] && !colFilters[col].values && !colFilters[col].contains) delete colFilters[col];
+        closeColCtxMenu(); renderTable();
+      };
+      pop.querySelector('#fc-apply').addEventListener('click', apply);
+      pop.querySelector('#fc-cancel').addEventListener('click', closeColCtxMenu);
+      pop.querySelector('#fcontains').addEventListener('keydown', e => { if (e.key === 'Enter') apply(); });
+      setTimeout(() => document.addEventListener('click', closeColCtxMenu, { once: true }), 0);
+      document.addEventListener('keydown', _ctxEsc, true);
+      pop.querySelector('#fcontains').focus();
     }
 
     // -------- Wire filters --------
@@ -372,7 +601,7 @@
     });
 
     document.getElementById('reset-data').addEventListener('click', () => {
-      MockUI.confirmAction('Reset mockup data â€” clears any quote you have in progress. Continue?', () => {
+      MockUI.confirmAction('Reset mockup data — clears any quote you have in progress. Continue?', () => {
         MockState.reset();
         MockUI.toast('Demo data reset', 'success');
         renderTable();
@@ -380,7 +609,7 @@
     });
 
     document.getElementById('export-btn').addEventListener('click', () => {
-      MockUI.toast('Mockup â€” would download a CSV of the current view');
+      MockUI.toast('Mockup — would download a CSV of the current view');
     });
 
     // Apply initial status from URL ?filter= (sidebar links use this)
