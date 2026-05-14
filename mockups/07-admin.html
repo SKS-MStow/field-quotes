@@ -46,6 +46,41 @@
     .package-card.full .items { margin-top: 8px; font-size: 12px; color: var(--text-secondary); }
     .package-card.full .items div { padding: 3px 0; }
     .package-card.full .items div .qty { color: var(--text-muted); font-family: var(--font-heading); font-weight: 600; margin-right: 6px; }
+
+    /* Version-history modal */
+    .vh-modal-bg { position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 9000; display: flex; align-items: center; justify-content: center; padding: 20px; }
+    .vh-modal-bg[hidden] { display: none; }
+    .vh-modal { background: var(--surface-bg); border-radius: var(--radius-lg); max-width: 880px; width: 100%; max-height: 85vh; display: flex; flex-direction: column; box-shadow: 0 20px 60px rgba(0,0,0,0.25); overflow: hidden; }
+    .vh-head { padding: 14px 18px; border-bottom: 1px solid var(--border); background: var(--surface-card); display: flex; align-items: center; gap: 10px; }
+    .vh-head h3 { font-family: var(--font-heading); font-size: 16px; font-weight: 600; flex: 1; }
+    .vh-body { padding: 14px 18px; overflow-y: auto; flex: 1; }
+    .vh-foot { padding: 12px 18px; border-top: 1px solid var(--border); background: var(--surface-card); display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+    .vh-supplier { margin-bottom: 18px; }
+    .vh-supplier h4 { font-family: var(--font-heading); font-size: 13px; font-weight: 600; color: var(--text-primary); padding: 6px 0; border-bottom: 1px solid var(--border); margin-bottom: 6px; display: flex; align-items: center; gap: 6px; }
+    .vh-row { display: grid; grid-template-columns: 24px 1fr auto auto; gap: 12px; padding: 9px 0; border-bottom: 1px solid var(--border-light); align-items: center; }
+    .vh-row:last-child { border-bottom: none; }
+    .vh-row .branch { color: var(--accent-primary); }
+    .vh-row .branch.active { color: var(--status-success); }
+    .vh-row .file { font-family: var(--font-heading); font-weight: 600; font-size: 13px; }
+    .vh-row .meta { font-size: 11px; color: var(--text-muted); }
+    .vh-row .stats { font-size: 11px; color: var(--text-secondary); display: flex; gap: 8px; }
+    .vh-row .stats .add { color: var(--status-success); font-weight: 600; }
+    .vh-row .stats .upd { color: var(--status-info); font-weight: 600; }
+    .vh-row .stats .rm  { color: var(--status-danger); font-weight: 600; }
+    .vh-row .acts { display: flex; gap: 4px; align-items: center; }
+    .vh-row .acts .badge.active-pill { background: var(--status-success-bg); color: var(--status-success); font-size: 10px; padding: 2px 8px; border-radius: 10px; font-weight: 600; }
+    .vh-row .acts button { background: transparent; border: 1px solid var(--border-input); color: var(--text-secondary); padding: 4px 9px; font-size: 11px; border-radius: 4px; cursor: pointer; font-family: var(--font-body); }
+    .vh-row .acts button:hover { color: var(--accent-primary); border-color: var(--accent-primary); }
+
+    /* Files tab */
+    .files-toolbar { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+    .files-toolbar .grow { flex: 1; }
+    table.files-table { width: 100%; border-collapse: collapse; background: var(--surface-card); border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; }
+    table.files-table th { padding: 10px 14px; background: var(--surface-inset); font-size: 10px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); text-align: left; font-weight: 600; }
+    table.files-table td { padding: 10px 14px; border-top: 1px solid var(--border-light); vertical-align: middle; font-size: 13px; }
+    table.files-table .file-name { font-family: var(--font-heading); font-weight: 600; display: flex; align-items: center; gap: 8px; }
+    table.files-table .file-name .material-symbols-outlined { color: var(--text-muted); font-size: 18px; }
+    table.files-table .right { text-align: right; }
   </style>
 </head>
 <body data-page="admin-products">
@@ -54,6 +89,7 @@
     <!-- Tab bar -->
     <div class="tab-bar" id="tab-bar">
       <button data-tab="products" class="active"><span class="material-symbols-outlined">inventory_2</span> Products</button>
+      <button data-tab="files"><span class="material-symbols-outlined">folder</span> Files</button>
       <button data-tab="suppliers"><span class="material-symbols-outlined">store</span> Suppliers</button>
       <button data-tab="categories"><span class="material-symbols-outlined">category</span> Categories</button>
       <button data-tab="packages"><span class="material-symbols-outlined">layers</span> Packages</button>
@@ -64,6 +100,22 @@
     </div>
 
     <div id="tab-host"></div>
+
+    <!-- Version history modal (for supplier price-sheet imports, git-style) -->
+    <div class="vh-modal-bg" id="vh-modal-bg" hidden>
+      <div class="vh-modal">
+        <div class="vh-head">
+          <span class="material-symbols-outlined" style="color:var(--accent-primary);">history</span>
+          <h3>Supplier price-sheet history</h3>
+          <button class="icon-btn" id="vh-close"><span class="material-symbols-outlined">close</span></button>
+        </div>
+        <div class="vh-body" id="vh-body"></div>
+        <div class="vh-foot">
+          <span style="font-size:12px;color:var(--text-muted);">Active version is what's used in product lookups; old versions stay around so you can roll back.</span>
+          <button class="btn btn-secondary btn-sm" id="vh-close-2">Close</button>
+        </div>
+      </div>
+    </div>
 
   </main>
 
@@ -98,10 +150,11 @@
         <div class="upload-area">
           <span class="material-symbols-outlined">upload_file</span>
           <h4>Upload supplier price sheet (CSV or XLSX)</h4>
-          <div class="sub">We'll detect the columns, show you a mapping preview, then update existing products and add new ones. Old cost prices are archived, not overwritten.</div>
+          <div class="sub">We'll detect the columns, show you a mapping preview, then update existing products and add new ones. Old cost prices are archived &mdash; price lists are versioned (git-style) so you can keep multiple revisions and swap which one is active.</div>
           <div style="margin-top:10px;display:flex;gap:6px;justify-content:center;">
             <button class="btn btn-primary btn-sm"><span class="material-symbols-outlined">add</span> Upload price sheet</button>
-            <button class="btn btn-secondary btn-sm"><span class="material-symbols-outlined">history</span> View import history</button>
+            <button class="btn btn-secondary btn-sm" id="open-history-btn"><span class="material-symbols-outlined">history</span> View import history</button>
+            <a class="btn btn-secondary btn-sm" href="#files"><span class="material-symbols-outlined">folder</span> Files</a>
           </div>
         </div>
 
@@ -396,9 +449,88 @@
       `;
     }
 
+    // -------- Files tab (stock + price-list documents) --------
+    function renderFiles() {
+      const sup = id => MockData.supplierById(id);
+      const rows = MockData.priceSheetHistory.map(h => `
+        <tr>
+          <td><div class="file-name"><span class="material-symbols-outlined">${h.file.endsWith('.csv') ? 'csv' : 'table_chart'}</span> ${h.file}</div></td>
+          <td>${sup(h.supplierId)?.name || h.supplierId}</td>
+          <td>${MockUI.fmtDate(h.uploadedAt)}</td>
+          <td>${h.uploadedBy}</td>
+          <td class="right">${h.active ? '<span class="badge badge-success">Active</span>' : '<span class="badge badge-muted">Archived</span>'}</td>
+        </tr>
+      `).join('');
+      return `
+        <div class="files-toolbar">
+          <div style="font-size:13px;color:var(--text-secondary);">All supplier price sheets and stock documents that have been uploaded. Versioned (git-style) — each upload becomes its own version that can be made active or rolled back.</div>
+          <div class="grow"></div>
+          <button class="btn btn-primary btn-sm"><span class="material-symbols-outlined">upload</span> Upload file</button>
+          <button class="btn btn-secondary btn-sm" id="files-history-btn"><span class="material-symbols-outlined">history</span> View by version</button>
+        </div>
+        <table class="files-table">
+          <thead><tr><th>File</th><th>Supplier</th><th>Uploaded</th><th>By</th><th class="right" style="width:120px;">Status</th></tr></thead>
+          <tbody>${rows}</tbody>
+        </table>
+      `;
+    }
+    function wireFiles() {
+      document.getElementById('files-history-btn')?.addEventListener('click', openHistoryModal);
+    }
+
+    // -------- Version-history modal (git-style for supplier price lists) --------
+    function openHistoryModal() {
+      const supplierIds = [...new Set(MockData.priceSheetHistory.map(h => h.supplierId))];
+      const html = supplierIds.map(sid => {
+        const supplier = MockData.supplierById(sid);
+        const versions = MockData.priceSheetHistory
+          .filter(h => h.supplierId === sid)
+          .sort((a, b) => b.uploadedAt.localeCompare(a.uploadedAt));
+        const rows = versions.map(v => `
+          <div class="vh-row">
+            <span class="material-symbols-outlined branch ${v.active ? 'active' : ''}" title="${v.active ? 'Active version' : 'Archived'}">${v.active ? 'verified' : 'commit'}</span>
+            <div>
+              <div class="file">${v.file}</div>
+              <div class="meta">${MockUI.fmtDate(v.uploadedAt)} · ${v.uploadedBy}${v.notes ? ' — ' + v.notes : ''}</div>
+            </div>
+            <div class="stats">
+              <span class="add">+${v.added}</span>
+              <span class="upd">~${v.updated}</span>
+              <span class="rm">−${v.removed}</span>
+            </div>
+            <div class="acts">
+              ${v.active ? '<span class="badge active-pill">ACTIVE</span>' : `<button data-set-active="${v.id}">Set as active</button>`}
+              <button data-diff="${v.id}">View diff</button>
+            </div>
+          </div>
+        `).join('');
+        return `
+          <div class="vh-supplier">
+            <h4><span class="material-symbols-outlined" style="color:var(--text-muted);">store</span> ${supplier?.name || sid} <span style="font-weight:400;color:var(--text-muted);font-size:11px;">— ${versions.length} version${versions.length === 1 ? '' : 's'}</span></h4>
+            ${rows}
+          </div>
+        `;
+      }).join('');
+
+      document.getElementById('vh-body').innerHTML = html;
+      document.getElementById('vh-modal-bg').hidden = false;
+
+      // Wire mock-only actions
+      document.querySelectorAll('#vh-body [data-set-active]').forEach(b => b.addEventListener('click', () => {
+        MockUI.toast('Mockup placeholder — would mark this version as active and re-bind product lookups (wired in v2).');
+      }));
+      document.querySelectorAll('#vh-body [data-diff]').forEach(b => b.addEventListener('click', () => {
+        MockUI.toast('Mockup placeholder — would open a side-by-side cost diff vs the previous version (wired in v2).');
+      }));
+    }
+    document.getElementById('vh-close').addEventListener('click', () => document.getElementById('vh-modal-bg').hidden = true);
+    document.getElementById('vh-close-2').addEventListener('click', () => document.getElementById('vh-modal-bg').hidden = true);
+    document.getElementById('vh-modal-bg').addEventListener('click', e => { if (e.target.id === 'vh-modal-bg') document.getElementById('vh-modal-bg').hidden = true; });
+
     // -------- Tab switching --------
     const tabs = {
       products:   { render: renderProducts,   page: 'admin-products',   wire: wireProducts },
+      files:      { render: renderFiles,      page: 'admin-files',      wire: wireFiles },
       suppliers:  { render: renderSuppliers,  page: 'admin-suppliers' },
       categories: { render: renderCategories, page: 'admin-cats',       wire: wireCategories },
       packages:   { render: renderPackages,   page: 'admin-pkgs' },
@@ -413,6 +545,7 @@
       document.getElementById('p-search').addEventListener('input', renderProductRows);
       document.getElementById('p-cat').addEventListener('change', renderProductRows);
       document.getElementById('p-sup').addEventListener('change', renderProductRows);
+      document.getElementById('open-history-btn')?.addEventListener('click', openHistoryModal);
     }
     function wireCategories() {
       renderSubList(0);
