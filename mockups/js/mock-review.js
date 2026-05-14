@@ -7,9 +7,13 @@
 
 window.MockReview = (function () {
 
-  const API = '/api/quotes-mockup/notes';
+  // Auto-detect env from the URL path so the same JS file can serve both
+  //   /quotes-mockup/        → prod tables
+  //   /quotes-mockup-staging/ → staging tables
+  const STAGING = /\/quotes-mockup-staging\//.test(location.pathname);
+  const API = STAGING ? '/api/quotes-mockup-staging/notes' : '/api/quotes-mockup/notes';
   const POLL_MS = 12000;
-  const REVIEWER_KEY = 'mr_reviewer_v1';
+  const REVIEWER_KEY = STAGING ? 'mr_reviewer_v1_staging' : 'mr_reviewer_v1';
 
   // -------------------------------------------------------------
   // In-memory mirror of server state (read-cache only — all
@@ -352,6 +356,7 @@ window.MockReview = (function () {
     else if (!cacheLoaded) { statusCls = 'busy'; statusText = 'loading…'; }
     toolbarEl.innerHTML = `
       <button class="mr-btn mr-toggle" title="Hide toolbar" id="mr-toggle"><span class="material-symbols-outlined">edit_note</span></button>
+      ${STAGING ? '<span style="background:#b8860b;color:white;padding:3px 8px;border-radius:4px;font-size:10px;font-weight:700;letter-spacing:0.05em;">STAGING</span>' : ''}
       <button class="mr-btn" id="mr-add-pin" title="Drop a pin and write a note"><span class="material-symbols-outlined">push_pin</span> Pin a note</button>
       <button class="mr-btn mr-secondary" id="mr-add-page-note" title="General note about this page"><span class="material-symbols-outlined">sticky_note_2</span> Note this page</button>
       <button class="mr-btn mr-secondary" id="mr-view-all" title="See every note across every page"><span class="material-symbols-outlined">checklist</span> All notes <span class="mr-count">${total}</span></button>
