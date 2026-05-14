@@ -1,13 +1,13 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <title>Build Areas â€” SKS Quotes</title>
+  <title>Build Areas — SKS Quotes</title>
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/icon?family=Material+Symbols+Outlined" rel="stylesheet">
-  <link rel="stylesheet" href="css/theme.css?v=20260514r3">
-  <link rel="stylesheet" href="css/mockups.css?v=20260514r3">
+  <link rel="stylesheet" href="css/theme.css?v=20260515r1">
+  <link rel="stylesheet" href="css/mockups.css?v=20260515r1">
   <style>
     .quote-meta { display: flex; gap: 18px; padding: 12px 16px; background: var(--surface-inset); border-radius: var(--radius-md); margin-bottom: 14px; flex-wrap: wrap; align-items: center; }
     .quote-meta .mi { display: flex; flex-direction: column; gap: 2px; }
@@ -25,7 +25,7 @@
     table.lines th.col-cost, table.lines th.col-margin,
     table.lines td.col-cost, table.lines td.col-margin { display: table-cell; }
 
-    /* Scope panel at the top of the builder â€” pulled from client-info project.scopeOfWorks */
+    /* Scope panel at the top of the builder — pulled from client-info project.scopeOfWorks */
     .scope-panel { background: var(--surface-card); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 14px 16px; margin-bottom: 14px; position: relative; }
     .scope-panel h3 { font-family: var(--font-heading); font-size: 13px; font-weight: 600; color: var(--text-primary); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 6px; display: flex; align-items: center; gap: 8px; }
     .scope-panel h3 .material-symbols-outlined { color: var(--status-info); font-size: 18px; }
@@ -59,8 +59,12 @@
 
     /* Sticky footer totals bar */
     .totals-bar { position: sticky; bottom: 64px; z-index: 5; background: linear-gradient(180deg, var(--surface-bg) 0%, var(--surface-card) 100%); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 10px 16px; margin-top: 20px; display: grid; grid-template-columns: repeat(6, 1fr); gap: 12px; box-shadow: 0 6px 20px rgba(0,0,0,0.05); }
-    .totals-bar .tb-cell { display: flex; flex-direction: column; gap: 2px; }
+    .totals-bar .tb-cell { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
     .totals-bar .tb-cell .l { font-size: 10px; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
+    /* Cost line — small, grey, sits ABOVE the sell figure for that category */
+    .totals-bar .tb-cell .c { font-family: var(--font-heading); font-weight: 500; font-size: 11px; color: var(--text-muted); font-variant-numeric: tabular-nums; }
+    .totals-bar .tb-cell .c::before { content: 'cost '; opacity: 0.7; }
+    /* Sell line — large, bold, the headline number */
     .totals-bar .tb-cell .v { font-family: var(--font-heading); font-weight: 700; font-size: 15px; color: var(--text-primary); font-variant-numeric: tabular-nums; }
     .totals-bar .tb-cell.grand .v { font-size: 19px; color: var(--accent-primary); }
     @media (max-width: 900px) { .totals-bar { grid-template-columns: repeat(2, 1fr); } }
@@ -146,13 +150,13 @@
             <button class="btn btn-secondary btn-sm" id="add-sundry-btn"><span class="material-symbols-outlined">add</span> Add manual sundry line</button>
           </div>
           <p style="font-size:12px;color:var(--text-muted);margin:0 0 10px;">
-            Cables / consumables from your area lines are aggregated here for quick review. Add free-text sundries below â€” they roll into the materials total.
+            Cables / consumables from your area lines are aggregated here for quick review. Add free-text sundries below — they roll into the materials total.
           </p>
           <div class="agg-block" id="cables-host"></div>
         </div>
 
-        <!-- Services section -->
-        <h3 class="section-h" style="margin-top:30px;">Services &amp; Installation</h3>
+        <!-- Services section (now includes labour — Steven's note: labour and services are the same thing) -->
+        <h3 class="section-h" style="margin-top:30px;">Services &amp; Labour</h3>
         <div class="panel" style="padding:0;">
           <div class="table-scroll">
             <table class="data-table services-table">
@@ -161,17 +165,20 @@
                   <th style="width:30px;"></th>
                   <th>Service</th>
                   <th style="width:80px;">Unit</th>
-                  <th class="right" style="width:70px;">Qty</th>
+                  <th class="right" style="width:60px;">Qty</th>
+                  <th class="right" style="width:70px;">Hours</th>
                   <th class="right" style="width:90px;">Rate</th>
-                  <th class="right" style="width:80px;">Margin %</th>
+                  <th class="right" style="width:90px;">Cost</th>
+                  <th class="right" style="width:75px;">Margin %</th>
                   <th class="right" style="width:110px;">Sell</th>
                 </tr>
               </thead>
               <tbody id="services-host"></tbody>
             </table>
           </div>
-          <div style="padding:10px 14px;border-top:1px solid var(--border-light);background:var(--surface-card);">
+          <div style="padding:10px 14px;border-top:1px solid var(--border-light);background:var(--surface-card);display:flex;gap:8px;">
             <button class="btn btn-secondary btn-sm" id="add-service-btn"><span class="material-symbols-outlined">add</span> Add custom service</button>
+            <button class="btn btn-secondary btn-sm" id="add-labour-btn"><span class="material-symbols-outlined">engineering</span> Add labour</button>
           </div>
         </div>
       </div>
@@ -193,7 +200,7 @@
             <input type="range" id="labour-margin" min="0" max="50" step="1">
             <div class="readout">
               <span class="l">Blended global margin</span>
-              <span class="v" id="global-margin-readout">â€”</span>
+              <span class="v" id="global-margin-readout">—</span>
             </div>
           </div>
 
@@ -213,12 +220,12 @@
       </aside>
     </div>
 
-    <!-- Sticky footer totals bar -->
+    <!-- Sticky footer totals bar — cost on top (small/grey), sell directly below (large/bold) -->
     <div class="totals-bar" id="totals-bar">
-      <div class="tb-cell"><span class="l">Materials</span><span class="v" id="tb-mat">$0</span></div>
-      <div class="tb-cell"><span class="l">Labour</span><span class="v" id="tb-lab">$0</span></div>
-      <div class="tb-cell"><span class="l">Services</span><span class="v" id="tb-svc">$0</span></div>
-      <div class="tb-cell"><span class="l">Subtotal (ex-GST)</span><span class="v" id="tb-sub">$0</span></div>
+      <div class="tb-cell"><span class="l">Materials</span><span class="c" id="tb-mat-cost">$0</span><span class="v" id="tb-mat">$0</span></div>
+      <div class="tb-cell"><span class="l">Labour</span><span class="c" id="tb-lab-cost">$0</span><span class="v" id="tb-lab">$0</span></div>
+      <div class="tb-cell"><span class="l">Services</span><span class="c" id="tb-svc-cost">$0</span><span class="v" id="tb-svc">$0</span></div>
+      <div class="tb-cell"><span class="l">Subtotal (ex-GST)</span><span class="c" id="tb-sub-cost">$0</span><span class="v" id="tb-sub">$0</span></div>
       <div class="tb-cell"><span class="l">GST (10%)</span><span class="v" id="tb-gst">$0</span></div>
       <div class="tb-cell grand"><span class="l">Total (inc-GST)</span><span class="v" id="tb-total">$0</span></div>
     </div>
@@ -250,7 +257,7 @@
           <select id="filter-mfr" class="form-input"><option value="">All brands</option></select>
           <div class="search-wrap" style="max-width:none;">
             <span class="material-symbols-outlined">search</span>
-            <input id="filter-search" type="text" class="form-input" placeholder="Search description or part noâ€¦">
+            <input id="filter-search" type="text" class="form-input" placeholder="Search description or part no…">
           </div>
         </div>
         <div id="product-results"></div>
@@ -277,17 +284,17 @@
     </div>
   </main>
 
-  <script src="js/mock-data.js?v=20260514r3"></script>
-  <script src="js/mock-state.js?v=20260514r3"></script>
-  <script src="js/mock-ui.js?v=20260514r3"></script>
-  <script src="js/mock-shell.js?v=20260514r3"></script>
-  <script src="js/mock-expiry.js?v=20260514r3"></script>
-  <script src="js/mock-review.js?v=20260514r7"></script>
+  <script src="js/mock-data.js?v=20260515r1"></script>
+  <script src="js/mock-state.js?v=20260515r1"></script>
+  <script src="js/mock-ui.js?v=20260515r1"></script>
+  <script src="js/mock-shell.js?v=20260515r1"></script>
+  <script src="js/mock-expiry.js?v=20260515r1"></script>
+  <script src="js/mock-review.js?v=20260515r1"></script>
   <script>
     // -------- Shell --------
     MockShell.mount({
       title: 'Build the Quote',
-      subtitle: 'Step 3 of 5 Â· Add areas, products, and services',
+      subtitle: 'Step 3 of 5 · Add areas, products, and services',
       actionsHtml: `<a class="btn btn-secondary" href="01-quote-list.html"><span class="material-symbols-outlined">close</span> Cancel</a>`
     });
 
@@ -295,7 +302,7 @@
     let quote = MockState.getCurrentQuote();
     if (!quote) {
       location.href = '02-mode-select.html';
-      throw new Error('No active quote â€” redirecting to mode select');
+      throw new Error('No active quote — redirecting to mode select');
     }
 
     // Quick mode UI tweaks
@@ -311,8 +318,8 @@
       const q = MockState.getCurrentQuote();
       document.getElementById('quote-meta').innerHTML = `
         <div class="mi"><span class="l">Quote #</span><span class="v">${q.number}</span></div>
-        <div class="mi"><span class="l">Client</span><span class="v">${q.client.name || 'â€”'}</span></div>
-        <div class="mi"><span class="l">Project</span><span class="v">${q.project.name || 'â€”'}</span></div>
+        <div class="mi"><span class="l">Client</span><span class="v">${q.client.name || '—'}</span></div>
+        <div class="mi"><span class="l">Project</span><span class="v">${q.project.name || '—'}</span></div>
         <div class="mi"><span class="l">Mode</span><span class="v">${q.mode === 'quick' ? 'Quick' : 'Large'}</span></div>
         <div class="mi"><span class="l">Status</span><span class="v">Draft</span></div>
       `;
@@ -343,14 +350,17 @@
     function renderAreaCard(area, idx, q) {
       // Group lines by packageId (consecutive same-package lines collapse under a header)
       const linesHtml = renderLinesForArea(area, q);
-      const labourHtml = renderLabourBlock(area, q);
       const at = MockState.areaTotals(area, q);
 
       return `
         <div class="area-card" data-area-id="${area.id}">
           <div class="area-head">
-            <input class="area-name" value="${area.name}" placeholder="Area name" data-area-input="${area.id}">
-            <span class="area-meta">${area.lines.length} item${area.lines.length === 1 ? '' : 's'} Â· ${MockUI.fmtMoney(at.materialsSell + at.labourSell)}</span>
+            <div class="area-name-wrap">
+              <label class="area-name-label" for="area-name-${area.id}">Area name</label>
+              <input id="area-name-${area.id}" class="area-name" value="${area.name}" placeholder="e.g. Boardroom Level 3" data-area-input="${area.id}">
+              <div class="area-name-help">Becomes this area's heading on the client document.</div>
+            </div>
+            <span class="area-meta">${area.lines.length} item${area.lines.length === 1 ? '' : 's'} · ${MockUI.fmtMoney(at.materialsSell + at.labourSell)}</span>
             <div class="area-actions">
               <button class="icon-btn" title="Duplicate" data-dup="${area.id}"><span class="material-symbols-outlined">content_copy</span></button>
               <button class="icon-btn" title="Move up"  data-up="${area.id}"><span class="material-symbols-outlined">arrow_upward</span></button>
@@ -361,18 +371,16 @@
           <div class="area-body">
             ${linesHtml}
           </div>
-          ${labourHtml}
           <div class="area-foot">
             <button class="btn btn-secondary btn-sm" data-add-line="${area.id}"><span class="material-symbols-outlined">add</span> Add Product</button>
             <button class="btn btn-secondary btn-sm" data-add-pkg="${area.id}"><span class="material-symbols-outlined">layers</span> Apply Package</button>
-            <button class="btn btn-secondary btn-sm" data-add-labour="${area.id}"><span class="material-symbols-outlined">engineering</span> Add labour</button>
             <div style="flex:1;"></div>
             <button class="btn btn-secondary btn-sm" data-notes="${area.id}" title="Internal notes"><span class="material-symbols-outlined">edit_note</span> Notes</button>
           </div>
         </div>`;
     }
 
-    // Per-area Installation labour block â€” auto roll-up + manual entries
+    // Per-area Installation labour block — auto roll-up + manual entries
     function renderLabourBlock(area, q) {
       const at = MockState.areaTotals(area, q);
       const tradeRows = Object.entries(at.labourByTrade || {})
@@ -431,7 +439,7 @@
       if (rows.length === 0) {
         return `<div class="labour-block">
           <div class="lh"><span class="material-symbols-outlined">engineering</span> Installation labour</div>
-          <div style="font-size:12px;color:var(--text-muted);">No labour yet â€” add products with subcategory defaults, or click "+ Add labour" below.</div>
+          <div style="font-size:12px;color:var(--text-muted);">No labour yet — add products with subcategory defaults, or click "+ Add labour" below.</div>
         </div>`;
       }
 
@@ -454,9 +462,19 @@
       `;
     }
 
+    // Cables and consumables aggregate into the Cables & Accessories section
+    // below — they shouldn't double-render in the per-area lines table.
+    const CABLES_HIDDEN_CATS = new Set(['Cabling & Pathways', 'Consumables']);
+    function isAreaLineRendered(line) { return !CABLES_HIDDEN_CATS.has(line.cat); }
+
     function renderLinesForArea(area, q) {
-      if (area.lines.length === 0) {
-        return `<div class="area-empty">No products yet â€” click <b>+ Add Product</b> below to start.</div>`;
+      const renderedLines = area.lines.filter(isAreaLineRendered);
+      const hiddenCount = area.lines.length - renderedLines.length;
+      if (renderedLines.length === 0) {
+        const note = hiddenCount > 0
+          ? `<div class="area-empty">No products in this area yet (${hiddenCount} cable/consumable line${hiddenCount === 1 ? '' : 's'} shown in <b>Cables & Accessories</b> below).</div>`
+          : `<div class="area-empty">No products yet — click <b>+ Add Product</b> below to start.</div>`;
+        return note;
       }
       let html = `
         <div class="table-scroll">
@@ -479,7 +497,7 @@
       `;
 
       let lastPkg = null;
-      area.lines.forEach(line => {
+      renderedLines.forEach(line => {
         // Package header row when packageId changes
         if (line.packageId && line.packageId !== lastPkg) {
           const pkg = MockData.packages.find(p => p.id === line.packageId);
@@ -499,7 +517,7 @@
             <td><div style="font-family:var(--font-heading);font-weight:500;font-size:12px;">${line.model}</div></td>
             <td>
               <div>${line.description}</div>
-              <div style="font-size:10px;color:var(--text-muted);margin-top:2px;">${line.cat} Â· ${line.sub} ${supplyTag} ${provTag}</div>
+              <div style="font-size:10px;color:var(--text-muted);margin-top:2px;">${line.cat} · ${line.sub} ${supplyTag} ${provTag}</div>
             </td>
             <td><input class="cell-input cell-num" type="number" min="0" step="1" value="${line.qty}" data-line-edit="${line.id}" data-field="qty"></td>
             <td><div style="font-size:11px;color:var(--text-muted);">${line.unit}</div></td>
@@ -625,11 +643,8 @@
         });
       });
 
-      // "Add labour" button
-      card.querySelector(`[data-add-labour="${areaId}"]`)?.addEventListener('click', () => {
-        MockState.addAreaLabourLine(q.id, areaId, { trade: 'AV Tech', hours: 1, note: '' });
-        renderAll();
-      });
+      // (Per-area "Add labour" button removed — labour now lives in the
+      // global Services & Labour table at the bottom of the page.)
     }
 
     function moveArea(areaId, dir) {
@@ -714,9 +729,9 @@
         <div class="product-result" data-add-pid="${p.id}">
           <div>
             <div class="pr-mfr">${p.mfr}</div>
-            <div class="pr-name">${p.mpn} â€” ${p.short}</div>
+            <div class="pr-name">${p.mpn} — ${p.short}</div>
             <div class="pr-desc">${p.desc}</div>
-            <div class="pr-cat">${p.cat} Â· ${p.sub}</div>
+            <div class="pr-cat">${p.cat} · ${p.sub}</div>
           </div>
           <div>
             <div class="pr-price">${MockUI.fmtMoney(p.cost)}</div>
@@ -741,7 +756,7 @@
       list.innerHTML = MockData.packages.map(p => `
         <div class="package-card" data-pkg-id="${p.id}" data-area-id="${areaId}">
           <h5>${p.name}</h5>
-          <div class="meta">${p.description} Â· ${p.items.length} items</div>
+          <div class="meta">${p.description} · ${p.items.length} items</div>
           <div class="tags">${p.tags.map(t => `<span class="tag">${t}</span>`).join('')}</div>
         </div>
       `).join('');
@@ -766,36 +781,52 @@
       const q = MockState.getCurrentQuote();
       const host = document.getElementById('services-host');
       // Build combined list: predefined services (whether or not currently included) + any custom services
-      const predefIds = MockData.services.map(s => s.id);
       const customRows = q.services.filter(sv => sv.serviceId === null);
       const orderedRows = MockData.services.map(def => {
         const existing = q.services.find(sv => sv.serviceId === def.id);
-        return existing ? { ...existing, defaults: def } : {
-          // Not yet added â€” show as a togglable row
+        if (existing) return { ...existing, defaults: def };
+        // Not yet added — show as a togglable row, hours seeded for labour-style services
+        const isLab = def.category === 'Labour';
+        return {
           id: 'pending_' + def.id, serviceId: def.id, name: def.name, category: def.category,
-          unit: def.unit, qty: def.defaultQty, rate: def.defaultRate, marginPct: def.marginPct,
+          unit: def.unit,
+          qty: isLab ? 1 : def.defaultQty,
+          hours: isLab ? def.defaultQty : 0,
+          isLabour: isLab,
+          rate: def.defaultRate, marginPct: def.marginPct,
           included: false, defaults: def
         };
       }).concat(customRows);
 
       host.innerHTML = orderedRows.map(sv => {
-        const sellEach = sv.rate / (1 - (sv.marginPct / 100));
-        const sellTotal = (sv.qty || 0) * (isFinite(sellEach) ? sellEach : sv.rate);
+        const isLab = MockState.isLabourService(sv);
+        const cost = MockState.serviceCost(sv);
+        const sell = MockState.serviceSell(sv);
         const isCustom = sv.serviceId === null;
         const includedClass = sv.included ? 'services-row' : 'services-row dim';
+        const dis = !sv.included ? 'disabled' : '';
+        const qtyCell  = isLab
+          ? '<td class="right"><span style="color:var(--text-muted);">—</span></td>'
+          : `<td class="right"><input class="cell-input cell-num" type="number" min="0" step="0.5" value="${sv.qty || 0}" data-svc-edit="${sv.id}" data-field="qty" ${dis}></td>`;
+        const hoursCell = isLab
+          ? `<td class="right"><input class="cell-input cell-num" type="number" min="0" step="0.5" value="${sv.hours || 0}" data-svc-edit="${sv.id}" data-field="hours" ${dis} title="Hours of labour"></td>`
+          : '<td class="right"><span style="color:var(--text-muted);">—</span></td>';
+        const labourTag = isLab ? '<span class="cat-tag" style="background:var(--status-warning-bg);color:var(--status-warning);">Labour</span>' : '';
         return `
           <tr class="${includedClass}" style="${sv.included ? '' : 'opacity:0.55;'}">
             <td><input type="checkbox" data-svc-toggle="${sv.serviceId || sv.id}" ${sv.included ? 'checked' : ''}></td>
             <td>
               <span class="name">${sv.name}</span>
-              <span class="cat-tag">${sv.category}</span>
+              ${labourTag || `<span class="cat-tag">${sv.category}</span>`}
               ${isCustom ? '<span class="cat-tag" style="background:var(--status-accent-bg);color:var(--status-accent);">Custom</span>' : ''}
             </td>
             <td><div style="font-size:11px;color:var(--text-muted);">${sv.unit}</div></td>
-            <td class="right"><input class="cell-input cell-num" type="number" min="0" step="0.5" value="${sv.qty || 0}" data-svc-edit="${sv.id}" data-field="qty" ${!sv.included ? 'disabled' : ''}></td>
-            <td class="right"><input class="cell-input cell-num" type="number" min="0" step="5" value="${sv.rate}" data-svc-edit="${sv.id}" data-field="rate" ${!sv.included ? 'disabled' : ''}></td>
-            <td class="right"><input class="cell-input cell-num cell-narrow" type="number" min="0" max="80" step="1" value="${sv.marginPct}" data-svc-edit="${sv.id}" data-field="marginPct" ${!sv.included ? 'disabled' : ''}></td>
-            <td class="right"><b>${MockUI.fmtMoney(sellTotal)}</b></td>
+            ${qtyCell}
+            ${hoursCell}
+            <td class="right"><input class="cell-input cell-num" type="number" min="0" step="5" value="${sv.rate}" data-svc-edit="${sv.id}" data-field="rate" ${dis}></td>
+            <td class="right"><div class="num">${MockUI.fmtMoney(cost)}</div></td>
+            <td class="right"><input class="cell-input cell-num cell-narrow" type="number" min="0" max="80" step="1" value="${sv.marginPct}" data-svc-edit="${sv.id}" data-field="marginPct" ${dis}></td>
+            <td class="right"><b>${MockUI.fmtMoney(sell)}</b></td>
           </tr>
         `;
       }).join('');
@@ -826,6 +857,14 @@
       MockState.addCustomService(MockState.getCurrentQuote().id, name, 'lot', 0, 1);
       renderAll();
     });
+    document.getElementById('add-labour-btn').addEventListener('click', () => {
+      const trade = prompt('Trade (AV Tech / Data Tech / Electrician / PM):', 'AV Tech');
+      if (!trade) return;
+      const note = prompt('Note (optional, e.g. "wiring cleanup"):', '') || '';
+      const rate = MockState.rateForTrade(trade, MockState.getCurrentQuote()) || 145;
+      MockState.addCustomService(MockState.getCurrentQuote().id, trade + (note ? ' — ' + note : ''), 'hr', rate, 1, { isLabour: true, hours: 1, category: 'Labour', marginPct: MockState.getCurrentQuote().labourMarginPct || 0 });
+      renderAll();
+    });
 
     // -------- Totals --------
     function renderTotals() {
@@ -840,12 +879,16 @@
       document.getElementById('t-margin').textContent   = MockUI.fmtMoney(t.margin);
       document.getElementById('t-margin-pct').textContent = MockUI.fmtPct(t.marginPct);
       // Sticky footer totals bar
-      document.getElementById('tb-mat').textContent     = MockUI.fmtMoney(t.materialsSell);
-      document.getElementById('tb-lab').textContent     = MockUI.fmtMoney(t.labourSell);
-      document.getElementById('tb-svc').textContent     = MockUI.fmtMoney(t.servicesSell);
-      document.getElementById('tb-sub').textContent     = MockUI.fmtMoney(t.sellExGST);
-      document.getElementById('tb-gst').textContent     = MockUI.fmtMoney(t.gst);
-      document.getElementById('tb-total').textContent   = MockUI.fmtMoney(t.incGST);
+      document.getElementById('tb-mat-cost').textContent = MockUI.fmtMoney(t.materialsCost);
+      document.getElementById('tb-mat').textContent      = MockUI.fmtMoney(t.materialsSell);
+      document.getElementById('tb-lab-cost').textContent = MockUI.fmtMoney(t.labourCost);
+      document.getElementById('tb-lab').textContent      = MockUI.fmtMoney(t.labourSell);
+      document.getElementById('tb-svc-cost').textContent = MockUI.fmtMoney(t.servicesCost);
+      document.getElementById('tb-svc').textContent      = MockUI.fmtMoney(t.servicesSell);
+      document.getElementById('tb-sub-cost').textContent = MockUI.fmtMoney(t.costTotal);
+      document.getElementById('tb-sub').textContent      = MockUI.fmtMoney(t.sellExGST);
+      document.getElementById('tb-gst').textContent      = MockUI.fmtMoney(t.gst);
+      document.getElementById('tb-total').textContent    = MockUI.fmtMoney(t.incGST);
       // Wizard footer mini-totals
       document.getElementById('f-sell').textContent     = MockUI.fmtMoney(t.sellExGST);
       document.getElementById('f-margin').textContent   = MockUI.fmtPct(t.marginPct);
@@ -865,7 +908,7 @@
         body.textContent = text;
       } else {
         body.classList.add('empty');
-        body.textContent = 'No scope yet â€” add it on Client & Project (top-right link) so it flows through to the client document.';
+        body.textContent = 'No scope yet — add it on Client & Project (top-right link) so it flows through to the client document.';
       }
     }
 
@@ -937,7 +980,7 @@
       }
 
       // Subtotal row
-      html += `<table class="agg-table"><tbody><tr class="subtotal-row"><td>Cables, consumables &amp; sundries â€” subtotal</td><td class="right" colspan="3">Cost ${MockUI.fmtMoney(runningCost)}</td><td class="right">${MockUI.fmtMoney(runningSell)}</td></tr></tbody></table>`;
+      html += `<table class="agg-table"><tbody><tr class="subtotal-row"><td>Cables, consumables &amp; sundries — subtotal</td><td class="right" colspan="3">Cost ${MockUI.fmtMoney(runningCost)}</td><td class="right">${MockUI.fmtMoney(runningSell)}</td></tr></tbody></table>`;
 
       host.innerHTML = html;
 

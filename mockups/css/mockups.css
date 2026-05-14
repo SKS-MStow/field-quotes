@@ -255,10 +255,13 @@ table.data-table tbody tr.clickable:hover { background: rgba(0,0,0,0.015); curso
   background: var(--surface-inset);
   border-bottom: 1px solid var(--border);
 }
-.area-head .area-name { flex: 1; font-family: var(--font-heading); font-weight: 600; font-size: 15px; background: transparent; border: 1px solid transparent; padding: 6px 8px; border-radius: 4px; color: var(--text-primary); }
+.area-head .area-name-wrap { flex: 1; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.area-head .area-name-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); font-weight: 600; }
+.area-head .area-name { font-family: var(--font-heading); font-weight: 600; font-size: 15px; background: transparent; border: 1px solid var(--border-light); padding: 6px 8px; border-radius: 4px; color: var(--text-primary); }
 .area-head .area-name:hover { border-color: var(--border); background: var(--surface-white); }
 .area-head .area-name:focus { border-color: var(--accent-primary); background: var(--surface-white); outline: none; }
-.area-head .area-meta { font-size: 11px; color: var(--text-muted); }
+.area-head .area-name-help { font-size: 10px; color: var(--text-muted); }
+.area-head .area-meta { font-size: 11px; color: var(--text-muted); align-self: flex-end; }
 .area-body { padding: 4px 0 8px; }
 .area-empty { padding: 18px 22px; color: var(--text-muted); font-size: 13px; text-align: center; }
 .area-foot { display: flex; gap: 8px; align-items: center; padding: 10px 16px; border-top: 1px solid var(--border-light); background: var(--surface-card); }

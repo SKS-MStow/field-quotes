@@ -1,13 +1,13 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <title>Admin â€” SKS Quotes</title>
+  <title>Admin — SKS Quotes</title>
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/icon?family=Material+Symbols+Outlined" rel="stylesheet">
-  <link rel="stylesheet" href="css/theme.css?v=20260514r3">
-  <link rel="stylesheet" href="css/mockups.css?v=20260514r3">
+  <link rel="stylesheet" href="css/theme.css?v=20260515r1">
+  <link rel="stylesheet" href="css/mockups.css?v=20260515r1">
   <style>
     .tab-bar { display: flex; gap: 4px; margin-bottom: 16px; padding: 4px; background: var(--surface-inset); border-radius: var(--radius-md); flex-wrap: wrap; }
     .tab-bar button { background: transparent; border: none; padding: 7px 12px; border-radius: var(--radius-sm); font-size: 12px; color: var(--text-secondary); cursor: pointer; font-family: var(--font-body); font-weight: 500; display: flex; align-items: center; gap: 5px; }
@@ -119,15 +119,15 @@
 
   </main>
 
-  <script src="js/mock-data.js?v=20260514r3"></script>
-  <script src="js/mock-state.js?v=20260514r3"></script>
-  <script src="js/mock-ui.js?v=20260514r3"></script>
-  <script src="js/mock-shell.js?v=20260514r3"></script>
-  <script src="js/mock-expiry.js?v=20260514r3"></script>
-  <script src="js/mock-review.js?v=20260514r7"></script>
+  <script src="js/mock-data.js?v=20260515r1"></script>
+  <script src="js/mock-state.js?v=20260515r1"></script>
+  <script src="js/mock-ui.js?v=20260515r1"></script>
+  <script src="js/mock-shell.js?v=20260515r1"></script>
+  <script src="js/mock-expiry.js?v=20260515r1"></script>
+  <script src="js/mock-review.js?v=20260515r1"></script>
   <script>
     MockShell.mount({
-      title: 'Admin â€” Catalogue & Library',
+      title: 'Admin — Catalogue & Library',
       subtitle: 'Suppliers, products, categories, packages, services and clauses',
       actionsHtml: `<a class="btn btn-secondary" href="01-quote-list.html"><span class="material-symbols-outlined">arrow_back</span> Back to quotes</a>`
     });
@@ -161,7 +161,7 @@
         <div class="filters-row">
           <div class="search-wrap">
             <span class="material-symbols-outlined">search</span>
-            <input type="text" class="form-input" placeholder="Search by description / part noâ€¦" id="p-search">
+            <input type="text" class="form-input" placeholder="Search by description / part no…" id="p-search">
           </div>
           <select class="form-input" id="p-cat">
             <option value="">All categories</option>
@@ -217,9 +217,9 @@
             <div style="font-size:10.5px;color:var(--text-muted);">${p.desc}</div>
           </td>
           <td><div style="font-size:11.5px;color:var(--text-secondary);">${p.cat}</div><div style="font-size:10px;color:var(--text-muted);">${p.sub}</div></td>
-          <td><div style="font-size:11.5px;color:var(--text-secondary);">${MockData.supplierById(p.supplierId)?.name || 'â€”'}</div></td>
+          <td><div style="font-size:11.5px;color:var(--text-secondary);">${MockData.supplierById(p.supplierId)?.name || '—'}</div></td>
           <td class="right num">${MockUI.fmtMoneyCents(p.cost)}</td>
-          <td class="right num" style="color:var(--text-muted);">${p.rrp ? MockUI.fmtMoneyCents(p.rrp) : 'â€”'}</td>
+          <td class="right num" style="color:var(--text-muted);">${p.rrp ? MockUI.fmtMoneyCents(p.rrp) : '—'}</td>
           <td><div style="font-size:11px;color:var(--text-muted);">${p.unit}</div></td>
           <td class="right">
             <div class="row-actions">
@@ -235,7 +235,7 @@
     function renderSuppliers() {
       return `
         <div class="filters-row">
-          <div class="search-wrap"><span class="material-symbols-outlined">search</span><input type="text" class="form-input" placeholder="Search suppliersâ€¦"></div>
+          <div class="search-wrap"><span class="material-symbols-outlined">search</span><input type="text" class="form-input" placeholder="Search suppliers…"></div>
           <div style="flex:1;"></div>
           <button class="btn btn-primary btn-sm"><span class="material-symbols-outlined">add</span> Add supplier</button>
         </div>
@@ -243,15 +243,20 @@
           <div class="table-scroll">
             <table class="data-table">
               <thead><tr>
-                <th>Supplier</th><th>Code</th><th>Products</th><th>Lead time</th><th>Preferred</th><th class="right"></th>
+                <th>Supplier</th><th>Code</th><th>Products</th><th>Contact</th><th>Lead time</th><th>Preferred</th><th class="right"></th>
               </tr></thead>
               <tbody>
                 ${MockData.suppliers.map(s => {
                   const n = MockData.products.filter(p => p.supplierId === s.id).length;
+                  const c = s.contact || {};
+                  const contactCell = c.name
+                    ? `<div style="font-weight:600;">${c.name}</div><div style="font-size:11px;color:var(--text-muted);">${c.phone || ''}${c.phone && c.email ? ' · ' : ''}${c.email || ''}</div>`
+                    : '<span style="color:var(--text-muted);font-style:italic;">No contact set</span>';
                   return `<tr>
                     <td><div style="font-family:var(--font-heading);font-weight:600;">${s.name}</div></td>
                     <td><div style="font-size:11px;color:var(--text-muted);font-family:var(--font-heading);">${s.code}</div></td>
                     <td>${n}</td>
+                    <td>${contactCell}</td>
                     <td>${s.leadDays} days</td>
                     <td>${s.preferred ? '<span class="badge badge-success">Preferred</span>' : '<span class="badge badge-muted">Standard</span>'}</td>
                     <td class="right"><button class="icon-btn"><span class="material-symbols-outlined">edit</span></button></td>
@@ -268,7 +273,7 @@
       const cats = MockData.categories;
       return `
         <div class="filters-row">
-          <div style="flex:1;font-size:13px;color:var(--text-secondary);">The category tree drives the product picker drilldown (Category â†’ Subcategory â†’ Brand â†’ Product).</div>
+          <div style="flex:1;font-size:13px;color:var(--text-secondary);">The category tree drives the product picker drilldown (Category → Subcategory → Brand → Product).</div>
           <button class="btn btn-primary btn-sm"><span class="material-symbols-outlined">add</span> Add category</button>
         </div>
         <div class="cat-tree">
@@ -352,7 +357,7 @@
         </div>
         <div style="margin-top:10px;color:var(--text-muted);font-size:11.5px;">
           <span class="material-symbols-outlined" style="font-size:14px;vertical-align:middle;">info</span>
-          Labour <i>rates</i> per trade are managed under <a href="08-settings.html#labour" style="color:var(--accent-primary);">Settings â†’ Labour rates</a>.
+          Labour <i>rates</i> per trade are managed under <a href="08-settings.html#labour" style="color:var(--accent-primary);">Settings → Labour rates</a>.
         </div>
       `;
     }
@@ -360,7 +365,7 @@
     function renderPackages() {
       return `
         <div class="filters-row">
-          <div style="flex:1;font-size:13px;color:var(--text-secondary);">Saved packages â€” drop any of these into an area to add a pre-built combination of products in one action.</div>
+          <div style="flex:1;font-size:13px;color:var(--text-secondary);">Saved packages — drop any of these into an area to add a pre-built combination of products in one action.</div>
           <button class="btn btn-primary btn-sm"><span class="material-symbols-outlined">add</span> Create package</button>
         </div>
         ${MockData.packages.map(p => `
@@ -375,7 +380,7 @@
             <div class="items">
               ${p.items.map(it => {
                 const prod = MockData.productById(it.productId);
-                return `<div><span class="qty">${it.qty}Ã—</span> ${prod ? prod.mfr + ' ' + prod.mpn + ' â€” ' + prod.short : it.productId}</div>`;
+                return `<div><span class="qty">${it.qty}×</span> ${prod ? prod.mfr + ' ' + prod.mpn + ' — ' + prod.short : it.productId}</div>`;
               }).join('')}
             </div>
           </div>
@@ -386,7 +391,7 @@
     function renderServices() {
       return `
         <div class="filters-row">
-          <div style="flex:1;font-size:13px;color:var(--text-secondary);">Services are non-product charge items. Set a default rate, default quantity, and default margin â€” estimators can override per quote.</div>
+          <div style="flex:1;font-size:13px;color:var(--text-secondary);">Services are non-product charge items. Set a default rate, default quantity, and default margin — estimators can override per quote.</div>
           <button class="btn btn-primary btn-sm"><span class="material-symbols-outlined">add</span> Add service</button>
         </div>
         <div class="table-wrap">
@@ -463,7 +468,7 @@
       `).join('');
       return `
         <div class="files-toolbar">
-          <div style="font-size:13px;color:var(--text-secondary);">All supplier price sheets and stock documents that have been uploaded. Versioned (git-style) â€” each upload becomes its own version that can be made active or rolled back.</div>
+          <div style="font-size:13px;color:var(--text-secondary);">All supplier price sheets and stock documents that have been uploaded. Versioned (git-style) — each upload becomes its own version that can be made active or rolled back.</div>
           <div class="grow"></div>
           <button class="btn btn-primary btn-sm"><span class="material-symbols-outlined">upload</span> Upload file</button>
           <button class="btn btn-secondary btn-sm" id="files-history-btn"><span class="material-symbols-outlined">history</span> View by version</button>
@@ -491,12 +496,12 @@
             <span class="material-symbols-outlined branch ${v.active ? 'active' : ''}" title="${v.active ? 'Active version' : 'Archived'}">${v.active ? 'verified' : 'commit'}</span>
             <div>
               <div class="file">${v.file}</div>
-              <div class="meta">${MockUI.fmtDate(v.uploadedAt)} Â· ${v.uploadedBy}${v.notes ? ' â€” ' + v.notes : ''}</div>
+              <div class="meta">${MockUI.fmtDate(v.uploadedAt)} · ${v.uploadedBy}${v.notes ? ' — ' + v.notes : ''}</div>
             </div>
             <div class="stats">
               <span class="add">+${v.added}</span>
               <span class="upd">~${v.updated}</span>
-              <span class="rm">âˆ’${v.removed}</span>
+              <span class="rm">−${v.removed}</span>
             </div>
             <div class="acts">
               ${v.active ? '<span class="badge active-pill">ACTIVE</span>' : `<button data-set-active="${v.id}">Set as active</button>`}
@@ -506,7 +511,7 @@
         `).join('');
         return `
           <div class="vh-supplier">
-            <h4><span class="material-symbols-outlined" style="color:var(--text-muted);">store</span> ${supplier?.name || sid} <span style="font-weight:400;color:var(--text-muted);font-size:11px;">â€” ${versions.length} version${versions.length === 1 ? '' : 's'}</span></h4>
+            <h4><span class="material-symbols-outlined" style="color:var(--text-muted);">store</span> ${supplier?.name || sid} <span style="font-weight:400;color:var(--text-muted);font-size:11px;">— ${versions.length} version${versions.length === 1 ? '' : 's'}</span></h4>
             ${rows}
           </div>
         `;
@@ -517,10 +522,10 @@
 
       // Wire mock-only actions
       document.querySelectorAll('#vh-body [data-set-active]').forEach(b => b.addEventListener('click', () => {
-        MockUI.toast('Mockup placeholder â€” would mark this version as active and re-bind product lookups (wired in v2).');
+        MockUI.toast('Mockup placeholder — would mark this version as active and re-bind product lookups (wired in v2).');
       }));
       document.querySelectorAll('#vh-body [data-diff]').forEach(b => b.addEventListener('click', () => {
-        MockUI.toast('Mockup placeholder â€” would open a side-by-side cost diff vs the previous version (wired in v2).');
+        MockUI.toast('Mockup placeholder — would open a side-by-side cost diff vs the previous version (wired in v2).');
       }));
     }
     document.getElementById('vh-close').addEventListener('click', () => document.getElementById('vh-modal-bg').hidden = true);
@@ -571,7 +576,7 @@
       b.addEventListener('click', () => showTab(b.getAttribute('data-tab')));
     });
 
-    // Hash-based deep link â€” also handle hash changes so sidebar links
+    // Hash-based deep link — also handle hash changes so sidebar links
     // between admin sub-tabs work without needing a page reload.
     function tabFromHash() {
       const t = (location.hash || '#products').replace('#', '');
