@@ -6,8 +6,8 @@
   <title>Files — Supplier pricelists</title>
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/icon?family=Material+Symbols+Outlined" rel="stylesheet">
-  <link rel="stylesheet" href="css/theme.css?v=20260515r18">
-  <link rel="stylesheet" href="css/mockups.css?v=20260515r18">
+  <link rel="stylesheet" href="css/theme.css?v=20260515r19">
+  <link rel="stylesheet" href="css/mockups.css?v=20260515r19">
   <style>
     /* =====================================================================
        Folder banner — watched folder + scan status (top of page)
@@ -19,9 +19,10 @@
       align-items: center; margin-bottom: 12px;
     }
     .wf-banner .wf-icon {
-      width: 40px; height: 40px; border-radius: 8px;
-      background: linear-gradient(135deg, #5b6cf5 0%, #3a4fd6 100%);
-      color: white; display: flex; align-items: center; justify-content: center;
+      width: 40px; height: 40px; border-radius: var(--radius-md);
+      background: var(--surface-inset); color: var(--text-secondary);
+      display: flex; align-items: center; justify-content: center;
+      border: 1px solid var(--border);
     }
     .wf-banner .wf-icon .material-symbols-outlined { font-size: 22px; }
     .wf-banner .wf-meta { min-width: 0; }
@@ -114,7 +115,7 @@
       align-items: center; border-left: 3px solid transparent;
     }
     .sup-row:hover { background: var(--surface-inset); }
-    .sup-row.selected { background: rgba(91,108,245,0.08); border-left-color: var(--accent-primary); }
+    .sup-row.selected { background: var(--surface-inset); border-left-color: var(--accent-primary); }
     .sup-row.hidden { display: none; }
     .sup-row .freshness-dot {
       width: 9px; height: 9px; border-radius: 50%;
@@ -123,7 +124,7 @@
     .sup-row .freshness-dot.fresh { background: var(--status-success); }
     .sup-row .freshness-dot.aging { background: #f59e0b; }
     .sup-row .freshness-dot.stale { background: var(--status-danger); }
-    .sup-row .freshness-dot.newer { background: var(--accent-primary); box-shadow: 0 0 0 3px rgba(91,108,245,0.25); }
+    .sup-row .freshness-dot.newer { background: var(--status-info); box-shadow: 0 0 0 3px var(--status-info-bg); }
 
     .sup-row .sup-info { min-width: 0; }
     .sup-row .sup-name {
@@ -151,7 +152,7 @@
     }
     .tier-row[hidden] { display: none; }
     .tier-row:hover { background: var(--surface-inset); }
-    .tier-row.selected { background: rgba(91,108,245,0.08); color: var(--text-primary); border-left-color: var(--accent-primary); font-weight: 500; }
+    .tier-row.selected { background: var(--surface-inset); color: var(--text-primary); border-left-color: var(--accent-primary); font-weight: 500; }
     .tier-row .tier-dot {
       width: 7px; height: 7px; border-radius: 50%;
     }
@@ -173,7 +174,7 @@
       margin-bottom: 5px; cursor: pointer;
     }
     .um-row:hover { border-color: var(--status-warning); }
-    .um-row.selected { border-color: var(--accent-primary); background: rgba(91,108,245,0.04); }
+    .um-row.selected { border-color: var(--accent-primary); background: var(--surface-inset); }
     .um-row .um-name {
       font-family: 'JetBrains Mono', monospace; font-size: 10.5px; color: var(--text-primary);
       font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
@@ -222,7 +223,7 @@
       text-transform: uppercase; letter-spacing: 0.04em; display: inline-flex; align-items: center; gap: 4px;
     }
     .pill.active        { background: var(--status-success-bg); color: var(--status-success); }
-    .pill.newer         { background: rgba(91,108,245,0.13); color: var(--accent-primary); }
+    .pill.newer         { background: var(--status-info-bg); color: var(--status-info); }
     .pill.stale         { background: #fee2e2; color: #b91c1c; }
     .pill.aging         { background: #fef0c7; color: #b45309; }
     .pill.unmatched     { background: #fef0c7; color: #b45309; }
@@ -234,7 +235,7 @@
       margin-bottom: 14px;
     }
     .diff-block.has-newer {
-      background: rgba(91,108,245,0.05); border: 1px solid rgba(91,108,245,0.25);
+      background: var(--status-info-bg); border: 1px solid #c5cdf2;
     }
     .diff-block.single-version {
       background: var(--surface-inset); border: 1px solid var(--border-light);
@@ -419,12 +420,12 @@
 
   </main>
 
-  <script src="js/mock-data.js?v=20260515r18"></script>
-  <script src="js/mock-state.js?v=20260515r18"></script>
-  <script src="js/mock-ui.js?v=20260515r18"></script>
-  <script src="js/mock-shell.js?v=20260515r18"></script>
-  <script src="js/mock-expiry.js?v=20260515r18"></script>
-  <script src="../_shared/review-tools/mock-review.js?v=20260515r18"></script>
+  <script src="js/mock-data.js?v=20260515r19"></script>
+  <script src="js/mock-state.js?v=20260515r19"></script>
+  <script src="js/mock-ui.js?v=20260515r19"></script>
+  <script src="js/mock-shell.js?v=20260515r19"></script>
+  <script src="js/mock-expiry.js?v=20260515r19"></script>
+  <script src="../_shared/review-tools/mock-review.js?v=20260515r19"></script>
   <script>
     MockShell.mount({
       title: 'Files — Supplier pricelists',
@@ -849,7 +850,7 @@
             <div class="head-pills">
               ${freshPill}
               <span class="pill confidence">${Math.round(entry.confidence*100)}% match confidence</span>
-              ${entry.tier ? `<span class="pill" style="background:rgba(91,108,245,0.10);color:var(--accent-primary);">${entry.tier}</span>` : ''}
+              ${entry.tier ? `<span class="pill" style="background:var(--surface-inset);color:var(--text-secondary);">${entry.tier}</span>` : ''}
             </div>
           </div>
         </div>

@@ -6,8 +6,8 @@
   <title>Import pricelist — Rutledge AV (Crestron)</title>
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/icon?family=Material+Symbols+Outlined" rel="stylesheet">
-  <link rel="stylesheet" href="css/theme.css?v=20260515r18">
-  <link rel="stylesheet" href="css/mockups.css?v=20260515r18">
+  <link rel="stylesheet" href="css/theme.css?v=20260515r19">
+  <link rel="stylesheet" href="css/mockups.css?v=20260515r19">
   <style>
     /* ----- Header strip ----- */
     .import-head {
@@ -17,8 +17,9 @@
       align-items: center; margin-bottom: 14px;
     }
     .import-head .icon-big {
-      width: 44px; height: 44px; border-radius: 8px;
-      background: rgba(91,108,245,0.12); display: flex; align-items: center; justify-content: center;
+      width: 44px; height: 44px; border-radius: var(--radius-md);
+      background: var(--surface-inset); border: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: center;
     }
     .import-head .icon-big .material-symbols-outlined { font-size: 24px; color: var(--accent-primary); }
     .import-head h2 { font-family: var(--font-heading); font-weight: 700; font-size: 16px; color: var(--text-primary); }
@@ -129,7 +130,7 @@
       text-transform: uppercase; letter-spacing: 0.04em;
     }
     .kind-pill.new      { background: var(--status-success-bg); color: var(--status-success); }
-    .kind-pill.changed  { background: rgba(91,108,245,0.12); color: var(--accent-primary); }
+    .kind-pill.changed  { background: var(--status-info-bg); color: var(--status-info); }
     .kind-pill.removed  { background: #fee2e2; color: #b91c1c; }
     .kind-pill.conflict { background: #fef0c7; color: #b45309; }
     .sev-pill {
@@ -159,7 +160,7 @@
       border-radius: 5px; cursor: pointer;
       display: flex; flex-direction: column; gap: 4px;
     }
-    .conflict-row .cr-option.selected { border-color: var(--accent-primary); background: rgba(91,108,245,0.05); }
+    .conflict-row .cr-option.selected { border-color: var(--accent-primary); background: var(--surface-inset); }
     .conflict-row .cr-option .label { font-size: 12px; font-weight: 600; color: var(--text-primary); display: flex; align-items: center; gap: 6px; }
     .conflict-row .cr-option .price { font-family: 'JetBrains Mono', monospace; font-size: 11.5px; color: var(--text-primary); }
     .conflict-row .cr-option .rec { font-size: 10px; color: var(--status-success); font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; }
@@ -167,8 +168,8 @@
 
     /* ----- Commit summary ----- */
     .commit-summary {
-      background: linear-gradient(135deg, rgba(91,108,245,0.06) 0%, rgba(91,108,245,0.02) 100%);
-      border: 1px solid rgba(91,108,245,0.30);
+      background: var(--status-info-bg);
+      border: 1px solid #c5cdf2;
     }
     .commit-totals {
       display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
@@ -189,7 +190,7 @@
 
     .commit-actions {
       display: flex; gap: 10px; padding-top: 12px;
-      border-top: 1px solid rgba(91,108,245,0.20); flex-wrap: wrap;
+      border-top: 1px solid #c5cdf2; flex-wrap: wrap;
     }
     .commit-actions .grow { flex: 1; }
 
@@ -419,12 +420,12 @@
 
   </main>
 
-  <script src="js/mock-data.js?v=20260515r18"></script>
-  <script src="js/mock-state.js?v=20260515r18"></script>
-  <script src="js/mock-ui.js?v=20260515r18"></script>
-  <script src="js/mock-shell.js?v=20260515r18"></script>
-  <script src="js/mock-expiry.js?v=20260515r18"></script>
-  <script src="../_shared/review-tools/mock-review.js?v=20260515r18"></script>
+  <script src="js/mock-data.js?v=20260515r19"></script>
+  <script src="js/mock-state.js?v=20260515r19"></script>
+  <script src="js/mock-ui.js?v=20260515r19"></script>
+  <script src="js/mock-shell.js?v=20260515r19"></script>
+  <script src="js/mock-expiry.js?v=20260515r19"></script>
+  <script src="../_shared/review-tools/mock-review.js?v=20260515r19"></script>
   <script>
     MockShell.mount({
       title: 'Import pricelist',
