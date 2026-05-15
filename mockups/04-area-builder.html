@@ -6,8 +6,8 @@
   <title>Build Areas — SKS Quotes</title>
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/icon?family=Material+Symbols+Outlined" rel="stylesheet">
-  <link rel="stylesheet" href="css/theme.css?v=20260515r3">
-  <link rel="stylesheet" href="css/mockups.css?v=20260515r3">
+  <link rel="stylesheet" href="css/theme.css?v=20260515r4">
+  <link rel="stylesheet" href="css/mockups.css?v=20260515r4">
   <style>
     .quote-meta { display: flex; gap: 18px; padding: 12px 16px; background: var(--surface-inset); border-radius: var(--radius-md); margin-bottom: 14px; flex-wrap: wrap; align-items: center; }
     .quote-meta .mi { display: flex; flex-direction: column; gap: 2px; }
@@ -282,14 +282,105 @@
         </div>
       </div>
     </div>
+
+    <!-- Add custom service modal -->
+    <div class="modal-bg" id="svc-modal">
+      <div class="modal">
+        <div class="modal-head">
+          <span class="material-symbols-outlined" style="color:var(--accent-primary);">add_task</span>
+          <h3>Add custom service</h3>
+          <button class="icon-btn" id="svc-close"><span class="material-symbols-outlined">close</span></button>
+        </div>
+        <div class="modal-body">
+          <div class="form-group" style="margin-bottom:12px;">
+            <label class="form-label">Service name</label>
+            <input id="svc-name" class="form-input" type="text" placeholder="e.g. Site survey, custom fabrication, calibration">
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;">
+            <div class="form-group">
+              <label class="form-label">Unit</label>
+              <select id="svc-unit" class="form-input">
+                <option value="lot">lot</option>
+                <option value="hr">hr</option>
+                <option value="day">day</option>
+                <option value="visit">visit</option>
+                <option value="ea">ea</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Qty</label>
+              <input id="svc-qty" class="form-input" type="number" min="0" step="0.5" value="1">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Cost rate ($)</label>
+              <input id="svc-rate" class="form-input" type="number" min="0" step="5" value="0">
+            </div>
+          </div>
+          <div class="form-group" style="margin-top:8px;">
+            <label class="form-label">Margin (%)</label>
+            <input id="svc-margin" class="form-input" type="number" min="0" max="80" step="1" value="25" style="max-width:120px;">
+          </div>
+        </div>
+        <div class="modal-foot">
+          <button class="btn btn-secondary" id="svc-cancel">Cancel</button>
+          <button class="btn btn-primary" id="svc-save">Add service</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Add labour modal -->
+    <div class="modal-bg" id="lab-modal">
+      <div class="modal">
+        <div class="modal-head">
+          <span class="material-symbols-outlined" style="color:var(--accent-primary);">engineering</span>
+          <h3>Add labour</h3>
+          <button class="icon-btn" id="lab-close"><span class="material-symbols-outlined">close</span></button>
+        </div>
+        <div class="modal-body">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+            <div class="form-group">
+              <label class="form-label">Trade</label>
+              <select id="lab-trade" class="form-input">
+                <option>AV Tech</option>
+                <option>Data Tech</option>
+                <option>Electrician</option>
+                <option>PM</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Hours</label>
+              <input id="lab-hours" class="form-input" type="number" min="0" step="0.5" value="1">
+            </div>
+          </div>
+          <div class="form-group" style="margin-top:8px;">
+            <label class="form-label">Note (optional)</label>
+            <input id="lab-note" class="form-input" type="text" placeholder='e.g. "wiring cleanup", "after-hours commissioning"'>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px;">
+            <div class="form-group">
+              <label class="form-label">Rate ($/hr)</label>
+              <input id="lab-rate" class="form-input" type="number" min="0" step="5" value="145">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Margin (%)</label>
+              <input id="lab-margin" class="form-input" type="number" min="0" max="80" step="1" value="0">
+            </div>
+          </div>
+        </div>
+        <div class="modal-foot">
+          <button class="btn btn-secondary" id="lab-cancel">Cancel</button>
+          <button class="btn btn-primary" id="lab-save">Add labour</button>
+        </div>
+      </div>
+    </div>
   </main>
 
-  <script src="js/mock-data.js?v=20260515r3"></script>
-  <script src="js/mock-state.js?v=20260515r3"></script>
-  <script src="js/mock-ui.js?v=20260515r3"></script>
-  <script src="js/mock-shell.js?v=20260515r3"></script>
-  <script src="js/mock-expiry.js?v=20260515r3"></script>
-  <script src="js/mock-review.js?v=20260515r3"></script>
+  <script src="js/mock-data.js?v=20260515r4"></script>
+  <script src="js/mock-state.js?v=20260515r4"></script>
+  <script src="js/mock-ui.js?v=20260515r4"></script>
+  <script src="js/mock-shell.js?v=20260515r4"></script>
+  <script src="js/mock-expiry.js?v=20260515r4"></script>
+  <script src="js/mock-review.js?v=20260515r4"></script>
   <script>
     // -------- Shell --------
     MockShell.mount({
@@ -560,26 +651,28 @@
         MockState.updateArea(q.id, areaId, { name: e.target.value });
       });
 
-      // Buttons
-      card.querySelector(`[data-rm-area="${areaId}"]`).addEventListener('click', () => {
+      // Buttons — area-actions (rm/dup/up/down) are hidden in Quick mode's
+      // single area so use optional chaining to avoid TypeError when missing,
+      // which would skip wiring Add Product / Apply Package below.
+      card.querySelector(`[data-rm-area="${areaId}"]`)?.addEventListener('click', () => {
         MockUI.confirmAction(`Remove area "${nameInput.value}"?`, () => {
           MockState.removeArea(q.id, areaId);
           renderAll();
         });
       });
-      card.querySelector(`[data-dup="${areaId}"]`).addEventListener('click', () => {
+      card.querySelector(`[data-dup="${areaId}"]`)?.addEventListener('click', () => {
         MockState.duplicateArea(q.id, areaId);
         renderAll();
       });
-      card.querySelector(`[data-up="${areaId}"]`).addEventListener('click', () => {
+      card.querySelector(`[data-up="${areaId}"]`)?.addEventListener('click', () => {
         moveArea(areaId, -1);
       });
-      card.querySelector(`[data-down="${areaId}"]`).addEventListener('click', () => {
+      card.querySelector(`[data-down="${areaId}"]`)?.addEventListener('click', () => {
         moveArea(areaId, +1);
       });
-      card.querySelector(`[data-add-line="${areaId}"]`).addEventListener('click', () => openDrawer(areaId));
-      card.querySelector(`[data-add-pkg="${areaId}"]`).addEventListener('click', () => openPkgModal(areaId));
-      card.querySelector(`[data-notes="${areaId}"]`).addEventListener('click', () => {
+      card.querySelector(`[data-add-line="${areaId}"]`)?.addEventListener('click', () => openDrawer(areaId));
+      card.querySelector(`[data-add-pkg="${areaId}"]`)?.addEventListener('click', () => openPkgModal(areaId));
+      card.querySelector(`[data-notes="${areaId}"]`)?.addEventListener('click', () => {
         const cur = MockState.getCurrentQuote().areas.find(a => a.id === areaId);
         const notes = prompt('Internal notes / assumptions for this area (never shown to client):', cur.notes || '');
         if (notes !== null) {
@@ -859,18 +952,69 @@
       });
     }
 
-    document.getElementById('add-service-btn').addEventListener('click', () => {
-      const name = prompt('Service name:');
-      if (!name) return;
-      MockState.addCustomService(MockState.getCurrentQuote().id, name, 'lot', 0, 1);
+    // ---- Add custom service modal ----
+    function openSvcModal() {
+      const m = document.getElementById('svc-modal');
+      document.getElementById('svc-name').value = '';
+      document.getElementById('svc-unit').value = 'lot';
+      document.getElementById('svc-qty').value = 1;
+      document.getElementById('svc-rate').value = 0;
+      document.getElementById('svc-margin').value = 25;
+      m.classList.add('open');
+      setTimeout(() => document.getElementById('svc-name').focus(), 50);
+    }
+    function closeSvcModal() { document.getElementById('svc-modal').classList.remove('open'); }
+    document.getElementById('add-service-btn').addEventListener('click', openSvcModal);
+    document.getElementById('svc-close').addEventListener('click', closeSvcModal);
+    document.getElementById('svc-cancel').addEventListener('click', closeSvcModal);
+    document.getElementById('svc-modal').addEventListener('click', e => { if (e.target.id === 'svc-modal') closeSvcModal(); });
+    document.getElementById('svc-save').addEventListener('click', () => {
+      const name = document.getElementById('svc-name').value.trim();
+      if (!name) { document.getElementById('svc-name').focus(); return; }
+      const unit = document.getElementById('svc-unit').value;
+      const qty  = parseFloat(document.getElementById('svc-qty').value)  || 0;
+      const rate = parseFloat(document.getElementById('svc-rate').value) || 0;
+      const margin = parseFloat(document.getElementById('svc-margin').value) || 0;
+      MockState.addCustomService(MockState.getCurrentQuote().id, name, unit, rate, qty, { marginPct: margin });
+      closeSvcModal();
       renderAll();
     });
-    document.getElementById('add-labour-btn').addEventListener('click', () => {
-      const trade = prompt('Trade (AV Tech / Data Tech / Electrician / PM):', 'AV Tech');
-      if (!trade) return;
-      const note = prompt('Note (optional, e.g. "wiring cleanup"):', '') || '';
-      const rate = MockState.rateForTrade(trade, MockState.getCurrentQuote()) || 145;
-      MockState.addCustomService(MockState.getCurrentQuote().id, trade + (note ? ' — ' + note : ''), 'hr', rate, 1, { isLabour: true, hours: 1, category: 'Labour', marginPct: MockState.getCurrentQuote().labourMarginPct || 0 });
+
+    // ---- Add labour modal ----
+    function openLabModal() {
+      const q = MockState.getCurrentQuote();
+      const m = document.getElementById('lab-modal');
+      document.getElementById('lab-trade').value = 'AV Tech';
+      document.getElementById('lab-hours').value = 1;
+      document.getElementById('lab-note').value = '';
+      document.getElementById('lab-rate').value = MockState.rateForTrade('AV Tech', q) || 145;
+      document.getElementById('lab-margin').value = q.labourMarginPct || 0;
+      m.classList.add('open');
+      setTimeout(() => document.getElementById('lab-hours').focus(), 50);
+    }
+    function closeLabModal() { document.getElementById('lab-modal').classList.remove('open'); }
+    document.getElementById('add-labour-btn').addEventListener('click', openLabModal);
+    document.getElementById('lab-close').addEventListener('click', closeLabModal);
+    document.getElementById('lab-cancel').addEventListener('click', closeLabModal);
+    document.getElementById('lab-modal').addEventListener('click', e => { if (e.target.id === 'lab-modal') closeLabModal(); });
+    // Keep rate in sync when trade changes
+    document.getElementById('lab-trade').addEventListener('change', () => {
+      const q = MockState.getCurrentQuote();
+      document.getElementById('lab-rate').value = MockState.rateForTrade(document.getElementById('lab-trade').value, q) || 145;
+    });
+    document.getElementById('lab-save').addEventListener('click', () => {
+      const trade  = document.getElementById('lab-trade').value;
+      const hours  = parseFloat(document.getElementById('lab-hours').value)  || 0;
+      const note   = document.getElementById('lab-note').value.trim();
+      const rate   = parseFloat(document.getElementById('lab-rate').value)   || 145;
+      const margin = parseFloat(document.getElementById('lab-margin').value) || 0;
+      MockState.addCustomService(
+        MockState.getCurrentQuote().id,
+        trade + (note ? ' — ' + note : ''),
+        'hr', rate, 1,
+        { isLabour: true, hours, category: 'Labour', marginPct: margin }
+      );
+      closeLabModal();
       renderAll();
     });
 
