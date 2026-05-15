@@ -1,0 +1,935 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Files — SKS Quotes (mockup explorations)</title>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Symbols+Outlined" rel="stylesheet">
+  <link rel="stylesheet" href="css/theme.css?v=20260515r16">
+  <link rel="stylesheet" href="css/mockups.css?v=20260515r16">
+  <style>
+    /* ============================================================
+       Variant selector — sits at top of the Files page, lets Mark
+       flip between 3 ways the "scan the supplier folder" UX could work.
+       ============================================================ */
+    .variant-bar {
+      display: flex; gap: 6px; padding: 4px;
+      background: var(--surface-inset); border-radius: var(--radius-md);
+      margin-bottom: 16px; flex-wrap: wrap;
+    }
+    .variant-bar button {
+      background: transparent; border: none; padding: 9px 14px;
+      border-radius: var(--radius-sm); font-family: var(--font-body);
+      font-weight: 500; font-size: 12px; color: var(--text-secondary);
+      cursor: pointer; display: flex; align-items: center; gap: 7px;
+    }
+    .variant-bar button.active {
+      background: var(--surface-white); color: var(--text-primary);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.07);
+    }
+    .variant-bar button .material-symbols-outlined { font-size: 16px; }
+    .variant-tag {
+      display: inline-block; font-size: 10px; font-weight: 700; padding: 2px 6px;
+      border-radius: 4px; background: var(--accent-primary); color: white;
+      text-transform: uppercase; letter-spacing: 0.04em; margin-left: 4px;
+    }
+
+    .variant-intro {
+      padding: 10px 14px; background: var(--status-info-bg);
+      border: 1px solid #c5cdf2; border-radius: var(--radius-md);
+      font-size: 12.5px; color: var(--status-info);
+      margin-bottom: 16px; display: flex; gap: 10px; align-items: flex-start;
+    }
+    .variant-intro .material-symbols-outlined { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
+    .variant-intro b { font-weight: 600; }
+
+    /* ============================================================
+       SHARED — watched-folder banner used by every variant
+       ============================================================ */
+    .wf-banner {
+      background: var(--surface-card); border: 1px solid var(--border);
+      border-radius: var(--radius-lg); padding: 14px 16px;
+      display: grid; grid-template-columns: auto 1fr auto; gap: 14px;
+      align-items: center; margin-bottom: 14px;
+    }
+    .wf-banner .wf-icon {
+      width: 40px; height: 40px; border-radius: 8px;
+      background: linear-gradient(135deg, #5b6cf5 0%, #3a4fd6 100%);
+      color: white; display: flex; align-items: center; justify-content: center;
+    }
+    .wf-banner .wf-icon .material-symbols-outlined { font-size: 22px; }
+    .wf-banner .wf-meta { min-width: 0; }
+    .wf-banner .wf-path {
+      font-family: 'JetBrains Mono', monospace; font-size: 13px;
+      color: var(--text-primary); font-weight: 500;
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+    .wf-banner .wf-status {
+      font-size: 11.5px; color: var(--text-secondary); margin-top: 3px;
+      display: flex; gap: 14px; flex-wrap: wrap;
+    }
+    .wf-banner .wf-status .dot {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: var(--status-success); display: inline-block; margin-right: 5px;
+      box-shadow: 0 0 0 3px rgba(34,180,90,0.18);
+    }
+    .wf-banner .wf-actions { display: flex; gap: 8px; }
+
+    /* ============================================================
+       VARIANT A — Supplier cards
+       Each supplier card shows: matched files in that folder,
+       newest detected with a "set active" suggestion.
+       ============================================================ */
+    .va-stats {
+      display: flex; gap: 18px; padding: 12px 16px;
+      background: var(--surface-inset); border-radius: var(--radius-md);
+      margin-bottom: 14px; flex-wrap: wrap;
+    }
+    .va-stats .s { display: flex; flex-direction: column; gap: 2px; }
+    .va-stats .s .l { font-size: 10px; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
+    .va-stats .s .v { font-family: var(--font-heading); font-weight: 700; font-size: 18px; color: var(--text-primary); }
+    .va-stats .s.warn .v { color: var(--status-warning); }
+
+    .sup-grid {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(420px, 1fr));
+      gap: 12px;
+    }
+    .sup-card {
+      background: var(--surface-card); border: 1px solid var(--border);
+      border-radius: var(--radius-lg); padding: 14px 16px;
+      display: flex; flex-direction: column; gap: 10px;
+    }
+    .sup-card.alert { border-color: var(--status-warning); box-shadow: 0 0 0 3px rgba(245,158,11,0.08); }
+    .sup-card-head { display: flex; align-items: center; gap: 10px; }
+    .sup-card-head .name {
+      font-family: var(--font-heading); font-weight: 700; font-size: 14px;
+      color: var(--text-primary); flex: 1;
+    }
+    .sup-card-head .code {
+      font-family: 'JetBrains Mono', monospace; font-size: 10px;
+      color: var(--text-muted); background: var(--surface-inset);
+      padding: 2px 6px; border-radius: 4px;
+    }
+    .sup-card .match-rule {
+      font-family: 'JetBrains Mono', monospace; font-size: 11px;
+      color: var(--text-muted); padding: 6px 8px;
+      background: var(--surface-inset); border-radius: 4px;
+      display: flex; align-items: center; gap: 6px;
+    }
+    .sup-card .match-rule .material-symbols-outlined { font-size: 13px; }
+
+    .file-row {
+      display: grid; grid-template-columns: auto 1fr auto auto; gap: 10px;
+      padding: 8px 10px; border-radius: 6px; align-items: center;
+      border: 1px solid transparent;
+    }
+    .file-row + .file-row { margin-top: 2px; }
+    .file-row.suggested { background: rgba(91,108,245,0.06); border-color: rgba(91,108,245,0.25); }
+    .file-row.active    { background: rgba(34,180,90,0.06); }
+    .file-row .ficon { color: var(--text-muted); }
+    .file-row .ficon .material-symbols-outlined { font-size: 17px; }
+    .file-row .fname {
+      font-family: 'JetBrains Mono', monospace; font-size: 12px;
+      color: var(--text-primary); font-weight: 500;
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+    .file-row .fmeta { font-size: 10.5px; color: var(--text-muted); margin-top: 2px; }
+    .file-row .pill {
+      font-size: 9.5px; font-weight: 700; padding: 2px 7px; border-radius: 10px;
+      text-transform: uppercase; letter-spacing: 0.04em;
+    }
+    .pill.active  { background: var(--status-success-bg); color: var(--status-success); }
+    .pill.newest  { background: rgba(91,108,245,0.12);    color: var(--accent-primary); }
+    .pill.older   { background: var(--surface-inset);     color: var(--text-muted); }
+    .pill.dupe    { background: #fef0c7;                  color: #b45309; }
+    .file-row .row-act button {
+      background: var(--accent-primary); color: white;
+      border: none; padding: 5px 11px; border-radius: 5px;
+      font-size: 11px; font-family: var(--font-body); cursor: pointer; font-weight: 500;
+    }
+    .file-row .row-act button.ghost {
+      background: transparent; color: var(--text-secondary);
+      border: 1px solid var(--border-input);
+    }
+    .file-row .row-act button:hover { filter: brightness(0.95); }
+
+    .sup-card .auto-pick {
+      margin-top: 6px; padding: 8px 10px;
+      background: rgba(91,108,245,0.06); border-left: 3px solid var(--accent-primary);
+      border-radius: 4px; font-size: 11.5px; color: var(--text-primary);
+      display: flex; align-items: center; gap: 8px;
+    }
+    .sup-card .auto-pick .material-symbols-outlined { color: var(--accent-primary); font-size: 16px; }
+    .sup-card .auto-pick b { font-weight: 600; }
+
+    .unmatched {
+      margin-top: 18px; padding: 14px 16px;
+      background: #fffaf0; border: 1px dashed var(--status-warning);
+      border-radius: var(--radius-lg);
+    }
+    .unmatched h4 {
+      font-family: var(--font-heading); font-weight: 600; font-size: 13px;
+      color: var(--status-warning); display: flex; align-items: center; gap: 6px;
+      margin-bottom: 8px;
+    }
+    .unmatched .um-row {
+      display: grid; grid-template-columns: auto 1fr auto auto; gap: 10px;
+      padding: 7px 8px; background: var(--surface-white);
+      border: 1px solid var(--border-light); border-radius: 5px;
+      align-items: center; margin-bottom: 5px;
+    }
+    .unmatched .um-row select {
+      font-size: 11px; padding: 4px 8px; border: 1px solid var(--border-input);
+      border-radius: 4px; background: white;
+    }
+
+    /* ============================================================
+       VARIANT B — Two-pane File Explorer
+       Left: folder tree mirroring the scanned dir.
+       Right: file detail / parse preview / actions.
+       ============================================================ */
+    .vb-grid {
+      display: grid; grid-template-columns: 300px 1fr; gap: 12px;
+      align-items: stretch;
+    }
+    @media (max-width: 800px) { .vb-grid { grid-template-columns: 1fr; } }
+
+    .vb-tree {
+      background: var(--surface-card); border: 1px solid var(--border);
+      border-radius: var(--radius-lg); padding: 8px; overflow: hidden;
+      max-height: 720px; overflow-y: auto;
+    }
+    .vb-tree .crumb {
+      font-family: 'JetBrains Mono', monospace; font-size: 10.5px;
+      color: var(--text-muted); padding: 6px 8px;
+      border-bottom: 1px solid var(--border-light); margin-bottom: 4px;
+    }
+    .tree-node {
+      padding: 5px 6px; font-size: 12.5px; cursor: pointer; border-radius: 4px;
+      display: flex; align-items: center; gap: 5px;
+    }
+    .tree-node:hover { background: var(--surface-inset); }
+    .tree-node.selected { background: var(--accent-primary); color: white; }
+    .tree-node.selected .material-symbols-outlined { color: white; }
+    .tree-node .material-symbols-outlined { font-size: 15px; color: var(--text-muted); flex-shrink: 0; }
+    .tree-node .label {
+      flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+      font-family: 'JetBrains Mono', monospace; font-size: 11.5px;
+    }
+    .tree-node .badge {
+      font-size: 9px; padding: 1px 5px; border-radius: 8px;
+      background: var(--accent-primary); color: white; font-weight: 700;
+    }
+    .tree-node.selected .badge { background: white; color: var(--accent-primary); }
+    .tree-children { padding-left: 16px; border-left: 1px dashed var(--border-light); margin-left: 7px; }
+
+    .vb-detail {
+      background: var(--surface-card); border: 1px solid var(--border);
+      border-radius: var(--radius-lg); padding: 16px 18px;
+      display: flex; flex-direction: column; gap: 14px; min-height: 500px;
+    }
+    .vb-detail .file-head {
+      display: flex; align-items: flex-start; gap: 12px;
+      padding-bottom: 12px; border-bottom: 1px solid var(--border-light);
+    }
+    .vb-detail .file-head .ficon-big {
+      width: 44px; height: 44px; border-radius: 8px;
+      background: var(--surface-inset); display: flex; align-items: center; justify-content: center;
+    }
+    .vb-detail .file-head .ficon-big .material-symbols-outlined { font-size: 24px; color: var(--accent-primary); }
+    .vb-detail .file-head h3 {
+      font-family: var(--font-heading); font-weight: 700; font-size: 16px; color: var(--text-primary);
+      margin-bottom: 2px; word-break: break-all;
+    }
+    .vb-detail .file-head .sub {
+      font-size: 11.5px; color: var(--text-muted);
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .vb-meta-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px;
+      padding: 10px 0;
+    }
+    .vb-meta-grid .m .l { font-size: 9.5px; color: var(--text-muted); font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; }
+    .vb-meta-grid .m .v { font-size: 13px; color: var(--text-primary); font-weight: 500; margin-top: 3px; }
+    .vb-meta-grid .m .v.mono { font-family: 'JetBrains Mono', monospace; font-size: 11.5px; }
+
+    .vb-detect {
+      padding: 12px 14px; background: var(--surface-inset); border-radius: var(--radius-md);
+    }
+    .vb-detect h4 {
+      font-family: var(--font-heading); font-weight: 600; font-size: 12px;
+      color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.04em;
+      margin-bottom: 8px; display: flex; align-items: center; gap: 6px;
+    }
+    .vb-detect h4 .material-symbols-outlined { font-size: 14px; color: var(--accent-primary); }
+    .vb-detect .matched {
+      display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: center;
+      padding: 8px 10px; background: var(--surface-white); border-radius: 5px;
+      border: 1px solid var(--border-light); margin-bottom: 4px;
+    }
+    .vb-detect .matched .info { font-size: 12px; }
+    .vb-detect .matched .info b { font-weight: 600; }
+    .vb-detect .matched .conf {
+      font-family: 'JetBrains Mono', monospace; font-size: 10.5px;
+      padding: 3px 7px; border-radius: 4px;
+      background: var(--status-success-bg); color: var(--status-success); font-weight: 600;
+    }
+
+    .vb-preview {
+      border: 1px solid var(--border); border-radius: var(--radius-md);
+      overflow: hidden;
+    }
+    .vb-preview .head { padding: 8px 12px; background: var(--surface-inset); font-size: 11px; color: var(--text-secondary); font-weight: 600; border-bottom: 1px solid var(--border); }
+    .vb-preview table { width: 100%; border-collapse: collapse; font-size: 11.5px; }
+    .vb-preview th, .vb-preview td { padding: 7px 10px; text-align: left; border-bottom: 1px solid var(--border-light); }
+    .vb-preview th { background: white; font-size: 10px; text-transform: uppercase; color: var(--text-muted); letter-spacing: 0.04em; }
+    .vb-preview tr:nth-child(even) td { background: rgba(0,0,0,0.015); }
+
+    .vb-actions {
+      display: flex; gap: 8px; padding-top: 6px;
+      border-top: 1px solid var(--border-light); margin-top: 4px;
+    }
+
+    /* ============================================================
+       VARIANT C — Scan inbox / triage
+       Workflow-driven: scan returns "events" you accept/reject/ignore.
+       ============================================================ */
+    .vc-grid {
+      display: grid; grid-template-columns: 1fr 280px; gap: 12px;
+      align-items: flex-start;
+    }
+    @media (max-width: 900px) { .vc-grid { grid-template-columns: 1fr; } }
+
+    .triage-filter {
+      display: flex; gap: 4px; padding: 4px;
+      background: var(--surface-inset); border-radius: 6px; margin-bottom: 12px; flex-wrap: wrap;
+    }
+    .triage-filter button {
+      background: transparent; border: none; padding: 6px 11px;
+      font-size: 11.5px; color: var(--text-secondary); cursor: pointer;
+      border-radius: 4px; font-family: var(--font-body);
+      display: flex; align-items: center; gap: 5px;
+    }
+    .triage-filter button.active { background: var(--surface-white); color: var(--text-primary); font-weight: 600; }
+    .triage-filter button .count {
+      font-size: 10px; background: var(--accent-primary); color: white;
+      padding: 1px 6px; border-radius: 8px; font-weight: 700;
+    }
+    .triage-filter button.active .count { background: var(--accent-primary); }
+
+    .event-card {
+      background: var(--surface-card); border: 1px solid var(--border);
+      border-radius: var(--radius-lg); padding: 14px 16px; margin-bottom: 10px;
+      display: grid; grid-template-columns: auto 1fr; gap: 14px;
+    }
+    .event-card.severity-info  { border-left: 4px solid var(--accent-primary); }
+    .event-card.severity-warn  { border-left: 4px solid var(--status-warning); }
+    .event-card.severity-error { border-left: 4px solid var(--status-danger); }
+    .event-card.severity-ok    { border-left: 4px solid var(--status-success); }
+
+    .event-card .ev-icon {
+      width: 36px; height: 36px; border-radius: 8px;
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    }
+    .event-card.severity-info  .ev-icon { background: rgba(91,108,245,0.12); color: var(--accent-primary); }
+    .event-card.severity-warn  .ev-icon { background: #fef0c7; color: #b45309; }
+    .event-card.severity-error .ev-icon { background: #fee2e2; color: #b91c1c; }
+    .event-card.severity-ok    .ev-icon { background: var(--status-success-bg); color: var(--status-success); }
+
+    .event-card .ev-body { min-width: 0; }
+    .event-card .ev-title { font-family: var(--font-heading); font-weight: 600; font-size: 14px; color: var(--text-primary); }
+    .event-card .ev-sub   { font-size: 12px; color: var(--text-secondary); margin-top: 3px; }
+    .event-card .ev-filename {
+      font-family: 'JetBrains Mono', monospace; font-size: 12px;
+      background: var(--surface-inset); padding: 2px 6px; border-radius: 4px;
+      color: var(--text-primary);
+    }
+
+    .event-card .ev-diff {
+      display: flex; gap: 14px; margin-top: 8px; flex-wrap: wrap; font-size: 11.5px;
+    }
+    .event-card .ev-diff .d { display: flex; align-items: center; gap: 4px; }
+    .event-card .ev-diff .d.add { color: var(--status-success); }
+    .event-card .ev-diff .d.upd { color: var(--accent-primary); }
+    .event-card .ev-diff .d.rm  { color: var(--status-danger); }
+    .event-card .ev-diff .d b { font-family: 'JetBrains Mono', monospace; font-weight: 700; }
+
+    .event-card .ev-versus {
+      margin-top: 10px; padding: 8px 10px; background: var(--surface-inset); border-radius: 5px;
+      font-size: 11.5px; color: var(--text-secondary);
+      display: grid; grid-template-columns: auto 1fr auto 1fr; gap: 10px; align-items: center;
+    }
+    .event-card .ev-versus .vlabel { font-size: 9.5px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; }
+    .event-card .ev-versus .vfile { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text-primary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .event-card .ev-versus .arr { color: var(--text-muted); }
+
+    .event-card .ev-actions { display: flex; gap: 6px; margin-top: 10px; flex-wrap: wrap; }
+    .event-card .ev-actions button {
+      font-family: var(--font-body); font-size: 11.5px; padding: 6px 12px;
+      border-radius: 5px; cursor: pointer; border: none; font-weight: 500;
+      display: flex; align-items: center; gap: 5px;
+    }
+    .event-card .ev-actions button .material-symbols-outlined { font-size: 14px; }
+    .ev-actions .primary { background: var(--accent-primary); color: white; }
+    .ev-actions .secondary { background: var(--surface-inset); color: var(--text-primary); }
+    .ev-actions .ghost { background: transparent; color: var(--text-secondary); border: 1px solid var(--border-input); }
+    .ev-actions .danger { background: transparent; color: var(--status-danger); border: 1px solid var(--status-danger); }
+
+    .rules-panel {
+      background: var(--surface-card); border: 1px solid var(--border);
+      border-radius: var(--radius-lg); padding: 14px 16px;
+    }
+    .rules-panel h4 {
+      font-family: var(--font-heading); font-weight: 600; font-size: 12px;
+      color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.04em;
+      margin-bottom: 10px;
+    }
+    .rule-row {
+      padding: 8px 0; border-bottom: 1px solid var(--border-light);
+      font-size: 12px;
+    }
+    .rule-row:last-child { border-bottom: none; }
+    .rule-row .sup { font-weight: 600; color: var(--text-primary); }
+    .rule-row .pat {
+      font-family: 'JetBrains Mono', monospace; font-size: 10.5px;
+      color: var(--text-muted); margin-top: 3px; display: block;
+    }
+    .rules-panel .add-link { font-size: 11px; color: var(--accent-primary); cursor: pointer; margin-top: 6px; display: inline-block; }
+
+    /* shared empty state */
+    .empty-hint {
+      padding: 22px; text-align: center; color: var(--text-muted);
+      font-size: 12.5px; font-style: italic;
+    }
+  </style>
+</head>
+<body data-page="admin-files">
+  <main id="content" class="content">
+
+    <!-- Variant selector -->
+    <div class="variant-bar" id="variant-bar">
+      <button data-variant="A" class="active">
+        <span class="material-symbols-outlined">grid_view</span>
+        Variant A — Supplier cards
+        <span class="variant-tag">visual</span>
+      </button>
+      <button data-variant="B">
+        <span class="material-symbols-outlined">account_tree</span>
+        Variant B — File explorer
+        <span class="variant-tag">familiar</span>
+      </button>
+      <button data-variant="C">
+        <span class="material-symbols-outlined">inbox</span>
+        Variant C — Scan inbox
+        <span class="variant-tag">workflow</span>
+      </button>
+    </div>
+
+    <div class="variant-intro" id="variant-intro">
+      <span class="material-symbols-outlined">info</span>
+      <div id="variant-intro-text"></div>
+    </div>
+
+    <!-- Shared "watched folder" banner -->
+    <div class="wf-banner">
+      <div class="wf-icon"><span class="material-symbols-outlined">folder_managed</span></div>
+      <div class="wf-meta">
+        <div class="wf-path" title="C:\Users\Mark\OneDrive - SKS\Supplier Price Lists">C:\Users\Mark\OneDrive - SKS\Supplier Price Lists</div>
+        <div class="wf-status">
+          <span><span class="dot"></span> Watcher online · Mark's PC</span>
+          <span><span class="material-symbols-outlined" style="font-size:13px;vertical-align:-2px;">schedule</span> Last scanned 4 min ago</span>
+          <span><span class="material-symbols-outlined" style="font-size:13px;vertical-align:-2px;">description</span> 47 files indexed · 4 suppliers</span>
+        </div>
+      </div>
+      <div class="wf-actions">
+        <button class="btn btn-secondary btn-sm" id="settings-btn"><span class="material-symbols-outlined">settings</span> Folders &amp; rules</button>
+        <button class="btn btn-primary btn-sm" id="rescan-btn"><span class="material-symbols-outlined">refresh</span> Scan now</button>
+      </div>
+    </div>
+
+    <!-- Variant slot -->
+    <div id="variant-host"></div>
+
+  </main>
+
+  <script src="js/mock-data.js?v=20260515r16"></script>
+  <script src="js/mock-state.js?v=20260515r16"></script>
+  <script src="js/mock-ui.js?v=20260515r16"></script>
+  <script src="js/mock-shell.js?v=20260515r16"></script>
+  <script src="js/mock-expiry.js?v=20260515r16"></script>
+  <script src="../_shared/review-tools/mock-review.js?v=20260515r16"></script>
+  <script>
+    MockShell.mount({
+      title: 'Files — Supplier sheets',
+      subtitle: 'Folder watcher · auto-pick newest revision · turn into product updates',
+      actionsHtml: `<a class="btn btn-secondary" href="07-admin.html"><span class="material-symbols-outlined">arrow_back</span> Back to admin</a>`
+    });
+
+    // ============================================================
+    // Seed: pretend the scanner walked C:\...\Supplier Price Lists
+    // and found these files across per-supplier subfolders.
+    // Richer than MockData.priceSheetHistory because we need ambiguous
+    // cases (duplicate names, near-duplicate dates) to illustrate
+    // the "figure out the newest one" problem.
+    // ============================================================
+    const today = '2026-05-15';
+    const scan = {
+      folder: 'C:\\Users\\Mark\\OneDrive - SKS\\Supplier Price Lists',
+      lastScannedAt: today + 'T10:42:00',
+      suppliers: [
+        {
+          id: 'sup_rutledge',
+          name: 'Rutledge AV',
+          code: 'RUTL',
+          subfolder: 'Rutledge\\Crestron',
+          rule: '*crestron*.xlsx  ·  date from filename → fallback file mtime',
+          files: [
+            // Two competing May files: one v2 retitled, one original.
+            // System should pick the newer (v2, June supersedes).
+            { name: 'rutledge_crestron_pricelist_v2_june.xlsx', mtime: '2026-06-03 09:14', size: '412 KB', detectedDate: '2026-06-03', state: 'newest_detected', conf: 0.92, isActive: false },
+            { name: 'rutledge-crestron-jun-2026.xlsx',          mtime: '2026-06-01 16:02', size: '408 KB', detectedDate: '2026-06-01', state: 'dupe_older', conf: 0.88, isActive: false, dupeOf: 'rutledge_crestron_pricelist_v2_june.xlsx' },
+            { name: 'rutledge-crestron-may-2026.xlsx',          mtime: '2026-05-02 11:20', size: '405 KB', detectedDate: '2026-05-02', state: 'older', conf: 0.95, isActive: true  },
+            { name: 'rutledge-atlona-feb-2026.xlsx',            mtime: '2026-02-21 09:00', size: '88 KB',  detectedDate: '2026-02-21', state: 'older', conf: 0.95, isActive: false, category: 'Atlona' },
+            { name: 'rutledge-crestron-jan-2026.xlsx',          mtime: '2026-01-10 14:33', size: '380 KB', detectedDate: '2026-01-10', state: 'archived', conf: 0.95, isActive: false }
+          ]
+        },
+        {
+          id: 'sup_amber',
+          name: 'Amber Technology',
+          code: 'AMBER',
+          subfolder: 'Amber\\Trade Lists',
+          rule: 'amber-tradelist-q*.xlsx  ·  quarter → date',
+          files: [
+            { name: 'amber-tradelist-q2-2026.xlsx', mtime: '2026-05-08 08:12', size: '1.4 MB', detectedDate: '2026-05-08', state: 'active', conf: 0.99, isActive: true },
+            { name: 'amber-tradelist-q1-2026.xlsx', mtime: '2026-02-14 10:00', size: '1.3 MB', detectedDate: '2026-02-14', state: 'older', conf: 0.99, isActive: false },
+            { name: 'amber-tradelist-q4-2025.xlsx', mtime: '2025-11-02 12:00', size: '1.2 MB', detectedDate: '2025-11-02', state: 'archived', conf: 0.99, isActive: false },
+            { name: 'amber-tradelist-q3-2025.xlsx', mtime: '2025-08-19 09:00', size: '1.1 MB', detectedDate: '2025-08-19', state: 'archived', conf: 0.99, isActive: false }
+          ]
+        },
+        {
+          id: 'sup_madison',
+          name: 'Madison Technologies',
+          code: 'MAD',
+          subfolder: 'Madison',
+          rule: 'madison*.xlsx  ·  month + year from filename',
+          files: [
+            // Corrected version landed a week after main release — exact same name (suffix _CORRECTED)
+            { name: 'madison-samsung-may-2026_CORRECTED.xlsx', mtime: '2026-05-19 13:50', size: '512 KB', detectedDate: '2026-05-19', state: 'newest_detected', conf: 0.85, isActive: false },
+            { name: 'madison-samsung-may-2026.xlsx',           mtime: '2026-05-12 08:00', size: '510 KB', detectedDate: '2026-05-12', state: 'active', conf: 0.95, isActive: true },
+            { name: 'madison-samsung-feb-2026.xlsx',           mtime: '2026-02-09 08:00', size: '490 KB', detectedDate: '2026-02-09', state: 'older', conf: 0.95, isActive: false }
+          ]
+        },
+        {
+          id: 'sup_hills',
+          name: 'Hills',
+          code: 'HILLS',
+          subfolder: 'Hills',
+          rule: 'hills-pricelist-*.csv  ·  month from filename',
+          files: [
+            { name: 'hills-pricelist-apr-2026.csv', mtime: '2026-04-04 10:11', size: '220 KB', detectedDate: '2026-04-04', state: 'active', conf: 0.95, isActive: true },
+            { name: 'hills-pricelist-jan-2026.csv', mtime: '2026-01-12 09:00', size: '210 KB', detectedDate: '2026-01-12', state: 'older', conf: 0.95, isActive: false }
+          ]
+        }
+      ],
+      // Files in the watched folder that didn't match any rule.
+      unmatched: [
+        { name: 'CRES_quarterly_distribution_pricing_JUNE2026.xlsx', folder: 'Inbox', mtime: '2026-06-04 10:02', size: '1.1 MB', suggestedSupplierId: 'sup_rutledge', confidence: 0.62 },
+        { name: 'price_update_yamaha_audio.csv',                     folder: 'Inbox', mtime: '2026-05-21 14:20', size: '78 KB',  suggestedSupplierId: 'sup_amber',    confidence: 0.55 },
+        { name: 'NOTES — Steven Carmichael.txt',                     folder: '',      mtime: '2026-03-09 16:00', size: '4 KB',   suggestedSupplierId: null,           confidence: 0    }
+      ]
+    };
+
+    // Events for the inbox variant — derived from scan but with workflow framing
+    const events = [
+      {
+        id: 'e1', severity: 'info',
+        icon: 'new_releases', title: 'New version detected — Rutledge AV (Crestron)',
+        sub: 'A file newer than the current Active was just dropped in the watched folder.',
+        filename: 'rutledge_crestron_pricelist_v2_june.xlsx',
+        detectedDate: '2026-06-03',
+        versus: { from: 'rutledge-crestron-may-2026.xlsx', to: 'rutledge_crestron_pricelist_v2_june.xlsx' },
+        diff: { add: 7, upd: 64, rm: 1 },
+        actions: ['accept', 'preview', 'ignore']
+      },
+      {
+        id: 'e2', severity: 'warn',
+        icon: 'difference', title: 'Likely duplicate — two files for the same release',
+        sub: 'Both look like the June Crestron sheet (v2 is 1 day newer and slightly larger). Pick which to keep.',
+        filename: 'rutledge-crestron-jun-2026.xlsx',
+        detectedDate: '2026-06-01',
+        versus: { from: 'rutledge-crestron-jun-2026.xlsx', to: 'rutledge_crestron_pricelist_v2_june.xlsx' },
+        diff: { add: 0, upd: 3, rm: 0 },
+        actions: ['keepBoth', 'archiveOlder', 'ignore']
+      },
+      {
+        id: 'e3', severity: 'warn',
+        icon: 'edit_note', title: 'Corrected version posted — Madison (Samsung)',
+        sub: 'Filename ends with _CORRECTED. Replace the active May sheet with this one?',
+        filename: 'madison-samsung-may-2026_CORRECTED.xlsx',
+        detectedDate: '2026-05-19',
+        versus: { from: 'madison-samsung-may-2026.xlsx', to: 'madison-samsung-may-2026_CORRECTED.xlsx' },
+        diff: { add: 1, upd: 12, rm: 0 },
+        actions: ['accept', 'preview', 'ignore']
+      },
+      {
+        id: 'e4', severity: 'error',
+        icon: 'help', title: 'Unknown supplier — needs mapping',
+        sub: 'Found in the watched folder but no rule matched. Best guess based on contents: Rutledge AV (62%).',
+        filename: 'CRES_quarterly_distribution_pricing_JUNE2026.xlsx',
+        detectedDate: '2026-06-04',
+        versus: null,
+        diff: null,
+        actions: ['mapSupplier', 'addRule', 'ignore']
+      },
+      {
+        id: 'e5', severity: 'ok',
+        icon: 'check_circle', title: 'Already imported — Amber Q2 trade list',
+        sub: 'No change since last scan. This is the current Active version.',
+        filename: 'amber-tradelist-q2-2026.xlsx',
+        detectedDate: '2026-05-08',
+        versus: null,
+        diff: null,
+        actions: ['preview']
+      }
+    ];
+
+    // ============================================================
+    // Variant intro copy
+    // ============================================================
+    const intros = {
+      A: `<b>Supplier cards.</b> One card per supplier — shows every file the scanner found in that folder, newest at the top, with the active version pinned. When a newer file appears, a blue "auto-pick" suggestion appears so one click promotes it.`,
+      B: `<b>File explorer.</b> Looks like Windows Explorer — left pane is the actual folder tree as scanned, right pane shows what we extracted from the selected file. Closer to how Mark already browses these on the PC; less opinionated about which file is "right".`,
+      C: `<b>Scan inbox.</b> Workflow-driven — every scan produces a list of "events" (new version, suspected duplicate, unknown supplier, corrected sheet). Triage like an inbox: accept, ignore, or fix a rule. Closest to how email rules work.`
+    };
+
+    // ============================================================
+    // Renderers
+    // ============================================================
+    function fmtAgo(iso) {
+      try {
+        const t = new Date(iso.replace(' ', 'T'));
+        const days = Math.round((new Date(today + 'T00:00:00') - t) / 86400000);
+        if (days < 0) return 'today';
+        if (days === 0) return 'today';
+        if (days === 1) return 'yesterday';
+        if (days < 30) return days + 'd ago';
+        if (days < 365) return Math.round(days / 30) + 'mo ago';
+        return Math.round(days / 365) + 'y ago';
+      } catch (e) { return iso; }
+    }
+
+    function pillFor(state) {
+      switch (state) {
+        case 'active':           return '<span class="pill active">Active</span>';
+        case 'newest_detected':  return '<span class="pill newest">Newest detected</span>';
+        case 'dupe_older':       return '<span class="pill dupe">Likely duplicate</span>';
+        case 'older':            return '<span class="pill older">Older</span>';
+        case 'archived':         return '<span class="pill older">Archived</span>';
+        default: return '';
+      }
+    }
+
+    // ---------- Variant A ----------
+    function renderVariantA() {
+      const totalFiles = scan.suppliers.reduce((a, s) => a + s.files.length, 0) + scan.unmatched.length;
+      const newest = scan.suppliers.reduce((a, s) => a + s.files.filter(f => f.state === 'newest_detected').length, 0);
+      const dupes  = scan.suppliers.reduce((a, s) => a + s.files.filter(f => f.state === 'dupe_older').length, 0);
+
+      const cards = scan.suppliers.map(sup => {
+        const activeFile  = sup.files.find(f => f.isActive);
+        const newestFile  = sup.files.find(f => f.state === 'newest_detected');
+        const alert = !!newestFile;
+        const rows = sup.files.map(f => `
+          <div class="file-row ${f.state === 'newest_detected' ? 'suggested' : ''} ${f.isActive ? 'active' : ''}">
+            <div class="ficon"><span class="material-symbols-outlined">${f.name.endsWith('.csv') ? 'csv' : 'table_chart'}</span></div>
+            <div>
+              <div class="fname" title="${f.name}">${f.name}</div>
+              <div class="fmeta">${f.size} · modified ${fmtAgo(f.mtime)} · detected date ${f.detectedDate}${f.dupeOf ? ' · likely same release as <b>'+f.dupeOf+'</b>' : ''}</div>
+            </div>
+            <div>${pillFor(f.state)}</div>
+            <div class="row-act">
+              ${f.isActive ? '' : (f.state === 'newest_detected'
+                  ? `<button data-act="set-active" data-file="${f.name}">Set as active</button>`
+                  : `<button class="ghost" data-act="set-active" data-file="${f.name}">Make active</button>`)}
+            </div>
+          </div>
+        `).join('');
+
+        const autoPickBlock = newestFile ? `
+          <div class="auto-pick">
+            <span class="material-symbols-outlined">auto_awesome</span>
+            <div>
+              Newer file detected — <b>${newestFile.name}</b> (${newestFile.detectedDate}) supersedes the current Active.
+              <button class="btn-link" style="background:none;border:none;color:var(--accent-primary);font-weight:600;cursor:pointer;font-size:11.5px;padding:0 0 0 6px;" data-act="set-active" data-file="${newestFile.name}">Promote →</button>
+            </div>
+          </div>` : '';
+
+        return `
+          <div class="sup-card ${alert ? 'alert' : ''}">
+            <div class="sup-card-head">
+              <div class="name">${sup.name}</div>
+              <div class="code">${sup.code}</div>
+            </div>
+            <div class="match-rule"><span class="material-symbols-outlined">folder_open</span>${sup.subfolder}\\&nbsp;&nbsp;<span style="opacity:.5">·</span>&nbsp;&nbsp;${sup.rule}</div>
+            <div>${rows}</div>
+            ${autoPickBlock}
+          </div>
+        `;
+      }).join('');
+
+      const unmatched = scan.unmatched.length === 0 ? '' : `
+        <div class="unmatched">
+          <h4><span class="material-symbols-outlined">help</span> Unmatched files (${scan.unmatched.length})</h4>
+          <div style="font-size:11.5px;color:var(--text-secondary);margin-bottom:8px;">Found in the watched folder but no supplier rule matched. Assign one to import, or add a rule so future scans pick it up automatically.</div>
+          ${scan.unmatched.map(u => {
+            const sup = MockData.supplierById(u.suggestedSupplierId);
+            return `
+              <div class="um-row">
+                <div><span class="material-symbols-outlined" style="color:var(--text-muted);font-size:17px;vertical-align:-3px;">draft</span></div>
+                <div>
+                  <div class="fname" style="font-family:'JetBrains Mono',monospace;font-size:12px;">${u.name}</div>
+                  <div class="fmeta" style="font-size:10.5px;color:var(--text-muted);">${u.folder ? u.folder + '\\' : ''} · ${u.size} · ${fmtAgo(u.mtime)}${u.confidence ? ` · suggested: <b>${sup?.name || '?'}</b> (${Math.round(u.confidence*100)}%)` : ''}</div>
+                </div>
+                <select>
+                  <option>— Assign supplier —</option>
+                  ${MockData.suppliers.map(s => `<option ${s.id===u.suggestedSupplierId?'selected':''}>${s.name}</option>`).join('')}
+                </select>
+                <button class="btn btn-secondary btn-sm">Import</button>
+              </div>`;
+          }).join('')}
+        </div>`;
+
+      return `
+        <div class="va-stats">
+          <div class="s"><span class="l">Indexed</span><span class="v">${totalFiles}</span></div>
+          <div class="s"><span class="l">Suppliers covered</span><span class="v">${scan.suppliers.length}</span></div>
+          <div class="s ${newest > 0 ? 'warn' : ''}"><span class="l">Newer than active</span><span class="v">${newest}</span></div>
+          <div class="s ${dupes > 0 ? 'warn' : ''}"><span class="l">Suspected duplicates</span><span class="v">${dupes}</span></div>
+          <div class="s ${scan.unmatched.length > 0 ? 'warn' : ''}"><span class="l">Unmatched</span><span class="v">${scan.unmatched.length}</span></div>
+        </div>
+        <div class="sup-grid">${cards}</div>
+        ${unmatched}
+      `;
+    }
+
+    // ---------- Variant B ----------
+    function renderVariantB() {
+      // Build tree from scan
+      const treeHtml = scan.suppliers.map(sup => {
+        const fileNodes = sup.files.map(f => `
+          <div class="tree-node ${(sup.id === 'sup_rutledge' && f.name === 'rutledge_crestron_pricelist_v2_june.xlsx') ? 'selected' : ''}"
+               data-supplier="${sup.id}" data-file="${f.name}">
+            <span class="material-symbols-outlined">${f.name.endsWith('.csv') ? 'csv' : 'description'}</span>
+            <span class="label">${f.name}</span>
+            ${f.isActive ? '<span class="badge">A</span>' : ''}
+          </div>`).join('');
+        return `
+          <div class="tree-node" data-folder="${sup.subfolder}">
+            <span class="material-symbols-outlined">folder</span>
+            <span class="label" style="font-weight:600;color:var(--text-primary);">${sup.subfolder.split('\\').slice(-1)[0]}</span>
+            <span class="badge" style="background:var(--text-muted);">${sup.files.length}</span>
+          </div>
+          <div class="tree-children">${fileNodes}</div>
+        `;
+      }).join('');
+
+      const unmatchedTree = `
+        <div class="tree-node" data-folder="Inbox">
+          <span class="material-symbols-outlined" style="color:var(--status-warning);">folder_off</span>
+          <span class="label" style="font-weight:600;color:var(--status-warning);">Inbox (unmatched)</span>
+          <span class="badge" style="background:var(--status-warning);">${scan.unmatched.length}</span>
+        </div>
+        <div class="tree-children">
+          ${scan.unmatched.map(u => `
+            <div class="tree-node" data-unmatched="${u.name}">
+              <span class="material-symbols-outlined">help</span>
+              <span class="label" style="color:var(--text-muted);">${u.name}</span>
+            </div>`).join('')}
+        </div>`;
+
+      // Default-selected file detail (rutledge v2)
+      const sel = scan.suppliers.find(s => s.id === 'sup_rutledge');
+      const selFile = sel.files.find(f => f.name === 'rutledge_crestron_pricelist_v2_june.xlsx');
+      const currentActive = sel.files.find(f => f.isActive);
+
+      const detailHtml = `
+        <div class="file-head">
+          <div class="ficon-big"><span class="material-symbols-outlined">table_chart</span></div>
+          <div style="flex:1;">
+            <h3>${selFile.name}</h3>
+            <div class="sub">${scan.folder}\\${sel.subfolder}\\${selFile.name}</div>
+            <div style="margin-top:6px;display:flex;gap:6px;flex-wrap:wrap;">
+              ${pillFor(selFile.state)}
+              <span class="pill older" style="background:rgba(91,108,245,0.10);color:var(--accent-primary);">Crestron range</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="vb-meta-grid">
+          <div class="m"><div class="l">Size</div><div class="v">${selFile.size}</div></div>
+          <div class="m"><div class="l">File mtime</div><div class="v">${selFile.mtime}</div></div>
+          <div class="m"><div class="l">Detected date</div><div class="v">${selFile.detectedDate}</div></div>
+          <div class="m"><div class="l">Rows (preview)</div><div class="v">1,284</div></div>
+        </div>
+
+        <div class="vb-detect">
+          <h4><span class="material-symbols-outlined">smart_toy</span> Auto-detected from filename + contents</h4>
+          <div class="matched">
+            <div class="info">Supplier: <b>Rutledge AV</b> · Range: <b>Crestron</b> · Sheet date: <b>${selFile.detectedDate}</b></div>
+            <div class="conf">${Math.round(selFile.conf*100)}% confidence</div>
+          </div>
+          <div style="font-size:11.5px;color:var(--text-secondary);">
+            <span class="material-symbols-outlined" style="font-size:13px;vertical-align:-2px;color:var(--accent-primary);">arrow_forward</span>
+            <b>Newer than current Active</b> (${currentActive.name}, ${currentActive.detectedDate}). Promoting will refresh 64 product cost prices, add 7 new SKUs, archive 1 discontinued SKU.
+          </div>
+        </div>
+
+        <div class="vb-preview">
+          <div class="head">Column mapping preview · first 4 rows</div>
+          <table>
+            <thead><tr><th>Manufacturer</th><th>MPN</th><th>Description</th><th>Trade cost</th><th>RRP</th></tr></thead>
+            <tbody>
+              <tr><td>Crestron</td><td>CP4N-R</td><td>4-Series Network Control System</td><td>$2,740.00</td><td>$3,990.00</td></tr>
+              <tr><td>Crestron</td><td>TS-1070-B-S</td><td>10.1" Tabletop Touch Screen, black</td><td>$2,420.00</td><td>$3,590.00</td></tr>
+              <tr><td>Crestron</td><td>HD-MD-NVX-21-E</td><td>NVX 4K AV-over-IP encoder/decoder</td><td>$2,510.00</td><td>$3,690.00</td></tr>
+              <tr><td>Crestron</td><td>TSW-1070-B-S</td><td>10.1" wall-mount touch screen (NEW)</td><td>$2,180.00</td><td>$3,290.00</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="vb-actions">
+          <button class="btn btn-primary"><span class="material-symbols-outlined">verified</span> Make active &amp; import</button>
+          <button class="btn btn-secondary"><span class="material-symbols-outlined">difference</span> Diff against current active</button>
+          <button class="btn btn-secondary"><span class="material-symbols-outlined">visibility</span> Open in Excel</button>
+          <div style="flex:1"></div>
+          <button class="btn btn-secondary" style="color:var(--status-danger);"><span class="material-symbols-outlined">visibility_off</span> Ignore this file</button>
+        </div>
+      `;
+
+      return `
+        <div class="vb-grid">
+          <div class="vb-tree">
+            <div class="crumb">${scan.folder}</div>
+            ${treeHtml}
+            ${unmatchedTree}
+          </div>
+          <div class="vb-detail">${detailHtml}</div>
+        </div>
+      `;
+    }
+
+    // ---------- Variant C ----------
+    function renderVariantC() {
+      const cards = events.map(ev => {
+        const versus = ev.versus ? `
+          <div class="ev-versus">
+            <span class="vlabel">From</span>
+            <span class="vfile">${ev.versus.from}</span>
+            <span class="arr material-symbols-outlined">arrow_right_alt</span>
+            <span class="vfile" style="font-weight:600;">${ev.versus.to}</span>
+          </div>` : '';
+        const diff = ev.diff ? `
+          <div class="ev-diff">
+            <div class="d add"><span class="material-symbols-outlined" style="font-size:14px;">add</span> <b>${ev.diff.add}</b> new SKU${ev.diff.add===1?'':'s'}</div>
+            <div class="d upd"><span class="material-symbols-outlined" style="font-size:14px;">edit</span> <b>${ev.diff.upd}</b> price changes</div>
+            <div class="d rm"><span class="material-symbols-outlined" style="font-size:14px;">remove</span> <b>${ev.diff.rm}</b> discontinued</div>
+          </div>` : '';
+
+        const acts = {
+          accept:       '<button class="primary"><span class="material-symbols-outlined">verified</span>Accept &amp; make active</button>',
+          preview:      '<button class="secondary"><span class="material-symbols-outlined">visibility</span>Preview diff</button>',
+          ignore:       '<button class="ghost"><span class="material-symbols-outlined">visibility_off</span>Ignore</button>',
+          keepBoth:     '<button class="secondary"><span class="material-symbols-outlined">library_add</span>Keep both as separate revisions</button>',
+          archiveOlder: '<button class="primary"><span class="material-symbols-outlined">archive</span>Archive the older one</button>',
+          mapSupplier:  '<button class="primary"><span class="material-symbols-outlined">link</span>Map to Rutledge AV</button>',
+          addRule:      '<button class="secondary"><span class="material-symbols-outlined">add_circle</span>Add matching rule</button>'
+        };
+
+        return `
+          <div class="event-card severity-${ev.severity}">
+            <div class="ev-icon"><span class="material-symbols-outlined">${ev.icon}</span></div>
+            <div class="ev-body">
+              <div class="ev-title">${ev.title}</div>
+              <div class="ev-sub">${ev.sub}</div>
+              <div style="margin-top:6px;"><span class="ev-filename">${ev.filename}</span> <span style="font-size:11px;color:var(--text-muted);">· detected ${ev.detectedDate}</span></div>
+              ${versus}
+              ${diff}
+              <div class="ev-actions">${ev.actions.map(a => acts[a] || '').join('')}</div>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      const triageCounts = {
+        all: events.length,
+        needsAttention: events.filter(e => e.severity !== 'ok').length,
+        info: events.filter(e => e.severity === 'info').length,
+        warn: events.filter(e => e.severity === 'warn').length,
+        error: events.filter(e => e.severity === 'error').length
+      };
+
+      const rules = scan.suppliers.map(sup => `
+        <div class="rule-row">
+          <span class="sup">${sup.name}</span> &nbsp;→&nbsp; <span class="material-symbols-outlined" style="font-size:12px;color:var(--text-muted);vertical-align:-2px;">folder</span> ${sup.subfolder.split('\\').slice(-1)[0]}
+          <span class="pat">${sup.rule}</span>
+        </div>`).join('');
+
+      return `
+        <div class="vc-grid">
+          <div>
+            <div class="triage-filter">
+              <button class="active">All <span class="count">${triageCounts.all}</span></button>
+              <button>Needs attention <span class="count">${triageCounts.needsAttention}</span></button>
+              <button>Newer versions <span class="count">${triageCounts.info}</span></button>
+              <button>Conflicts <span class="count">${triageCounts.warn}</span></button>
+              <button>Unknown <span class="count">${triageCounts.error}</span></button>
+            </div>
+            ${cards}
+          </div>
+          <div>
+            <div class="rules-panel">
+              <h4>Matching rules</h4>
+              ${rules}
+              <span class="add-link"><span class="material-symbols-outlined" style="font-size:14px;vertical-align:-2px;">add</span> Add rule</span>
+            </div>
+            <div class="rules-panel" style="margin-top:12px;">
+              <h4>Watcher</h4>
+              <div style="font-size:12px;color:var(--text-primary);">Mark's PC</div>
+              <div style="font-size:11px;color:var(--text-muted);margin-top:3px;">Online · scans every 10 min · pings server on file change</div>
+              <div style="font-size:11px;color:var(--text-muted);margin-top:6px;">If your PC sleeps, scans pause and resume on wake.</div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    // ============================================================
+    // Switcher
+    // ============================================================
+    const variants = { A: renderVariantA, B: renderVariantB, C: renderVariantC };
+    function show(v) {
+      document.getElementById('variant-host').innerHTML = (variants[v] || variants.A)();
+      document.getElementById('variant-intro-text').innerHTML = intros[v] || intros.A;
+      document.querySelectorAll('#variant-bar button').forEach(b => {
+        b.classList.toggle('active', b.getAttribute('data-variant') === v);
+      });
+      history.replaceState(null, '', '#' + v);
+      // Wire mock-only actions inside the new DOM
+      document.querySelectorAll('[data-act="set-active"]').forEach(b => {
+        b.addEventListener('click', () => MockUI.toast('Mockup placeholder — would promote ' + b.getAttribute('data-file') + ' to Active and re-bind product lookups (wired in v2).'));
+      });
+    }
+
+    document.querySelectorAll('#variant-bar button').forEach(b => {
+      b.addEventListener('click', () => show(b.getAttribute('data-variant')));
+    });
+    document.getElementById('rescan-btn').addEventListener('click', () => MockUI.toast('Mockup placeholder — would re-walk the folder via the desktop watcher and refresh this page (wired in v2).'));
+    document.getElementById('settings-btn').addEventListener('click', () => MockUI.toast('Mockup placeholder — would open the folder/rules editor (Variant C\'s right column, but as a modal).'));
+
+    const initial = (location.hash || '#A').replace('#', '').toUpperCase();
+    show(['A','B','C'].includes(initial) ? initial : 'A');
+  </script>
+</body>
+</html>
