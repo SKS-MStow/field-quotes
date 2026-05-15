@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Import pricelist — Rutledge AV (Crestron)</title>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Symbols+Outlined" rel="stylesheet">
+  <link rel="stylesheet" href="css/theme.css?v=20260515r17">
+  <link rel="stylesheet" href="css/mockups.css?v=20260515r17">
+  <style>
+    /* ----- Header strip ----- */
+    .import-head {
+      background: var(--surface-card); border: 1px solid var(--border);
+      border-radius: var(--radius-lg); padding: 14px 18px;
+      display: grid; grid-template-columns: 44px 1fr auto; gap: 14px;
+      align-items: center; margin-bottom: 14px;
+    }
+    .import-head .icon-big {
+      width: 44px; height: 44px; border-radius: 8px;
+      background: rgba(91,108,245,0.12); display: flex; align-items: center; justify-content: center;
+    }
+    .import-head .icon-big .material-symbols-outlined { font-size: 24px; color: var(--accent-primary); }
+    .import-head h2 { font-family: var(--font-heading); font-weight: 700; font-size: 16px; color: var(--text-primary); }
+    .import-head .sub { font-size: 11.5px; color: var(--text-muted); margin-top: 3px; font-family: 'JetBrains Mono', monospace; }
+    .import-head .sub .arr { color: var(--text-secondary); margin: 0 4px; }
+    .import-head .sub .next { color: var(--accent-primary); font-weight: 600; }
+
+    /* ----- Section card ----- */
+    .step-card {
+      background: var(--surface-card); border: 1px solid var(--border);
+      border-radius: var(--radius-lg); padding: 16px 18px; margin-bottom: 14px;
+    }
+    .step-card .step-head {
+      display: flex; align-items: center; gap: 10px; margin-bottom: 14px;
+      padding-bottom: 12px; border-bottom: 1px solid var(--border-light);
+    }
+    .step-card .step-num {
+      width: 28px; height: 28px; border-radius: 50%;
+      background: var(--accent-primary); color: white;
+      display: flex; align-items: center; justify-content: center;
+      font-family: var(--font-heading); font-weight: 700; font-size: 13px; flex-shrink: 0;
+    }
+    .step-card.success .step-num { background: var(--status-success); }
+    .step-card.warn .step-num    { background: var(--status-warning); }
+    .step-card.danger .step-num  { background: var(--status-danger); }
+    .step-card .step-title {
+      font-family: var(--font-heading); font-weight: 600; font-size: 15px; color: var(--text-primary);
+    }
+    .step-card .step-summary {
+      font-size: 12px; color: var(--text-muted); margin-top: 3px;
+    }
+    .step-card .step-status {
+      margin-left: auto; font-size: 11px; font-weight: 600; padding: 4px 9px;
+      border-radius: 10px; text-transform: uppercase; letter-spacing: 0.04em;
+    }
+    .step-card .step-status.ok   { background: var(--status-success-bg); color: var(--status-success); }
+    .step-card .step-status.warn { background: #fef0c7; color: #b45309; }
+    .step-card .step-status.err  { background: #fee2e2; color: #b91c1c; }
+
+    /* ----- Column mapping ----- */
+    .colmap-grid {
+      display: grid; grid-template-columns: 1fr 16px 1fr; gap: 10px 18px;
+      align-items: center;
+    }
+    .colmap-grid .src-col {
+      padding: 9px 12px; background: var(--surface-inset); border-radius: 5px;
+      font-family: 'JetBrains Mono', monospace; font-size: 12px;
+    }
+    .colmap-grid .src-col .sample {
+      font-size: 10.5px; color: var(--text-muted); margin-top: 3px; font-family: 'JetBrains Mono', monospace;
+    }
+    .colmap-grid .arr {
+      color: var(--text-muted); text-align: center;
+    }
+    .colmap-grid select {
+      padding: 8px 10px; font-size: 12.5px;
+      border: 1px solid var(--border-input); border-radius: 5px; background: white;
+      font-family: var(--font-body);
+    }
+    .colmap-grid select.confident { border-color: var(--status-success); background: var(--status-success-bg); }
+    .colmap-grid select.ambiguous { border-color: #f59e0b; background: #fef0c7; }
+    .colmap-grid .confidence-pill {
+      font-size: 9.5px; font-weight: 700; padding: 2px 7px; border-radius: 10px;
+      text-transform: uppercase; letter-spacing: 0.04em;
+      display: inline-flex; align-items: center; gap: 4px; margin-left: 8px;
+    }
+    .colmap-grid .confidence-pill.ok   { background: var(--status-success-bg); color: var(--status-success); }
+    .colmap-grid .confidence-pill.warn { background: #fef0c7; color: #b45309; }
+    .colmap-grid .confidence-pill .material-symbols-outlined { font-size: 12px; }
+
+    /* ----- Diff tabs + table ----- */
+    .diff-tabs {
+      display: flex; gap: 4px; padding: 4px;
+      background: var(--surface-inset); border-radius: 6px;
+      margin-bottom: 12px; flex-wrap: wrap;
+    }
+    .diff-tabs button {
+      background: transparent; border: none; padding: 6px 12px;
+      font-size: 11.5px; color: var(--text-secondary); cursor: pointer;
+      border-radius: 4px; font-family: var(--font-body);
+      display: flex; align-items: center; gap: 5px;
+    }
+    .diff-tabs button.active {
+      background: var(--surface-white); color: var(--text-primary); font-weight: 600;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.06);
+    }
+    .diff-tabs button .count {
+      font-size: 10px; padding: 1px 6px; border-radius: 8px; font-weight: 700;
+    }
+    .diff-tabs button[data-tab="all"]      .count { background: var(--text-muted); color: white; }
+    .diff-tabs button[data-tab="new"]      .count { background: var(--status-success); color: white; }
+    .diff-tabs button[data-tab="changed"]  .count { background: var(--accent-primary); color: white; }
+    .diff-tabs button[data-tab="removed"]  .count { background: var(--status-danger); color: white; }
+    .diff-tabs button[data-tab="conflict"] .count { background: var(--status-warning); color: white; }
+
+    table.diff-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    table.diff-table th { padding: 8px 10px; background: var(--surface-inset); font-size: 10px; text-transform: uppercase; color: var(--text-muted); text-align: left; letter-spacing: 0.04em; font-weight: 600; }
+    table.diff-table td { padding: 8px 10px; border-top: 1px solid var(--border-light); vertical-align: middle; }
+    table.diff-table tr.hidden { display: none; }
+    table.diff-table .col-check { width: 26px; }
+    table.diff-table .col-kind { width: 90px; }
+    table.diff-table .col-from, table.diff-table .col-to { width: 110px; text-align: right; font-family: 'JetBrains Mono', monospace; font-size: 11px; }
+    table.diff-table .col-sev { width: 70px; }
+    table.diff-table .mpn { font-family: 'JetBrains Mono', monospace; font-weight: 600; font-size: 11.5px; color: var(--text-primary); }
+    table.diff-table .desc { font-size: 11px; color: var(--text-secondary); margin-top: 2px; }
+    .kind-pill {
+      font-size: 9.5px; font-weight: 700; padding: 2px 7px; border-radius: 10px;
+      text-transform: uppercase; letter-spacing: 0.04em;
+    }
+    .kind-pill.new      { background: var(--status-success-bg); color: var(--status-success); }
+    .kind-pill.changed  { background: rgba(91,108,245,0.12); color: var(--accent-primary); }
+    .kind-pill.removed  { background: #fee2e2; color: #b91c1c; }
+    .kind-pill.conflict { background: #fef0c7; color: #b45309; }
+    .sev-pill {
+      font-size: 10px; font-weight: 600; padding: 2px 6px; border-radius: 4px;
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .sev-pill.up   { background: #fee2e2; color: #b91c1c; }
+    .sev-pill.dn   { background: var(--status-success-bg); color: var(--status-success); }
+    .sev-pill.neutral { color: var(--text-muted); }
+
+    /* ----- Conflict rows ----- */
+    .conflict-row {
+      padding: 12px; background: #fffbeb; border: 1px solid #fde68a;
+      border-radius: 6px; margin-bottom: 10px;
+    }
+    .conflict-row .cr-head {
+      display: flex; align-items: center; gap: 8px; margin-bottom: 8px;
+    }
+    .conflict-row .cr-mpn { font-family: 'JetBrains Mono', monospace; font-weight: 600; font-size: 13px; }
+    .conflict-row .cr-desc { font-size: 11.5px; color: var(--text-secondary); margin-left: auto; }
+    .conflict-row .cr-options {
+      display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px;
+    }
+    @media (max-width: 700px) { .conflict-row .cr-options { grid-template-columns: 1fr; } }
+    .conflict-row .cr-option {
+      padding: 10px 12px; background: white; border: 2px solid var(--border-light);
+      border-radius: 5px; cursor: pointer;
+      display: flex; flex-direction: column; gap: 4px;
+    }
+    .conflict-row .cr-option.selected { border-color: var(--accent-primary); background: rgba(91,108,245,0.05); }
+    .conflict-row .cr-option .label { font-size: 12px; font-weight: 600; color: var(--text-primary); display: flex; align-items: center; gap: 6px; }
+    .conflict-row .cr-option .price { font-family: 'JetBrains Mono', monospace; font-size: 11.5px; color: var(--text-primary); }
+    .conflict-row .cr-option .rec { font-size: 10px; color: var(--status-success); font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; }
+    .conflict-row .cr-option input[type=radio] { accent-color: var(--accent-primary); }
+
+    /* ----- Commit summary ----- */
+    .commit-summary {
+      background: linear-gradient(135deg, rgba(91,108,245,0.06) 0%, rgba(91,108,245,0.02) 100%);
+      border: 1px solid rgba(91,108,245,0.30);
+    }
+    .commit-totals {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 14px; padding: 14px 0;
+    }
+    .commit-totals .t {
+      padding: 10px; background: white; border-radius: 6px;
+      text-align: center; border: 1px solid var(--border-light);
+    }
+    .commit-totals .t .v {
+      font-family: var(--font-heading); font-weight: 700; font-size: 22px;
+    }
+    .commit-totals .t .v.add { color: var(--status-success); }
+    .commit-totals .t .v.upd { color: var(--accent-primary); }
+    .commit-totals .t .v.rm  { color: var(--status-danger); }
+    .commit-totals .t .v.cf  { color: var(--status-warning); }
+    .commit-totals .t .l { font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.04em; font-weight: 600; margin-top: 4px; }
+
+    .commit-actions {
+      display: flex; gap: 10px; padding-top: 12px;
+      border-top: 1px solid rgba(91,108,245,0.20); flex-wrap: wrap;
+    }
+    .commit-actions .grow { flex: 1; }
+
+    /* ----- Existing-quotes-affected callout ----- */
+    .quotes-callout {
+      background: #fffaf0; border: 1px solid var(--status-warning);
+      border-radius: var(--radius-md); padding: 12px 14px;
+      display: flex; gap: 10px; align-items: flex-start; margin-bottom: 14px;
+    }
+    .quotes-callout .material-symbols-outlined { color: var(--status-warning); font-size: 20px; flex-shrink: 0; margin-top: 1px; }
+    .quotes-callout .msg { flex: 1; font-size: 12.5px; color: var(--text-primary); }
+    .quotes-callout .msg b { font-weight: 600; }
+    .quotes-callout .actions { display: flex; gap: 6px; }
+    .quotes-callout .actions button {
+      background: white; color: var(--text-primary); border: 1px solid var(--border-input);
+      padding: 5px 10px; border-radius: 4px; cursor: pointer;
+      font-size: 11.5px; font-weight: 500;
+    }
+    .quotes-callout .actions button.primary { background: var(--status-warning); border-color: var(--status-warning); color: white; }
+  </style>
+</head>
+<body data-page="admin-files">
+  <main id="content" class="content">
+
+    <!-- ============================================================
+         Header strip
+         ============================================================ -->
+    <div class="import-head">
+      <div class="icon-big"><span class="material-symbols-outlined">verified</span></div>
+      <div>
+        <h2 id="ih-title">Import &amp; make active: <span id="ih-supplier">Rutledge AV — Crestron</span></h2>
+        <div class="sub">
+          <span id="ih-active">crestron-pricelist-may-2026.xlsx</span>
+          <span class="arr material-symbols-outlined" style="font-size:14px;vertical-align:-3px;">arrow_right_alt</span>
+          <span class="next" id="ih-newer">1 JUNE 2026 Crestron Pricelist.xlsx</span>
+          &nbsp;·&nbsp; <span id="ih-delta">+7 KB, 30 days newer</span>
+        </div>
+      </div>
+      <div>
+        <a class="btn btn-secondary" href="09-files.html"><span class="material-symbols-outlined">arrow_back</span> Back to files</a>
+      </div>
+    </div>
+
+    <!-- ============================================================
+         STEP 1 — Column mapping
+         ============================================================ -->
+    <div class="step-card success">
+      <div class="step-head">
+        <div class="step-num">1</div>
+        <div style="flex:1;">
+          <div class="step-title">Column mapping</div>
+          <div class="step-summary">5 columns detected · 4 confident · 1 ambiguous · click any to remap</div>
+        </div>
+        <div class="step-status ok">Auto-mapped</div>
+      </div>
+
+      <div class="colmap-grid">
+        <div class="src-col">
+          Manufacturer
+          <div class="sample">e.g. Crestron, Crestron Electronics</div>
+        </div>
+        <div class="arr"><span class="material-symbols-outlined">arrow_right_alt</span></div>
+        <div>
+          <select class="confident">
+            <option selected>mfr</option>
+            <option>desc</option>
+            <option>(skip)</option>
+          </select>
+          <span class="confidence-pill ok"><span class="material-symbols-outlined">check_circle</span> 98%</span>
+        </div>
+
+        <div class="src-col">
+          Model Number
+          <div class="sample">e.g. CP4N-R, TS-1070-B-S</div>
+        </div>
+        <div class="arr"><span class="material-symbols-outlined">arrow_right_alt</span></div>
+        <div>
+          <select class="confident">
+            <option selected>mpn</option>
+            <option>(skip)</option>
+          </select>
+          <span class="confidence-pill ok"><span class="material-symbols-outlined">check_circle</span> 99%</span>
+        </div>
+
+        <div class="src-col">
+          Product Description
+          <div class="sample">e.g. 4-Series Network Control System</div>
+        </div>
+        <div class="arr"><span class="material-symbols-outlined">arrow_right_alt</span></div>
+        <div>
+          <select class="confident">
+            <option selected>desc</option>
+            <option>(skip)</option>
+          </select>
+          <span class="confidence-pill ok"><span class="material-symbols-outlined">check_circle</span> 95%</span>
+        </div>
+
+        <div class="src-col">
+          Dealer Net (AUD ex GST)
+          <div class="sample">e.g. $2,740.00</div>
+        </div>
+        <div class="arr"><span class="material-symbols-outlined">arrow_right_alt</span></div>
+        <div>
+          <select class="confident">
+            <option selected>cost</option>
+            <option>rrp</option>
+            <option>(skip)</option>
+          </select>
+          <span class="confidence-pill ok"><span class="material-symbols-outlined">check_circle</span> 92%</span>
+        </div>
+
+        <div class="src-col">
+          MSRP / SRP
+          <div class="sample">two columns combined? e.g. $3,990.00</div>
+        </div>
+        <div class="arr"><span class="material-symbols-outlined">arrow_right_alt</span></div>
+        <div>
+          <select class="ambiguous">
+            <option selected>rrp</option>
+            <option>cost</option>
+            <option>(skip)</option>
+          </select>
+          <span class="confidence-pill warn"><span class="material-symbols-outlined">warning</span> 72%</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================
+         STEP 2 — Diff review
+         ============================================================ -->
+    <div class="step-card">
+      <div class="step-head">
+        <div class="step-num">2</div>
+        <div style="flex:1;">
+          <div class="step-title">Diff review</div>
+          <div class="step-summary">Tick which changes to apply · 72 total · 3 conflicts (resolve in step 3)</div>
+        </div>
+        <div class="step-status ok"><span id="diff-applied-count">72</span> selected</div>
+      </div>
+
+      <div class="diff-tabs" id="diff-tabs">
+        <button data-tab="all" class="active">All <span class="count">72</span></button>
+        <button data-tab="new">+ New SKUs <span class="count">7</span></button>
+        <button data-tab="changed">~ Price changes <span class="count">64</span></button>
+        <button data-tab="removed">− Discontinued <span class="count">1</span></button>
+        <button data-tab="conflict">⚠ Conflicts <span class="count">3</span></button>
+      </div>
+
+      <div style="max-height:400px;overflow-y:auto;border:1px solid var(--border);border-radius:var(--radius-md);">
+        <table class="diff-table" id="diff-table">
+          <thead>
+            <tr>
+              <th class="col-check"><input type="checkbox" id="check-all" checked></th>
+              <th class="col-kind">Kind</th>
+              <th>SKU</th>
+              <th class="col-from">Old</th>
+              <th class="col-to">New</th>
+              <th class="col-sev">Δ</th>
+            </tr>
+          </thead>
+          <tbody id="diff-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ============================================================
+         STEP 3 — Conflict resolution
+         ============================================================ -->
+    <div class="step-card warn">
+      <div class="step-head">
+        <div class="step-num">3</div>
+        <div style="flex:1;">
+          <div class="step-title">Conflict resolution</div>
+          <div class="step-summary">3 SKUs are also sold by another supplier — pick which one owns them</div>
+        </div>
+        <div class="step-status warn">3 conflicts</div>
+      </div>
+
+      <div id="conflicts-host"></div>
+    </div>
+
+    <!-- ============================================================
+         Existing-quotes-affected callout
+         ============================================================ -->
+    <div class="quotes-callout">
+      <span class="material-symbols-outlined">request_quote</span>
+      <div class="msg">
+        <b>5 issued quotes</b> reference SKUs that will change cost. They will not auto-update. Mark them for re-review?
+        <div style="font-size:11px;color:var(--text-muted);margin-top:4px;">e.g. Q-2026-0038 (Council Chamber) · Q-2026-0029 (Boardroom) · 3 more</div>
+      </div>
+      <div class="actions">
+        <button class="primary">Yes — flag for re-review</button>
+        <button>No — leave them</button>
+      </div>
+    </div>
+
+    <!-- ============================================================
+         STEP 4 — Commit summary
+         ============================================================ -->
+    <div class="step-card commit-summary">
+      <div class="step-head">
+        <div class="step-num">4</div>
+        <div style="flex:1;">
+          <div class="step-title">Ready to import</div>
+          <div class="step-summary">Final review — everything below is atomic, rolled back together if anything fails</div>
+        </div>
+      </div>
+
+      <div class="commit-totals">
+        <div class="t"><div class="v add">+7</div><div class="l">New SKUs</div></div>
+        <div class="t"><div class="v upd">~64</div><div class="l">Price changes</div></div>
+        <div class="t"><div class="v rm">−1</div><div class="l">Discontinued</div></div>
+        <div class="t"><div class="v cf">3</div><div class="l">Conflicts resolved</div></div>
+      </div>
+
+      <div style="font-size:12.5px;color:var(--text-secondary);margin-bottom:12px;padding:10px 14px;background:white;border-radius:6px;border:1px solid var(--border-light);">
+        <b>Previous active pricelist</b> (<code>crestron-pricelist-may-2026.xlsx</code>) will be retained as <b>Revision V12</b> in the supplier's history. You can roll back at any time from Admin → Suppliers → Rutledge AV → Revision history.
+      </div>
+
+      <div class="commit-actions">
+        <button class="btn btn-primary" id="commit-btn"><span class="material-symbols-outlined">verified</span> Import and make active</button>
+        <button class="btn btn-secondary" id="commit-as-revision-btn"><span class="material-symbols-outlined">save</span> Save as new revision (don't make active)</button>
+        <div class="grow"></div>
+        <a class="btn btn-secondary" href="09-files.html"><span class="material-symbols-outlined">close</span> Cancel</a>
+      </div>
+    </div>
+
+  </main>
+
+  <script src="js/mock-data.js?v=20260515r17"></script>
+  <script src="js/mock-state.js?v=20260515r17"></script>
+  <script src="js/mock-ui.js?v=20260515r17"></script>
+  <script src="js/mock-shell.js?v=20260515r17"></script>
+  <script src="js/mock-expiry.js?v=20260515r17"></script>
+  <script src="../_shared/review-tools/mock-review.js?v=20260515r17"></script>
+  <script>
+    MockShell.mount({
+      title: 'Import pricelist',
+      subtitle: 'Step through column mapping, line-level diff, conflict resolution, commit',
+      actionsHtml: ''
+    });
+
+    // ============================================================
+    // Seed — diff rows (~10 samples representing the larger 72-row set)
+    // ============================================================
+    const diff = [
+      // + new SKUs
+      { kind: 'new',     mpn: 'TSW-1070-B-S',     desc: '10.1" wall-mount touch screen, black smooth', from: null,       to: 2180.00 },
+      { kind: 'new',     mpn: 'TSW-770-B-S',      desc: '7" wall-mount touch screen, black smooth',    from: null,       to: 1490.00 },
+      { kind: 'new',     mpn: 'CCS-UC-1-AV-PLUS', desc: 'Crestron Flex M200 conferencing kit',          from: null,       to: 5890.00 },
+      { kind: 'new',     mpn: 'DM-NVX-DIR-200',   desc: 'NVX Director appliance 200',                   from: null,       to: 3290.00 },
+      { kind: 'new',     mpn: 'HD-EXT-NVX-300',   desc: 'NVX extender 300 series',                      from: null,       to: 1990.00 },
+      // ~ price changes
+      { kind: 'changed', mpn: 'CP4N-R',           desc: '4-Series Network Control System',              from: 2680.00,    to: 2740.00 },
+      { kind: 'changed', mpn: 'TS-1070-B-S',      desc: '10.1" Tabletop Touch Screen, black',           from: 2380.00,    to: 2420.00 },
+      { kind: 'changed', mpn: 'HD-MD-NVX-21-E',   desc: 'NVX 4K AV-over-IP encoder/decoder',            from: 2480.00,    to: 2510.00 },
+      { kind: 'changed', mpn: 'TSW-770',          desc: '7" Tabletop Touch Screen',                     from: 1690.00,    to: 1820.00 },
+      { kind: 'changed', mpn: 'AM-3200',          desc: 'AirMedia Receiver 3200',                       from: 1140.00,    to: 1190.00 },
+      // − discontinued
+      { kind: 'removed', mpn: 'TSW-560-B-S',      desc: '5" Tabletop Touch Screen (EOL)',               from: 990.00,     to: null    },
+      // ⚠ conflicts (also sold by another supplier)
+      { kind: 'conflict',mpn: 'HD-EXT-USB-200',   desc: 'USB extender 200',                             from: 480.00,     to: 510.00,  alsoFrom: 'Amber Technology', altPrice: 495.00 },
+      { kind: 'conflict',mpn: 'HD-CTRL-PRO-300',  desc: 'Control processor 300',                        from: 1280.00,    to: 1340.00, alsoFrom: 'AVD',                altPrice: 1290.00 },
+      { kind: 'conflict',mpn: 'DM-NAX-AMP-X300',  desc: 'NAX audio amplifier X300',                     from: 2180.00,    to: 2240.00, alsoFrom: 'Madison Technologies', altPrice: 2210.00 }
+    ];
+
+    function fmt$(v) { return v == null ? '—' : '$' + v.toLocaleString('en-AU', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+    function pctChange(from, to) {
+      if (from == null || to == null) return null;
+      return Math.round((to - from) / from * 100);
+    }
+    function severityFor(row) {
+      if (row.kind === 'new')     return { cls: 'neutral', label: 'NEW' };
+      if (row.kind === 'removed') return { cls: 'neutral', label: 'EOL' };
+      const pct = pctChange(row.from, row.to);
+      if (pct == null) return { cls: 'neutral', label: '—' };
+      const cls = pct > 0 ? 'up' : (pct < 0 ? 'dn' : 'neutral');
+      const sign = pct > 0 ? '+' : '';
+      return { cls, label: sign + pct + '%' };
+    }
+
+    // ============================================================
+    // Render diff table
+    // ============================================================
+    function renderDiffTable() {
+      const tbody = document.getElementById('diff-tbody');
+      tbody.innerHTML = diff.map((r, idx) => {
+        const sev = severityFor(r);
+        return `
+          <tr data-kind="${r.kind}" data-idx="${idx}">
+            <td class="col-check"><input type="checkbox" class="row-check" checked data-idx="${idx}"></td>
+            <td><span class="kind-pill ${r.kind}">${r.kind === 'new' ? '+ NEW' : (r.kind === 'changed' ? '~ CHG' : (r.kind === 'removed' ? '− RM' : '⚠ CONF'))}</span></td>
+            <td>
+              <div class="mpn">${r.mpn}</div>
+              <div class="desc">${r.desc}</div>
+            </td>
+            <td class="col-from">${fmt$(r.from)}</td>
+            <td class="col-to">${fmt$(r.to)}</td>
+            <td class="col-sev"><span class="sev-pill ${sev.cls}">${sev.label}</span></td>
+          </tr>
+        `;
+      }).join('');
+
+      // Wire row checkboxes
+      tbody.querySelectorAll('.row-check').forEach(cb => {
+        cb.addEventListener('change', updateAppliedCount);
+      });
+      document.getElementById('check-all').addEventListener('change', (e) => {
+        tbody.querySelectorAll('.row-check:not([disabled])').forEach(cb => {
+          // Only affect currently visible rows
+          if (!cb.closest('tr').classList.contains('hidden')) cb.checked = e.target.checked;
+        });
+        updateAppliedCount();
+      });
+    }
+
+    function updateAppliedCount() {
+      // 72 represents the larger seed; here we approximate with rendered + the implicit rows.
+      const ticked = document.querySelectorAll('.row-check:checked').length;
+      const renderedCount = diff.length;
+      // Scale to the larger 72 figure
+      const scaled = Math.round(ticked / renderedCount * 72);
+      document.getElementById('diff-applied-count').textContent = scaled;
+    }
+
+    // Tab filtering
+    function filterDiff(tab) {
+      document.querySelectorAll('#diff-tbody tr').forEach(tr => {
+        const kind = tr.getAttribute('data-kind');
+        const show = (tab === 'all') || (kind === tab);
+        tr.classList.toggle('hidden', !show);
+      });
+    }
+    document.querySelectorAll('#diff-tabs button').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('#diff-tabs button').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        filterDiff(btn.getAttribute('data-tab'));
+      });
+    });
+
+    // ============================================================
+    // Conflict resolution
+    // ============================================================
+    function renderConflicts() {
+      const host = document.getElementById('conflicts-host');
+      const conflicts = diff.filter(r => r.kind === 'conflict');
+      host.innerHTML = conflicts.map((c, idx) => {
+        const cheaperIsRutledge = c.to <= c.altPrice;
+        return `
+          <div class="conflict-row" data-conflict-idx="${idx}">
+            <div class="cr-head">
+              <span class="kind-pill conflict">⚠ CONFLICT</span>
+              <span class="cr-mpn">${c.mpn}</span>
+              <span class="cr-desc">${c.desc}</span>
+            </div>
+            <div class="cr-options">
+              <label class="cr-option ${cheaperIsRutledge ? 'selected' : ''}">
+                <div class="label"><input type="radio" name="conflict-${idx}" ${cheaperIsRutledge ? 'checked' : ''}> Rutledge AV (Crestron)</div>
+                <div class="price">${fmt$(c.to)}</div>
+                ${cheaperIsRutledge ? '<div class="rec">✓ recommended — cheaper</div>' : ''}
+              </label>
+              <label class="cr-option ${!cheaperIsRutledge ? 'selected' : ''}">
+                <div class="label"><input type="radio" name="conflict-${idx}" ${!cheaperIsRutledge ? 'checked' : ''}> ${c.alsoFrom}</div>
+                <div class="price">${fmt$(c.altPrice)}</div>
+                ${!cheaperIsRutledge ? '<div class="rec">✓ recommended — cheaper</div>' : ''}
+              </label>
+              <label class="cr-option">
+                <div class="label"><input type="radio" name="conflict-${idx}"> Keep both</div>
+                <div class="price" style="font-size:10.5px;color:var(--text-muted);">SKU suffixed with supplier code in catalogue</div>
+              </label>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      // Wire option clicks
+      host.querySelectorAll('.cr-option').forEach(opt => {
+        opt.addEventListener('click', () => {
+          const row = opt.closest('.conflict-row');
+          row.querySelectorAll('.cr-option').forEach(o => o.classList.remove('selected'));
+          opt.classList.add('selected');
+          opt.querySelector('input[type=radio]').checked = true;
+        });
+      });
+    }
+
+    // ============================================================
+    // Commit buttons
+    // ============================================================
+    document.getElementById('commit-btn').addEventListener('click', () => {
+      MockUI.toast('Mockup placeholder — would atomically apply selected changes, archive previous active as V12, and update product cost prices. Mirrors field-dashboard bulk-import pattern.');
+    });
+    document.getElementById('commit-as-revision-btn').addEventListener('click', () => {
+      MockUI.toast('Mockup placeholder — would store this file as a new revision in the supplier history without making it the active pricelist (handy for "preview before adopting").');
+    });
+
+    // ============================================================
+    // Optional: react to ?supplier= hash from 09-files.html
+    // (Currently the page is hard-coded to the Crestron scenario;
+    // in v2 this would re-seed the diff/header based on which file
+    // the user clicked "Make active & import" on.)
+    // ============================================================
+    (function () {
+      const hash = (location.hash || '').replace('#', '');
+      if (hash) {
+        const params = Object.fromEntries(hash.split('&').filter(Boolean).map(s => s.split('=')));
+        if (params.supplier && params.supplier !== 'crestron') {
+          // For the mockup, show a toast acknowledging which supplier was clicked
+          // even though we render the Crestron sample below.
+          setTimeout(() => MockUI.toast('Mockup placeholder — would re-seed this page for ' + params.supplier + '. Currently showing the Crestron sample so reviewers see a filled-out flow.'), 600);
+        }
+      }
+    })();
+
+    // Initial render
+    renderDiffTable();
+    renderConflicts();
+    updateAppliedCount();
+  </script>
+</body>
+</html>
