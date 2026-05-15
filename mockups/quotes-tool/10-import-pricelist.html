@@ -602,8 +602,13 @@
       b.addEventListener('click', () => show(b.getAttribute('data-variant')));
     });
 
-    const initial = (location.hash || '#A').replace('#', '').toUpperCase();
-    show(['A','B','C'].includes(initial) ? initial : 'A');
+    function variantFromHash() {
+      const h = (location.hash || '#A').replace('#', '').toUpperCase();
+      return ['A','B','C'].includes(h) ? h : 'A';
+    }
+    show(variantFromHash());
+    window.addEventListener('hashchange', () => show(variantFromHash()));
+    window.show = show;
   </script>
 </body>
 </html>
