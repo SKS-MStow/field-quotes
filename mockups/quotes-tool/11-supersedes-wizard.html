@@ -6,8 +6,8 @@
   <title>Supersedes wizard — review new files</title>
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/icon?family=Material+Symbols+Outlined" rel="stylesheet">
-  <link rel="stylesheet" href="css/theme.css?v=20260515r19">
-  <link rel="stylesheet" href="css/mockups.css?v=20260515r19">
+  <link rel="stylesheet" href="css/theme.css?v=20260515r20">
+  <link rel="stylesheet" href="css/mockups.css?v=20260515r20">
   <style>
     /* Wizard-only adjustments — keep these minimal; lean on theme/mockups.css */
     .scan-summary { font-size: 12.5px; color: var(--text-secondary); margin-bottom: 16px; }
@@ -20,8 +20,9 @@
     .tab-bar button .count { font-size: 10px; padding: 1px 6px; border-radius: 8px; font-weight: 600; background: var(--border-light); color: var(--text-secondary); }
     .tab-bar button.active .count { background: var(--surface-inset); color: var(--text-primary); }
 
-    /* New-file table — only what data-table doesn't cover */
-    .nf-row td { vertical-align: top; }
+    /* New-file table — increase specificity so vertical-align:top wins
+       over .data-table tbody td { vertical-align: middle; } */
+    table.data-table tbody tr.nf-row td { vertical-align: top; }
     .nf-row.skipped td { opacity: 0.55; }
     .nf-row.hidden { display: none; }
     .nf-file .name { font-family: var(--font-heading); font-weight: 600; font-size: 13px; color: var(--text-primary); word-break: break-all; }
@@ -36,12 +37,19 @@
     }
     .nf-file .attn .material-symbols-outlined { font-size: 14px; flex-shrink: 0; margin-top: 1px; }
 
-    .nf-action select { width: 100%; }
+    /* Action select — width 100% and tinted by action type.
+       Tints use theme status-bg colours so they match the rest of the app. */
+    .nf-action select { width: 100%; font-weight: 500; }
+    .nf-action select.act-replace { background: var(--status-info-bg);    border-color: #b8c1e0; color: var(--status-info); }
+    .nf-action select.act-add     { background: var(--status-success-bg); border-color: #b8d6bc; color: var(--status-success); }
+    .nf-action select.act-unknown { background: var(--status-warning-bg); border-color: #d9c891; color: var(--status-warning); }
+    .nf-action select.act-skip    { background: var(--border-light);      border-color: var(--border); color: var(--text-muted); }
 
     .nf-target { display: flex; flex-direction: column; gap: 5px; }
+    .nf-target select, .nf-target input { width: 100%; }
     .nf-target .hint { font-size: 11px; color: var(--text-muted); }
     .nf-target .hint b { color: var(--text-secondary); font-weight: 600; }
-    .nf-target.skipped-text { font-size: 12px; color: var(--text-muted); font-style: italic; }
+    .nf-target.skipped-text { font-size: 12px; color: var(--text-muted); font-style: italic; padding-top: 7px; }
 
     /* Wizard footer — uses theme pattern but explicit since we're not inside .panel */
     .wizard-foot {
@@ -130,12 +138,12 @@
 
   </main>
 
-  <script src="js/mock-data.js?v=20260515r19"></script>
-  <script src="js/mock-state.js?v=20260515r19"></script>
-  <script src="js/mock-ui.js?v=20260515r19"></script>
-  <script src="js/mock-shell.js?v=20260515r19"></script>
-  <script src="js/mock-expiry.js?v=20260515r19"></script>
-  <script src="../_shared/review-tools/mock-review.js?v=20260515r19"></script>
+  <script src="js/mock-data.js?v=20260515r20"></script>
+  <script src="js/mock-state.js?v=20260515r20"></script>
+  <script src="js/mock-ui.js?v=20260515r20"></script>
+  <script src="js/mock-shell.js?v=20260515r20"></script>
+  <script src="js/mock-expiry.js?v=20260515r20"></script>
+  <script src="../_shared/review-tools/mock-review.js?v=20260515r20"></script>
   <script>
     MockShell.mount({
       title: 'Supersedes wizard',
@@ -279,7 +287,7 @@
             ${attnHtml}
           </td>
           <td class="nf-action">
-            <select class="form-select" data-action-for="${f.id}">
+            <select class="form-select act-${action}" data-action-for="${f.id}">
               <option value="replace" ${action==='replace'?'selected':''}>Replace existing</option>
               <option value="add"     ${action==='add'?'selected':''}>Add as new scope</option>
               <option value="unknown" ${action==='unknown'?'selected':''}>Map supplier first</option>
@@ -354,6 +362,7 @@
           const row = document.querySelector(`.nf-row[data-row-id="${id}"]`);
           row.setAttribute('data-action', newAction);
           row.classList.toggle('skipped', newAction === 'skip');
+          sel.className = 'form-select act-' + newAction;
           document.querySelector(`[data-target-for="${id}"]`).innerHTML = renderTargetCell(file);
           const rc = row.querySelector('.row-check');
           rc.checked = newAction !== 'skip' && newAction !== 'unknown';
