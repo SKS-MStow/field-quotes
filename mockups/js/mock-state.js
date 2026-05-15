@@ -176,20 +176,31 @@ window.MockState = (function () {
       Object.entries(spec.services).forEach(([sid, override]) => {
         const def = MockData.services.find(s => s.id === sid);
         if (!def) return;
+        const isLab = def.category === 'Labour';
+        const overrideQty = override.qty;
         const existing = quote.services.find(s => s.serviceId === sid);
         if (existing) {
-          if (override.qty !== undefined) existing.qty = override.qty;
+          // Seed override: for labour services the spec qty is hours, for
+          // non-labour it's literal qty.
+          if (overrideQty !== undefined) {
+            if (isLab) existing.hours = overrideQty;
+            else       existing.qty   = overrideQty;
+          }
           if (override.rate !== undefined) existing.rate = override.rate;
           if (override.marginPct !== undefined) existing.marginPct = override.marginPct;
           existing.included = true;
+          if (isLab) { existing.isLabour = true; existing.qty = 1; if (existing.hours === undefined) existing.hours = def.defaultQty || 0; }
         } else {
+          const seedCount = overrideQty ?? def.defaultQty ?? (isLab ? 0 : 1);
           quote.services.push({
             id: uid('sv'),
             serviceId: def.id,
             name: def.name,
             category: def.category,
             unit: def.unit,
-            qty: override.qty ?? def.defaultQty ?? 1,
+            qty: isLab ? 1 : seedCount,
+            hours: isLab ? seedCount : 0,
+            isLabour: isLab,
             rate: override.rate ?? def.defaultRate,
             marginPct: override.marginPct ?? def.marginPct,
             included: true
