@@ -60,6 +60,23 @@ window.MockState = (function () {
             migrated = true;
           }
         });
+        // Round 3: ensure every quote has every includedByDefault service
+        // (round 3 added "Installation" — existing quotes need it added so
+        // it shows in Services & Labour without requiring a new quote).
+        MockData.services.filter(d => d.includedByDefault).forEach(def => {
+          if (!q.services.find(sv => sv.serviceId === def.id)) {
+            const isLab = def.category === 'Labour';
+            q.services.push({
+              id: uid('sv'), serviceId: def.id, name: def.name, category: def.category,
+              unit: def.unit,
+              qty: isLab ? 1 : (def.defaultQty || 1),
+              hours: isLab ? (def.defaultQty || 0) : 0,
+              isLabour: isLab,
+              rate: def.defaultRate, marginPct: def.marginPct, included: true
+            });
+            migrated = true;
+          }
+        });
       });
       if (migrated) {
         try { console.info('[mock-state] migrated services to hours/isLabour model'); } catch (e) {}
