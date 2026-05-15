@@ -6,8 +6,8 @@
   <title>Build Areas — SKS Quotes</title>
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/icon?family=Material+Symbols+Outlined" rel="stylesheet">
-  <link rel="stylesheet" href="css/theme.css?v=20260515r17">
-  <link rel="stylesheet" href="css/mockups.css?v=20260515r17">
+  <link rel="stylesheet" href="css/theme.css?v=20260515r18">
+  <link rel="stylesheet" href="css/mockups.css?v=20260515r18">
   <style>
     .quote-meta { display: flex; gap: 18px; padding: 12px 16px; background: var(--surface-inset); border-radius: var(--radius-md); margin-bottom: 14px; flex-wrap: wrap; align-items: center; }
     .quote-meta .mi { display: flex; flex-direction: column; gap: 2px; }
@@ -300,9 +300,8 @@
                       <th data-col-key="svc-name">Service<span class="col-resizer"></span></th>
                       <th class="right" data-col-key="svc-qty" style="width:60px;">Qty<span class="col-resizer"></span></th>
                       <th class="right" data-col-key="svc-hrs" style="width:70px;">Hours<span class="col-resizer"></span></th>
-                      <th class="right" data-col-key="svc-rate" style="width:90px;">Rate<span class="col-resizer"></span></th>
                       <th class="right" data-col-key="svc-cost" style="width:100px;">Cost<span class="col-resizer"></span></th>
-                      <th class="right" data-col-key="svc-sell" style="width:110px;">Sell<span class="col-resizer"></span></th>
+                      <th class="right" data-col-key="svc-rate" style="width:100px;">Rate<span class="col-resizer"></span></th>
                     </tr>
                   </thead>
                   <tbody id="services-host"></tbody>
@@ -574,13 +573,13 @@
     </div>
   </main>
 
-  <script src="js/mock-data.js?v=20260515r17"></script>
-  <script src="js/mock-state.js?v=20260515r17"></script>
-  <script src="js/mock-ui.js?v=20260515r17"></script>
-  <script src="js/mock-shell.js?v=20260515r17"></script>
-  <script src="js/mock-expiry.js?v=20260515r17"></script>
-  <script src="../_shared/tables/grid-table.js?v=20260515r17"></script>
-  <script src="../_shared/review-tools/mock-review.js?v=20260515r17"></script>
+  <script src="js/mock-data.js?v=20260515r18"></script>
+  <script src="js/mock-state.js?v=20260515r18"></script>
+  <script src="js/mock-ui.js?v=20260515r18"></script>
+  <script src="js/mock-shell.js?v=20260515r18"></script>
+  <script src="js/mock-expiry.js?v=20260515r18"></script>
+  <script src="../_shared/tables/grid-table.js?v=20260515r18"></script>
+  <script src="../_shared/review-tools/mock-review.js?v=20260515r18"></script>
   <script>
     // -------- Shell --------
     MockShell.mount({
@@ -1050,25 +1049,16 @@
     document.getElementById('pkg-cancel').addEventListener('click', closePkgModal);
 
     // -------- Services --------
-    // Surgical row update — refreshes the computed Cost and Sell cells of a
-    // single services row after a user edit. Skips whichever cell the user
-    // just typed in so the active input keeps focus and its in-progress value.
+    // Surgical row update — refreshes the computed Cost cell of a services
+    // row after a user edit. Skips whichever cell the user just typed in so
+    // the active input keeps focus and its in-progress value. With Sell
+    // removed (rate IS the bill rate, no margin layer), only Cost and Rate
+    // need to be kept in sync.
     function updateServiceRowComputedCells(row, sv, editedField) {
       const newCost = MockState.serviceCost(sv);
-      const newSell = MockState.serviceSell(sv);
       if (editedField !== 'costTotal') {
         const c = row.querySelector('[data-field="costTotal"]');
         if (c && document.activeElement !== c) c.value = Math.round(newCost);
-      }
-      if (editedField !== 'sellTotal') {
-        const s = row.querySelector('[data-field="sellTotal"]');
-        if (s && document.activeElement !== s) s.value = Math.round(newSell);
-      }
-      if (editedField !== 'marginPct') {
-        const m = row.querySelector('[data-field="marginPct"]');
-        if (m && document.activeElement !== m) {
-          m.value = Math.round((sv.marginPct + Number.EPSILON) * 10) / 10;
-        }
       }
       if (editedField !== 'rate') {
         const r = row.querySelector('[data-field="rate"]');
@@ -1135,9 +1125,8 @@
             </td>
             ${qtyCell}
             ${hoursCell}
-            <td class="right"><input class="cell-input cell-num" type="number" min="0" step="5" value="${sv.rate}" data-svc-edit="${sv.id}" data-field="rate" ${dis}></td>
             <td class="right"><input class="cell-input cell-num" type="number" min="0" step="1" value="${Math.round(cost)}" data-svc-edit="${sv.id}" data-field="costTotal" ${dis} title="Edit Cost — overrides rate"></td>
-            <td class="right"><input class="cell-input cell-num" type="number" min="0" step="1" value="${Math.round(sell)}" data-svc-edit="${sv.id}" data-field="sellTotal" ${dis} title="Edit Sell — back-calculates margin"></td>
+            <td class="right"><input class="cell-input cell-num" type="number" min="0" step="5" value="${sv.rate}" data-svc-edit="${sv.id}" data-field="rate" ${dis} title="Bill rate (margin baked in — no separate sell)"></td>
           </tr>
         `;
       }).join('');
@@ -1159,13 +1148,11 @@
           if (!cur) return;
           // Treat empty intermediate state as the previous value so spinner
           // clicks don't blip to 0 and re-render the row to 0. (c_al2cla)
-          if (input.value === '' && field !== 'sellTotal' && field !== 'costTotal') return;
-          if (field === 'sellTotal') {
-            const newSell = parseFloat(input.value) || 0;
-            const cost = MockState.serviceCost(cur);
-            const newMargin = (newSell > 0 && cost > 0) ? (1 - cost / newSell) * 100 : 0;
-            MockState.updateService(cq.id, id, { marginPct: newMargin });
-          } else if (field === 'costTotal') {
+          if (input.value === '' && field !== 'costTotal') return;
+          if (field === 'costTotal') {
+            // Cost edit back-calcs rate from current units. With sell removed
+            // from the UI (rate is the bill rate now), this still keeps cost
+            // and rate consistent for whoever wants to type one or the other.
             const newCost = parseFloat(input.value) || 0;
             const units = MockState.serviceUnitCount(cur);
             const newRate = units > 0 ? newCost / units : 0;

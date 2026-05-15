@@ -845,9 +845,11 @@ window.MockState = (function () {
     return serviceUnitCount(sv) * (Number(sv.rate) || 0);
   }
   function serviceSell(sv) {
-    const cost = serviceCost(sv);
-    const sell = sellFromCost(cost, sv.marginPct || 0);
-    return isFinite(sell) ? sell : cost;
+    // Services & Labour: rate is already the bill rate (margin baked in
+    // when the estimator types it). No separate margin layer for services,
+    // so sell equals cost. Reviewer note: "we don't need to add margin to
+    // labour, we just do that in our figure".
+    return serviceCost(sv);
   }
 
   function servicesTotal(quote) {
