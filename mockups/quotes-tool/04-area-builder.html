@@ -826,21 +826,32 @@
           renderTotals();
           // Refresh this row's dependent inputs without losing focus
           const cur = MockState.getCurrentQuote().areas.find(a => a.id === areaId).lines.find(l => l.id === lineId);
-          const t = MockState.lineTotals(cur, MockState.getCurrentQuote().areas.find(a => a.id === areaId), MockState.getCurrentQuote());
+          const curArea = MockState.getCurrentQuote().areas.find(a => a.id === areaId);
+          const t = MockState.lineTotals(cur, curArea, MockState.getCurrentQuote());
+          const effMargin = MockState.effectiveMargin(cur, curArea, MockState.getCurrentQuote());
           const row = card.querySelector(`[data-line-row="${lineId}"]`);
           if (row) {
-            // Sell input — update unless the user just typed it
             if (field !== 'sellTotal') {
               const sellIn = row.querySelector(`[data-field="sellTotal"][data-line-edit="${lineId}"]`);
               if (sellIn && document.activeElement !== sellIn) sellIn.value = Math.round(t.sellTotal);
             }
-            // Margin input — update unless the user just typed it
             if (field !== 'marginPct') {
               const marIn = row.querySelector(`[data-field="marginPct"][data-line-edit="${lineId}"]`);
               if (marIn && document.activeElement !== marIn) {
-                marIn.value = cur.marginPct === null || cur.marginPct === undefined ? '' : Math.round((cur.marginPct + Number.EPSILON) * 10) / 10;
+                // Pre-fill with the EFFECTIVE margin when inherited (c_vyldnc) so
+                // the spinner increments from a real number, not 0.
+                marIn.value = (cur.marginPct === null || cur.marginPct === undefined)
+                  ? Math.round((effMargin + Number.EPSILON) * 10) / 10
+                  : Math.round((cur.marginPct + Number.EPSILON) * 10) / 10;
               }
             }
+            // Refresh override tints — Brand/Model/Description/Cost/Margin
+            ['manufacturer', 'model', 'description', 'costPrice'].forEach(f => {
+              const cell = row.querySelector(`[data-field="${f}"][data-line-edit="${lineId}"]`)?.closest('td');
+              if (cell) cell.classList.toggle('cell-overridden', MockState.lineHasOverride(cur, f));
+            });
+            const marginCell = row.querySelector(`[data-field="marginPct"][data-line-edit="${lineId}"]`)?.closest('td');
+            if (marginCell) marginCell.classList.toggle('cell-overridden', cur.marginPct !== null && cur.marginPct !== undefined);
           }
           renderCables();
         });
@@ -1252,16 +1263,20 @@
       if (editedField !== 'marginPct') {
         const m = row.querySelector('[data-field="marginPct"]');
         if (m && document.activeElement !== m) {
-          m.value = line.marginPct === null || line.marginPct === undefined ? '' : Math.round((line.marginPct + Number.EPSILON) * 10) / 10;
-          m.placeholder = effM;
+          // Pre-fill effective margin when inherited (c_vyldnc).
+          m.value = Math.round(((line.marginPct === null || line.marginPct === undefined ? effM : line.marginPct) + Number.EPSILON) * 10) / 10;
         }
       }
+      // Toggle override tint on margin cell
+      const mCell = row.querySelector('[data-field="marginPct"]')?.closest('td');
+      if (mCell) mCell.classList.toggle('cell-overridden', line.marginPct !== null && line.marginPct !== undefined);
     }
 
     // Surgical row update for sundries.
     function updateSundryRowComputedCells(row, sn, editedField, q) {
       const cost = (Number(sn.qty) || 0) * (Number(sn.costPrice) || 0);
-      const m = (sn.marginPct !== null && sn.marginPct !== undefined && sn.marginPct !== '') ? Number(sn.marginPct) : MockState.effectiveMargin({ marginPct: null }, null, q);
+      const effM = MockState.effectiveMargin({ marginPct: null }, null, q);
+      const m = (sn.marginPct !== null && sn.marginPct !== undefined && sn.marginPct !== '') ? Number(sn.marginPct) : effM;
       const sell = MockState.sellFromCost(cost, m);
       if (editedField !== 'sellTotal') {
         const s = row.querySelector('[data-field="sellTotal"]');
@@ -1270,9 +1285,13 @@
       if (editedField !== 'marginPct') {
         const mEl = row.querySelector('[data-field="marginPct"]');
         if (mEl && document.activeElement !== mEl) {
-          mEl.value = sn.marginPct === null || sn.marginPct === undefined ? '' : Math.round((sn.marginPct + Number.EPSILON) * 10) / 10;
+          // Pre-fill effective margin (c_vyldnc).
+          mEl.value = Math.round(((sn.marginPct === null || sn.marginPct === undefined ? effM : sn.marginPct) + Number.EPSILON) * 10) / 10;
         }
       }
+      // Toggle override tint on margin cell
+      const mCell = row.querySelector('[data-field="marginPct"]')?.closest('td');
+      if (mCell) mCell.classList.toggle('cell-overridden', sn.marginPct !== null && sn.marginPct !== undefined);
     }
 
     // Mirror a cables/sundry change back into the matching area-lines table row
