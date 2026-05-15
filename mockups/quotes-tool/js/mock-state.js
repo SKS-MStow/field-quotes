@@ -63,7 +63,7 @@ window.MockState = (function () {
       });
       if (migrated) {
         try { console.info('[mock-state] migrated services to hours/isLabour model'); } catch (e) {}
-        save(merged);
+        save(merged, { skipPush: true });
       }
       return merged;
     } catch (e) {
@@ -71,8 +71,14 @@ window.MockState = (function () {
     }
   }
 
-  function save(state) {
+  function save(state, opts) {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    // Server sync (Phase 3) — track which quote bodies need to be PUT
+    // back. Skipped during pulls so server data doesn't bounce back to
+    // the server.
+    if (!opts || !opts.skipPush) {
+      (state.quotes || []).forEach(q => markDirty(q.id));
+    }
   }
 
   function defaultState() {
@@ -783,9 +789,117 @@ window.MockState = (function () {
     };
   }
 
+  // -------------------------------------------------------------
+  // Server-side state sync (Phase 3 of mockups platform)
+  //
+  // Each quote body is mirrored at /api/mockups/<slug>/state/<quoteId>.
+  // - On load: pull from server, merge (server wins where updatedAt is newer)
+  // - On save: mark touched quotes dirty, debounced PUT 800ms later
+  // - On poll: refetch every 12s in case another reviewer edited
+  //
+  // Conflict model: last-write-wins per quote body. Acceptable for mockup
+  // review; not suitable for real implementation.
+  // -------------------------------------------------------------
+  const STATE_SYNC = (function () {
+    const m = location.pathname.match(/^\/(mockups|mockups-staging)\/([^\/]+)\//);
+    let api;
+    if (m) {
+      const stagingPrefix = m[1] === 'mockups-staging' ? '/api/mockups-staging/' : '/api/mockups/';
+      api = stagingPrefix + m[2] + '/state';
+    } else {
+      // Legacy /quotes-mockup[-staging]/ paths
+      const isStaging = /\/quotes-mockup-staging\//.test(location.pathname);
+      api = (isStaging ? '/api/mockups-staging/' : '/api/mockups/') + 'quotes-tool/state';
+    }
+    return { api };
+  })();
+
+  const dirtyIds = new Set();
+  let pushTimer = null;
+  let pullInFlight = false;
+
+  function reviewerName() {
+    const k = /\/mockups-staging\//.test(location.pathname) || /\/quotes-mockup-staging\//.test(location.pathname)
+      ? 'mr_reviewer_v1_staging' : 'mr_reviewer_v1';
+    return localStorage.getItem(k) || 'unknown';
+  }
+
+  function markDirty(quoteId) {
+    if (!quoteId) return;
+    dirtyIds.add(quoteId);
+    if (pushTimer) clearTimeout(pushTimer);
+    pushTimer = setTimeout(flushPush, 800);
+  }
+
+  async function flushPush() {
+    pushTimer = null;
+    const ids = Array.from(dirtyIds);
+    dirtyIds.clear();
+    if (ids.length === 0) return;
+    const local = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+    const reviewer = reviewerName();
+    for (const id of ids) {
+      const q = (local.quotes || []).find(x => x.id === id);
+      if (!q) continue;
+      q.updatedAt = new Date().toISOString();
+      try {
+        await fetch(STATE_SYNC.api + '/' + encodeURIComponent(id), {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ body: q, updatedBy: reviewer })
+        });
+      } catch (e) {
+        // Re-mark so a future save will retry
+        dirtyIds.add(id);
+      }
+    }
+  }
+
+  async function pullStateFromServer() {
+    if (pullInFlight) return;
+    pullInFlight = true;
+    try {
+      const r = await fetch(STATE_SYNC.api, { cache: 'no-store' });
+      if (!r.ok) return;
+      const j = await r.json();
+      if (!Array.isArray(j.items)) return;
+      const local = JSON.parse(localStorage.getItem(STORAGE_KEY) || JSON.stringify(defaultState()));
+      const localById = Object.fromEntries((local.quotes || []).map(q => [q.id, q]));
+      let changed = false;
+      j.items.forEach(serverQuote => {
+        if (!serverQuote || !serverQuote.id) return;
+        const localQ = localById[serverQuote.id];
+        const serverTime = new Date(serverQuote.updatedAt || 0).getTime();
+        const localTime  = localQ ? new Date(localQ.updatedAt || 0).getTime() : 0;
+        if (!localQ || serverTime > localTime) {
+          localById[serverQuote.id] = { ...(localQ || {}), ...serverQuote };
+          changed = true;
+        }
+      });
+      if (changed) {
+        local.quotes = Object.values(localById);
+        save(local, { skipPush: true });
+        try { window.dispatchEvent(new CustomEvent('mock-state-synced')); } catch (e) {}
+      }
+    } catch (e) {
+      // Silent — sync is best-effort
+    } finally {
+      pullInFlight = false;
+    }
+  }
+
+  // Pull on mount + poll every 12s. Pages re-render on the synced event.
+  if (typeof window !== 'undefined') {
+    setTimeout(pullStateFromServer, 100);
+    setInterval(() => { if (!document.hidden) pullStateFromServer(); }, 12000);
+    window.addEventListener('focus', pullStateFromServer);
+  }
+
   return {
     // persistence
     load, save, reset,
+    // server sync
+    pullStateFromServer, flushPush,
     // quote lifecycle
     newQuote, getCurrentQuote, setCurrentQuote, getQuote, getQuotes, updateQuote,
     // areas/lines
