@@ -16,14 +16,6 @@ window.MockShell = (function () {
   }
 
   function sidebarHtml(user) {
-    // Compute draft count for the badge
-    let draftCount = 0;
-    try {
-      if (window.MockState && typeof MockState.getQuotes === 'function') {
-        draftCount = MockState.getQuotes().filter(q => q.status === 'draft').length;
-      }
-    } catch (e) { /* ignore */ }
-
     return `
       <div class="sidebar" id="sidebar">
         <div class="sidebar-logo">
@@ -37,9 +29,8 @@ window.MockShell = (function () {
         <div class="nav-group-label">Quotes</div>
         ${navItem({ page: 'quotes',    href: '01-quote-list.html',  icon: 'request_quote', label: 'All Quotes' })}
         ${navItem({ page: 'new-quote', href: '02-mode-select.html', icon: 'add_circle',    label: 'New Quote' })}
-        ${navItem({ page: 'drafts',    href: '01-quote-list.html?filter=draft',   icon: 'edit_note', label: 'Drafts', badge: draftCount || null })}
-        ${navItem({ page: 'issued',    href: '01-quote-list.html?filter=issued',  icon: 'send',      label: 'Issued' })}
-        ${navItem({ page: 'accepted',  href: '01-quote-list.html?filter=accepted',icon: 'check_circle', label: 'Accepted' })}
+        <!-- Drafts / Issued / Accepted removed (c_fx5cq1) — those views are
+             available via the status-tabs + filters on the All Quotes page. -->
 
         <div class="nav-group-label">Catalogue</div>
         ${navItem({ page: 'admin-products', href: '07-admin.html#products',   icon: 'inventory_2', label: 'Products' })}

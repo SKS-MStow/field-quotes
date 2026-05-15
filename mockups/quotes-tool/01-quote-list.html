@@ -6,8 +6,8 @@
   <title>Quotes — SKS Quotes</title>
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/icon?family=Material+Symbols+Outlined" rel="stylesheet">
-  <link rel="stylesheet" href="css/theme.css?v=20260515r13">
-  <link rel="stylesheet" href="css/mockups.css?v=20260515r13">
+  <link rel="stylesheet" href="css/theme.css?v=20260515r14">
+  <link rel="stylesheet" href="css/mockups.css?v=20260515r14">
   <style>
     .quote-num { font-family: var(--font-heading); font-weight: 600; color: var(--text-primary); }
     .quote-rev { color: var(--text-muted); font-size: 11px; margin-left: 6px; font-weight: 500; }
@@ -21,12 +21,19 @@
     .no-results .material-symbols-outlined { font-size: 36px; color: var(--border-hover); margin-bottom: 8px; }
     .no-results h4 { font-family: var(--font-heading); font-size: 14px; font-weight: 600; color: var(--text-secondary); margin: 4px 0; }
 
-    /* Status pill-tab bar */
-    .status-tabs { display: flex; align-items: center; gap: 4px; background: var(--surface-card); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 4px; margin-bottom: 4px; flex-wrap: wrap; }
-    .status-tab { background: transparent; border: 1px solid transparent; padding: 7px 14px; border-radius: var(--radius-md); font-size: 12.5px; color: var(--text-secondary); cursor: pointer; font-family: var(--font-body); font-weight: 500; }
-    .status-tab:hover { background: var(--surface-inset); }
-    .status-tab.active { background: var(--accent-primary); color: white; border-color: var(--accent-primary); }
-    .status-tab-spacer { flex: 1; }
+    /* Badge filter bar (c_7m99jw) — replaces KPI strip + filter dropdowns. */
+    .badge-filters { background: var(--surface-card); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 8px 12px; display: flex; flex-direction: column; gap: 8px; margin-bottom: 4px; }
+    .bf-row { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+    .bf-group-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-muted); font-weight: 700; margin-right: 4px; min-width: 50px; }
+    .bf-spacer { flex: 1; }
+    .bf-pill { background: var(--surface-inset); border: 1px solid var(--border); padding: 5px 12px; border-radius: 999px; font-size: 12.5px; color: var(--text-secondary); cursor: pointer; font-family: var(--font-body); font-weight: 500; display: inline-flex; align-items: center; gap: 4px; }
+    .bf-pill:hover { background: var(--surface-white); border-color: var(--border-hover); }
+    .bf-pill.active { background: var(--accent-primary); color: white; border-color: var(--accent-primary); }
+    .bf-pill.won.active { background: var(--status-success, #2c8a4a); border-color: var(--status-success, #2c8a4a); }
+    .bf-pill.lost.active { background: var(--status-danger, #b1352a); border-color: var(--status-danger, #b1352a); }
+    .bf-pill .material-symbols-outlined { font-size: 14px; }
+    .bf-pill.owner-cycle[data-owner-mode="mine"] { background: var(--accent-primary); color: white; border-color: var(--accent-primary); }
+    .bf-pill.owner-cycle[data-owner-mode="others"] { background: var(--status-warning, #b58400); color: white; border-color: var(--status-warning, #b58400); }
 
     /* More-filters disclosure */
     .more-filters { display: flex; gap: 10px; align-items: center; margin-top: 8px; padding: 10px 12px; background: var(--surface-inset); border-radius: var(--radius-md); flex-wrap: wrap; }
@@ -56,76 +63,67 @@
 
   <main id="content" class="content">
 
-    <!-- KPI strip -->
-    <div class="kpi-grid" id="kpi-host"></div>
-
-    <!-- Status pill-tab bar — prominent, replaces the old dropdown -->
-    <div class="status-tabs" id="status-tabs" role="tablist">
-      <button class="status-tab active" data-status="">All</button>
-      <button class="status-tab" data-status="draft">Draft</button>
-      <button class="status-tab" data-status="issued">Issued</button>
-      <button class="status-tab" data-status="accepted">Accepted</button>
-      <button class="status-tab" data-status="declined">Declined</button>
-      <button class="status-tab" data-status="expired">Expired</button>
-      <button class="status-tab" data-status="revised">Revised</button>
-      <span class="status-tab-spacer"></span>
-      <button class="btn btn-secondary btn-sm" id="reset-data" title="Reset mockup data to defaults"><span class="material-symbols-outlined">restart_alt</span> Reset demo</button>
+    <!-- Badge filter bar (c_7m99jw): replaces the old KPI strip + filter
+         dropdowns. Each pill toggles its filter on/off; the Owner pill
+         click-cycles through three modes (Anyone → Mine only → Others). -->
+    <div class="badge-filters" id="badge-filters">
+      <div class="bf-row">
+        <span class="bf-group-label">Status</span>
+        <button class="bf-pill active" data-bf="status" data-val="">All</button>
+        <button class="bf-pill" data-bf="status" data-val="draft">Draft</button>
+        <button class="bf-pill" data-bf="status" data-val="issued">Issued</button>
+        <button class="bf-pill won" data-bf="status" data-val="accepted">Won</button>
+        <button class="bf-pill lost" data-bf="status" data-val="declined">Declined</button>
+        <button class="bf-pill" data-bf="status" data-val="expired">Expired</button>
+        <button class="bf-pill" data-bf="status" data-val="revised">Revised</button>
+      </div>
+      <div class="bf-row">
+        <span class="bf-group-label">Mode</span>
+        <button class="bf-pill active" data-bf="mode" data-val="">All</button>
+        <button class="bf-pill" data-bf="mode" data-val="quick">Quick</button>
+        <button class="bf-pill" data-bf="mode" data-val="large">Large</button>
+        <span class="bf-spacer"></span>
+        <!-- 3-mode click-through: Anyone → Mine only → Others -->
+        <button class="bf-pill owner-cycle" id="bf-owner" data-owner-mode="any">
+          <span class="material-symbols-outlined">person</span><span id="bf-owner-label">Anyone</span>
+        </button>
+        <button class="btn btn-secondary btn-sm" id="reset-data" title="Reset mockup data to defaults"><span class="material-symbols-outlined">restart_alt</span> Reset demo</button>
+      </div>
     </div>
 
-    <!-- Search row + collapsible "More filters" disclosure -->
+    <!-- Search + sort -->
     <div class="filters-row" style="margin-top:10px;">
       <div class="search-wrap">
         <span class="material-symbols-outlined">search</span>
         <input id="filter-search" type="text" class="form-input" placeholder="Search by quote #, client, project…">
       </div>
-      <button class="btn btn-secondary btn-sm" id="more-filters-toggle" type="button">
-        <span class="material-symbols-outlined">tune</span> More filters
-      </button>
-      <span style="flex:1;font-size:11px;color:var(--text-muted);">
-        Click a column header to sort · right-click for filters.
-      </span>
-    </div>
-    <div class="more-filters" id="more-filters" hidden>
-      <!-- Hidden status field — kept so the URL ?filter= mechanism still works -->
-      <select id="filter-status" hidden>
-        <option value="">All</option>
-        <option value="draft">Draft</option>
-        <option value="issued">Issued</option>
-        <option value="accepted">Accepted</option>
-        <option value="declined">Declined</option>
-        <option value="expired">Expired</option>
-        <option value="revised">Revised</option>
-      </select>
-      <select class="form-input" id="filter-mode">
-        <option value="">All modes</option>
-        <option value="quick">Quick</option>
-        <option value="large">Large</option>
-      </select>
-      <select class="form-input" id="filter-prep">
-        <option value="">All estimators</option>
-        <option value="Mark Stowell">Mark Stowell</option>
-        <option value="Steven Carmichael">Steven Carmichael</option>
-      </select>
-      <select class="form-input" id="filter-sort">
+      <select class="form-input" id="filter-sort" style="max-width:200px;">
         <option value="newest">Sort: Newest first</option>
         <option value="oldest">Sort: Oldest first</option>
         <option value="value-high">Sort: Value high → low</option>
         <option value="value-low">Sort: Value low → high</option>
         <option value="client">Sort: Client A–Z</option>
       </select>
+      <span style="flex:1;font-size:11px;color:var(--text-muted);">
+        Click a column header to sort · right-click for filters.
+      </span>
     </div>
+    <!-- Hidden inputs that drive the existing filter JS — set by the badge pills -->
+    <input type="hidden" id="filter-status" value="">
+    <input type="hidden" id="filter-mode" value="">
+    <input type="hidden" id="filter-prep" value="">
 
     <!-- Quote table -->
     <div class="table-wrap" id="table-host"></div>
 
   </main>
 
-  <script src="js/mock-data.js?v=20260515r13"></script>
-  <script src="js/mock-state.js?v=20260515r13"></script>
-  <script src="js/mock-ui.js?v=20260515r13"></script>
-  <script src="js/mock-shell.js?v=20260515r13"></script>
-  <script src="js/mock-expiry.js?v=20260515r13"></script>
-  <script src="../_shared/review-tools/mock-review.js?v=20260515r13"></script>
+  <script src="js/mock-data.js?v=20260515r14"></script>
+  <script src="js/mock-state.js?v=20260515r14"></script>
+  <script src="js/mock-ui.js?v=20260515r14"></script>
+  <script src="js/mock-shell.js?v=20260515r14"></script>
+  <script src="js/mock-expiry.js?v=20260515r14"></script>
+  <script src="../_shared/review-tools/mock-review.js?v=20260515r14"></script>
   <script>
     MockShell.mount({
       title: 'Quotes',
@@ -210,7 +208,12 @@
       if (q)  out = out.filter(qq => (qq.number + ' ' + (qq.client.name || '') + ' ' + (qq.project.name || '')).toLowerCase().includes(q));
       if (st) out = out.filter(qq => qq.status === st);
       if (md) out = out.filter(qq => qq.mode === md);
-      if (pr) out = out.filter(qq => qq.preparedBy === pr);
+      if (pr === '__not_me__') {
+        // 3-mode owner pill "Others"
+        out = out.filter(qq => qq.preparedBy !== 'Mark Stowell');
+      } else if (pr) {
+        out = out.filter(qq => qq.preparedBy === pr);
+      }
 
       // Per-column filters from the right-click menu
       Object.entries(colFilters).forEach(([col, f]) => {
@@ -251,7 +254,7 @@
     // -------- Render table --------
     function renderTable() {
       const all = MockState.getQuotes();
-      renderKpis(all);
+      // KPI strip removed (c_7m99jw) — filters are now badge-based above.
       renderFilterChips();
       const rows = filterAndSort(all);
       const host = document.getElementById('table-host');
@@ -582,22 +585,37 @@
       el.addEventListener('change', renderTable);
     });
 
-    // Status tab bar
-    function applyStatusTab(status) {
-      document.querySelectorAll('.status-tab').forEach(b => {
-        b.classList.toggle('active', (b.getAttribute('data-status') || '') === (status || ''));
+    // Badge filter pills (c_7m99jw). Each pill toggles its filter via a
+    // hidden input that the existing filterAndSort() reads. Pills in the same
+    // bf group are mutually exclusive; an active pill click does nothing.
+    function applyBadgePill(bf, val) {
+      document.querySelectorAll(`.bf-pill[data-bf="${bf}"]`).forEach(b => {
+        b.classList.toggle('active', (b.getAttribute('data-val') || '') === (val || ''));
       });
-      document.getElementById('filter-status').value = status || '';
+      const inp = document.getElementById('filter-' + bf);
+      if (inp) inp.value = val || '';
       renderTable();
     }
-    document.querySelectorAll('.status-tab').forEach(b => {
-      b.addEventListener('click', () => applyStatusTab(b.getAttribute('data-status') || ''));
+    document.querySelectorAll('.bf-pill[data-bf]').forEach(b => {
+      b.addEventListener('click', () => applyBadgePill(b.getAttribute('data-bf'), b.getAttribute('data-val') || ''));
     });
 
-    // More-filters toggle
-    document.getElementById('more-filters-toggle').addEventListener('click', () => {
-      const el = document.getElementById('more-filters');
-      el.hidden = !el.hidden;
+    // 3-mode owner pill: Anyone -> Mine only -> Others -> Anyone
+    const CURRENT_USER = 'Mark Stowell';
+    const OWNER_CYCLE = [
+      { mode: 'any',    label: 'Anyone',    prep: '' },
+      { mode: 'mine',   label: 'Mine only', prep: CURRENT_USER },
+      { mode: 'others', label: 'Others',    prep: '__not_me__' }
+    ];
+    document.getElementById('bf-owner').addEventListener('click', () => {
+      const cur = document.getElementById('bf-owner').getAttribute('data-owner-mode') || 'any';
+      const idx = OWNER_CYCLE.findIndex(o => o.mode === cur);
+      const next = OWNER_CYCLE[(idx + 1) % OWNER_CYCLE.length];
+      const btn = document.getElementById('bf-owner');
+      btn.setAttribute('data-owner-mode', next.mode);
+      document.getElementById('bf-owner-label').textContent = next.label;
+      document.getElementById('filter-prep').value = next.prep;
+      renderTable();
     });
 
     document.getElementById('reset-data').addEventListener('click', () => {
@@ -615,8 +633,8 @@
     // Re-render when state syncs in from another browser
     window.addEventListener('mock-state-synced', () => renderTable());
 
-    // Apply initial status from URL ?filter= (sidebar links use this)
-    applyStatusTab(initialStatus);
+    // Apply initial status from URL ?filter= (legacy sidebar links use this)
+    applyBadgePill('status', initialStatus);
   </script>
 </body>
 </html>

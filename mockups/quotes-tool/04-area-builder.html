@@ -6,8 +6,8 @@
   <title>Build Areas — SKS Quotes</title>
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/icon?family=Material+Symbols+Outlined" rel="stylesheet">
-  <link rel="stylesheet" href="css/theme.css?v=20260515r13">
-  <link rel="stylesheet" href="css/mockups.css?v=20260515r13">
+  <link rel="stylesheet" href="css/theme.css?v=20260515r14">
+  <link rel="stylesheet" href="css/mockups.css?v=20260515r14">
   <style>
     .quote-meta { display: flex; gap: 18px; padding: 12px 16px; background: var(--surface-inset); border-radius: var(--radius-md); margin-bottom: 14px; flex-wrap: wrap; align-items: center; }
     .quote-meta .mi { display: flex; flex-direction: column; gap: 2px; }
@@ -161,6 +161,26 @@
     body.is-col-resizing { cursor: col-resize; user-select: none; }
     body.is-col-resizing * { user-select: none !important; }
 
+    /* Right-rail headline numbers + cost-vs-sell bar chart (c_ci8dgy) */
+    .hero-numbers { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px; }
+    .hero-cell { display: flex; flex-direction: column; gap: 2px; }
+    .hero-cell .hl { font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-muted); font-weight: 600; }
+    .hero-cell .hv { font-family: var(--font-heading); font-weight: 700; font-size: 22px; color: var(--text-primary); font-variant-numeric: tabular-nums; line-height: 1.1; }
+    .hero-cell .hv.accent { color: var(--accent-primary); }
+    .bar-chart { display: flex; flex-direction: column; gap: 8px; padding: 6px 0; }
+    .bar-row { display: grid; grid-template-columns: 60px 1fr; gap: 6px; align-items: center; font-size: 11px; }
+    .bar-row .bar-label { color: var(--text-secondary); font-weight: 600; }
+    .bar-track { position: relative; height: 18px; background: var(--surface-inset); border-radius: 3px; overflow: hidden; }
+    .bar-cost { position: absolute; top: 0; left: 0; bottom: 50%; background: #bcc5d4; }
+    .bar-sell { position: absolute; top: 50%; left: 0; bottom: 0; background: var(--accent-primary); }
+    .bar-vals { grid-column: 1 / -1; display: flex; justify-content: space-between; gap: 6px; font-variant-numeric: tabular-nums; font-size: 10.5px; padding: 0 2px; }
+    .bar-vals .bv-cost { color: var(--text-muted); }
+    .bar-vals .bv-sell { color: var(--text-primary); font-weight: 600; }
+    .bar-legend { display: flex; gap: 12px; font-size: 10px; color: var(--text-muted); margin-top: 2px; padding: 0 2px; }
+    .bar-legend i.leg { display: inline-block; width: 10px; height: 8px; border-radius: 2px; margin-right: 4px; vertical-align: middle; }
+    .bar-legend i.leg.cost { background: #bcc5d4; }
+    .bar-legend i.leg.sell { background: var(--accent-primary); }
+
     /* Attachment drop hover — keep instructional text legible (c_34o29d) */
     .att-drop:hover, .att-drop.dragover {
       border-color: var(--accent-primary);
@@ -279,8 +299,7 @@
                       <th class="right" style="width:60px;">Qty</th>
                       <th class="right" style="width:70px;">Hours</th>
                       <th class="right" style="width:90px;">Rate</th>
-                      <th class="right" style="width:95px;">Cost</th>
-                      <th class="right" style="width:75px;">Margin %</th>
+                      <th class="right" style="width:100px;">Cost</th>
                       <th class="right" style="width:110px;">Sell</th>
                     </tr>
                   </thead>
@@ -351,29 +370,49 @@
       <!-- Right: Margin sliders + per-line breakdown -->
       <aside>
         <div class="margin-panel">
-          <h3 style="font-family:var(--font-heading);font-size:13px;font-weight:600;color:var(--text-primary);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:10px;">Margins</h3>
+          <!-- Reviewer c_ci8dgy: Sell + Margin% as the prominent headline
+               numbers, with a cost-vs-sell bar graph underneath. -->
+          <div class="hero-numbers">
+            <div class="hero-cell"><span class="hl">Sell (ex-GST)</span><span class="hv" id="t-hero-sell">$0</span></div>
+            <div class="hero-cell"><span class="hl">Margin</span><span class="hv accent" id="t-hero-margin">0%</span></div>
+          </div>
+          <div class="bar-chart">
+            <div class="bar-row">
+              <div class="bar-label">Materials</div>
+              <div class="bar-track"><div class="bar-cost" id="bar-mat-cost"></div><div class="bar-sell" id="bar-mat-sell"></div></div>
+              <div class="bar-vals"><span class="bv-cost" id="bv-mat-cost">$0</span><span class="bv-sell" id="bv-mat-sell">$0</span></div>
+            </div>
+            <div class="bar-row">
+              <div class="bar-label">Labour</div>
+              <div class="bar-track"><div class="bar-cost" id="bar-lab-cost"></div><div class="bar-sell" id="bar-lab-sell"></div></div>
+              <div class="bar-vals"><span class="bv-cost" id="bv-lab-cost">$0</span><span class="bv-sell" id="bv-lab-sell">$0</span></div>
+            </div>
+            <div class="bar-row">
+              <div class="bar-label">Services</div>
+              <div class="bar-track"><div class="bar-cost" id="bar-svc-cost"></div><div class="bar-sell" id="bar-svc-sell"></div></div>
+              <div class="bar-vals"><span class="bv-cost" id="bv-svc-cost">$0</span><span class="bv-sell" id="bv-svc-sell">$0</span></div>
+            </div>
+            <div class="bar-legend"><span><i class="leg cost"></i>cost</span><span><i class="leg sell"></i>sell</span></div>
+          </div>
+
+          <hr style="border:none;border-top:1px solid var(--border-light);margin:14px 0;">
 
           <!-- Materials margin slider -->
           <div class="slider-block">
-            <div class="slr-label"><span>Materials</span><span class="v" id="materials-margin-val">25%</span></div>
+            <div class="slr-label"><span>Materials margin</span><span class="v" id="materials-margin-val">25%</span></div>
             <input type="range" id="materials-margin" min="0" max="60" step="1">
           </div>
-
-          <!-- Labour margin slider removed per c_nz2jt6 — labour margin is now
-               set per-row in Services & Labour rather than globally. -->
-
           <button class="btn btn-secondary btn-sm" id="apply-all-margin" style="margin-top:6px;width:100%;justify-content:center;">Apply materials % to all lines</button>
 
           <hr style="border:none;border-top:1px solid var(--border-light);margin:14px 0;">
 
-          <div class="margin-row"><span class="lbl">Materials cost</span><span class="val num" id="t-mat-cost">$0</span></div>
-          <div class="margin-row"><span class="lbl">Materials sell</span><span class="val num" id="t-mat-sell">$0</span></div>
+          <!-- Secondary readouts (kept available for reference) -->
           <div class="margin-row"><span class="lbl">Labour hours</span><span class="val num" id="t-lab-hrs">0</span></div>
-          <div class="margin-row"><span class="lbl">Labour cost</span><span class="val num" id="t-lab-cost">$0</span></div>
-          <div class="margin-row"><span class="lbl">Labour sell</span><span class="val num" id="t-lab-sell">$0</span></div>
-          <div class="margin-row"><span class="lbl">Services</span><span class="val num" id="t-svc-sell">$0</span></div>
           <div class="margin-row"><span class="lbl">Margin $</span><span class="val num" id="t-margin">$0</span></div>
-          <div class="margin-row"><span class="lbl">Margin %</span><span class="val num" id="t-margin-pct">0%</span></div>
+          <!-- Hidden legacy slots still updated by renderTotals -->
+          <span hidden id="t-mat-cost"></span><span hidden id="t-mat-sell"></span>
+          <span hidden id="t-lab-cost"></span><span hidden id="t-lab-sell"></span>
+          <span hidden id="t-svc-sell"></span><span hidden id="t-margin-pct"></span>
         </div>
       </aside>
     </div>
@@ -533,12 +572,12 @@
     </div>
   </main>
 
-  <script src="js/mock-data.js?v=20260515r13"></script>
-  <script src="js/mock-state.js?v=20260515r13"></script>
-  <script src="js/mock-ui.js?v=20260515r13"></script>
-  <script src="js/mock-shell.js?v=20260515r13"></script>
-  <script src="js/mock-expiry.js?v=20260515r13"></script>
-  <script src="../_shared/review-tools/mock-review.js?v=20260515r13"></script>
+  <script src="js/mock-data.js?v=20260515r14"></script>
+  <script src="js/mock-state.js?v=20260515r14"></script>
+  <script src="js/mock-ui.js?v=20260515r14"></script>
+  <script src="js/mock-shell.js?v=20260515r14"></script>
+  <script src="js/mock-expiry.js?v=20260515r14"></script>
+  <script src="../_shared/review-tools/mock-review.js?v=20260515r14"></script>
   <script>
     // -------- Shell --------
     MockShell.mount({
@@ -661,9 +700,9 @@
           <table class="lines" data-area-table="${area.id}">
             <thead>
               <tr>
-                <th class="col-mfr" data-col-key="mfr" style="width:110px;">Brand<span class="col-resizer"></span></th>
-                <th class="col-model" data-col-key="model" style="width:140px;">Model<span class="col-resizer"></span></th>
-                <th data-col-key="desc" style="width:280px;">Description<span class="col-resizer"></span></th>
+                <th class="col-mfr" data-col-key="mfr" style="width:130px;">Brand<span class="col-resizer"></span></th>
+                <th class="col-model" data-col-key="model" style="width:180px;">Model<span class="col-resizer"></span></th>
+                <th data-col-key="desc" style="width:400px;">Description<span class="col-resizer"></span></th>
                 <th class="col-qty" data-col-key="qty" style="width:60px;">Qty<span class="col-resizer"></span></th>
                 <th class="col-unit" data-col-key="unit" style="width:50px;">Unit<span class="col-resizer"></span></th>
                 ${isQuick ? '' : '<th class="col-num" data-col-key="lab" style="width:80px;">Labour (hr)<span class="col-resizer"></span></th>'}
@@ -1079,12 +1118,17 @@
     function renderServices() {
       const q = MockState.getCurrentQuote();
       const host = document.getElementById('services-host');
-      // Build combined list: predefined services (whether or not currently included) + any custom services
+      // Build combined list: predefined services (whether or not currently included) + any custom services.
+      // Reviewer c_imt92m — Installation pinned to the top; everything else in MockData order.
       const customRows = q.services.filter(sv => sv.serviceId === null);
-      const orderedRows = MockData.services.map(def => {
+      const sortedDefs = [...MockData.services].sort((a, b) => {
+        if (a.id === 's_install') return -1;
+        if (b.id === 's_install') return 1;
+        return 0;
+      });
+      const orderedRows = sortedDefs.map(def => {
         const existing = q.services.find(sv => sv.serviceId === def.id);
         if (existing) return { ...existing, defaults: def };
-        // Not yet added — show as a togglable row, hours seeded for labour-style services
         const isLab = def.category === 'Labour';
         return {
           id: 'pending_' + def.id, serviceId: def.id, name: def.name, category: def.category,
@@ -1132,7 +1176,6 @@
             ${hoursCell}
             <td class="right"><input class="cell-input cell-num" type="number" min="0" step="5" value="${sv.rate}" data-svc-edit="${sv.id}" data-field="rate" ${dis}></td>
             <td class="right"><input class="cell-input cell-num" type="number" min="0" step="1" value="${Math.round(cost)}" data-svc-edit="${sv.id}" data-field="costTotal" ${dis} title="Edit Cost — overrides rate"></td>
-            <td class="right"><input class="cell-input cell-num cell-narrow" type="number" min="0" max="80" step="1" value="${Math.round((sv.marginPct + Number.EPSILON) * 10) / 10}" data-svc-edit="${sv.id}" data-field="marginPct" ${dis}></td>
             <td class="right"><input class="cell-input cell-num" type="number" min="0" step="1" value="${Math.round(sell)}" data-svc-edit="${sv.id}" data-field="sellTotal" ${dis} title="Edit Sell — back-calculates margin"></td>
           </tr>
         `;
@@ -1259,6 +1302,22 @@
       document.getElementById('t-svc-sell').textContent = MockUI.fmtMoney(t.servicesSell);
       document.getElementById('t-margin').textContent   = MockUI.fmtMoney(t.margin);
       document.getElementById('t-margin-pct').textContent = MockUI.fmtPct(t.marginPct);
+      // Hero headline numbers (c_ci8dgy)
+      document.getElementById('t-hero-sell').textContent   = MockUI.fmtMoney(t.sellExGST);
+      document.getElementById('t-hero-margin').textContent = MockUI.fmtPct(t.marginPct);
+      // Cost-vs-sell bar chart — bars sized proportional to the largest sell
+      const maxSell = Math.max(t.materialsSell, t.labourSell, t.servicesSell, 1);
+      const setBar = (catCost, catSell, costEl, sellEl, costValEl, sellValEl) => {
+        const cPct = Math.min(100, (catCost / maxSell) * 100);
+        const sPct = Math.min(100, (catSell / maxSell) * 100);
+        document.getElementById(costEl).style.width = cPct + '%';
+        document.getElementById(sellEl).style.width = sPct + '%';
+        document.getElementById(costValEl).textContent = MockUI.fmtMoney(catCost);
+        document.getElementById(sellValEl).textContent = MockUI.fmtMoney(catSell);
+      };
+      setBar(t.materialsCost, t.materialsSell, 'bar-mat-cost', 'bar-mat-sell', 'bv-mat-cost', 'bv-mat-sell');
+      setBar(t.labourCost,    t.labourSell,    'bar-lab-cost', 'bar-lab-sell', 'bv-lab-cost', 'bv-lab-sell');
+      setBar(t.servicesCost,  t.servicesSell,  'bar-svc-cost', 'bar-svc-sell', 'bv-svc-cost', 'bv-svc-sell');
       // Sticky footer totals bar
       document.getElementById('tb-mat-cost').textContent = MockUI.fmtMoney(t.materialsCost);
       document.getElementById('tb-mat').textContent      = MockUI.fmtMoney(t.materialsSell);
