@@ -6,8 +6,8 @@
   <title>Build Areas — SKS Quotes</title>
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/icon?family=Material+Symbols+Outlined" rel="stylesheet">
-  <link rel="stylesheet" href="css/theme.css?v=20260515r7">
-  <link rel="stylesheet" href="css/mockups.css?v=20260515r7">
+  <link rel="stylesheet" href="css/theme.css?v=20260515r8">
+  <link rel="stylesheet" href="css/mockups.css?v=20260515r8">
   <style>
     .quote-meta { display: flex; gap: 18px; padding: 12px 16px; background: var(--surface-inset); border-radius: var(--radius-md); margin-bottom: 14px; flex-wrap: wrap; align-items: center; }
     .quote-meta .mi { display: flex; flex-direction: column; gap: 2px; }
@@ -34,16 +34,6 @@
     .scope-panel .edit-link { position: absolute; top: 12px; right: 14px; font-size: 12px; color: var(--accent-primary); text-decoration: none; display: flex; align-items: center; gap: 4px; }
     .scope-panel .edit-link:hover { text-decoration: underline; }
     .scope-panel .edit-link .material-symbols-outlined { font-size: 16px; }
-
-    /* Per-area labour block */
-    .labour-block { border-top: 1px solid var(--border-light); background: var(--surface-card); padding: 10px 16px 12px; }
-    .labour-block .lh { font-size: 11px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
-    .labour-block .lh .material-symbols-outlined { font-size: 16px; }
-    table.labour-table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
-    table.labour-table th { padding: 6px 8px; font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.04em; text-align: left; font-weight: 600; white-space: nowrap; }
-    table.labour-table td { padding: 6px 8px; border-top: 1px solid var(--border-light); vertical-align: middle; }
-    table.labour-table .row-auto td { background: rgba(0,0,0,0.015); font-style: italic; color: var(--text-secondary); }
-    table.labour-table .right { text-align: right; }
 
     /* Cables & accessories aggregator */
     .cables-section { margin-top: 26px; }
@@ -108,6 +98,46 @@
     .add-line-cell { padding: 8px 10px; background: var(--surface-card); }
     .add-line-cell button { background: transparent; border: 1px dashed var(--border-input); color: var(--text-secondary); padding: 6px 12px; border-radius: var(--radius-md); cursor: pointer; font-size: 12px; font-family: var(--font-body); display: inline-flex; align-items: center; gap: 4px; }
     .add-line-cell button:hover { border-color: var(--accent-primary); color: var(--accent-primary); }
+
+    /* ---- Document settings (moved from Review per c_pmbc05 / c_bz6mcl) ---- */
+    .doc-section { margin-bottom: 16px; padding: 12px 14px; border: 1px solid var(--border-light); border-radius: var(--radius-md); background: var(--surface-card); }
+    .doc-section h4 { font-family: var(--font-heading); font-size: 12px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px; }
+    .doc-section h4 .hint { font-weight: 400; color: var(--text-muted); font-size: 11px; text-transform: none; letter-spacing: 0; margin-left: 6px; }
+    .ex-row { display: flex; align-items: center; gap: 10px; padding: 6px 0; border-bottom: 1px solid var(--border-light); }
+    .ex-row:last-child { border-bottom: none; }
+    .ex-row input[type=checkbox] { transform: scale(1.1); }
+    .ex-row .text { flex: 1; font-size: 12.5px; }
+    .ex-row .text input { width: 100%; border: 1px solid transparent; background: transparent; padding: 4px 6px; border-radius: 4px; font: inherit; color: inherit; }
+    .ex-row .text input:hover { border-color: var(--border); background: var(--surface-white); }
+    .ex-row .text input:focus { border-color: var(--accent-primary); background: var(--surface-white); outline: none; }
+    .toggle-options { display: flex; gap: 14px; flex-wrap: wrap; padding: 6px 0; font-size: 12px; }
+    .toggle-options label { display: flex; gap: 6px; align-items: center; cursor: pointer; color: var(--text-secondary); }
+    .att-drop { padding: 18px; border: 2px dashed var(--border-input); border-radius: var(--radius-md); text-align: center; color: var(--text-secondary); cursor: pointer; transition: all 0.12s; margin-bottom: 10px; font-size: 13px; }
+    .att-drop:hover, .att-drop.dragover { border-color: var(--accent-primary); background: var(--surface-inset); color: var(--text-primary); }
+    .att-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 10px; }
+    .att-card { padding: 8px; border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--surface-card); position: relative; }
+    .att-card .thumb { width: 100%; aspect-ratio: 4/3; object-fit: cover; border-radius: 4px; background: var(--surface-inset); margin-bottom: 6px; display: flex; align-items: center; justify-content: center; color: var(--text-muted); }
+    .att-card .thumb img { width: 100%; height: 100%; object-fit: cover; border-radius: 4px; }
+    .att-card .name { font-size: 12px; font-weight: 500; color: var(--text-primary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .att-card .size { font-size: 11px; color: var(--text-muted); }
+    .att-card .rm { position: absolute; top: 6px; right: 6px; background: white; border-radius: 50%; width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; cursor: pointer; border: 1px solid var(--border); }
+    .att-card .rm .material-symbols-outlined { font-size: 14px; color: var(--status-danger); }
+
+    /* ---- Accordion sections (scope, top-level Areas/Cables/Services, per-area cards) ---- */
+    .accordion .acc-head { cursor: pointer; user-select: none; display: flex; align-items: center; gap: 6px; }
+    .accordion .acc-chev { font-size: 20px; color: var(--text-muted); transition: transform 0.18s ease; }
+    .accordion.closed .acc-chev { transform: rotate(-90deg); }
+    .accordion.closed .acc-body { display: none !important; }
+    /* Top-level section accordion frame so headings feel clickable */
+    .section-acc { margin-top: 20px; }
+    .section-acc > .acc-head { padding: 10px 0; border-bottom: 1px solid var(--border-light); margin-bottom: 12px; }
+    .section-acc > .acc-head h3 { flex: 1; margin: 0; font-family: var(--font-heading); font-size: 13px; font-weight: 600; color: var(--text-primary); text-transform: uppercase; letter-spacing: 0.06em; }
+    .section-acc.closed > .acc-head { border-bottom: 1px solid var(--border); margin-bottom: 0; }
+    /* Per-area card uses .area-head as its acc-head — keep card visual style, just make head clickable */
+    .area-card.accordion > .area-head { cursor: pointer; }
+    .area-card.accordion.closed > .area-body,
+    .area-card.accordion.closed > .area-foot { display: none !important; }
+    .area-card.accordion .acc-chev { margin-left: 4px; }
   </style>
 </head>
 <body data-page="new-quote">
@@ -126,59 +156,126 @@
     <div class="quote-meta" id="quote-meta"></div>
 
     <!-- Scope of works panel (read from project.scopeOfWorks; edit link back to client info) -->
-    <div class="scope-panel" id="scope-panel">
-      <a class="edit-link" href="03-client-info.html#scope"><span class="material-symbols-outlined">edit</span> Edit on Client &amp; Project</a>
-      <h3><span class="material-symbols-outlined">flag</span> <span id="scope-heading">Scope of works</span></h3>
-      <div class="body" id="scope-body"></div>
+    <div class="scope-panel accordion" id="scope-panel" data-acc-key="scope">
+      <a class="edit-link" href="03-client-info.html#scope" onclick="event.stopPropagation();"><span class="material-symbols-outlined">edit</span> Edit on Client &amp; Project</a>
+      <h3 class="acc-head" style="padding-right:160px;"><span class="acc-chev material-symbols-outlined">expand_more</span><span class="material-symbols-outlined">flag</span> <span id="scope-heading">Scope of works</span></h3>
+      <div class="body acc-body" id="scope-body"></div>
     </div>
 
     <div class="builder-layout">
 
       <!-- Left: Areas -->
       <div>
-        <div style="display:flex;gap:8px;align-items:center;margin-bottom:10px;">
-          <h2 style="font-family:var(--font-heading);font-size:16px;font-weight:600;color:var(--text-primary);flex:1;" id="builder-heading">Areas</h2>
-          <button class="btn btn-secondary btn-sm" id="add-area-btn"><span class="material-symbols-outlined">add</span> Add Area</button>
+        <!-- Areas section (collapsible) -->
+        <div class="accordion section-acc" id="acc-areas" data-acc-key="areas">
+          <div id="builder-heading-row" class="acc-head">
+            <span class="acc-chev material-symbols-outlined">expand_more</span>
+            <h3 id="builder-heading">Areas</h3>
+            <button class="btn btn-secondary btn-sm" id="add-area-btn" onclick="event.stopPropagation();"><span class="material-symbols-outlined">add</span> Add Area</button>
+          </div>
+          <div class="acc-body">
+            <div id="areas-host"></div>
+          </div>
         </div>
 
-        <div id="areas-host"></div>
-
-        <!-- Cables & Accessories aggregator section -->
-        <div class="cables-section">
-          <div style="display:flex;align-items:center;gap:8px;">
-            <h3 class="sub-h" style="flex:1;">Cables &amp; accessories</h3>
-            <button class="btn btn-secondary btn-sm" id="add-sundry-btn"><span class="material-symbols-outlined">add</span> Add manual sundry line</button>
+        <!-- Cables & Accessories aggregator section (collapsible) -->
+        <div class="accordion section-acc cables-section" id="acc-cables" data-acc-key="cables">
+          <div class="acc-head">
+            <span class="acc-chev material-symbols-outlined">expand_more</span>
+            <h3 class="sub-h" style="margin:0;">Cables &amp; accessories</h3>
+            <button class="btn btn-secondary btn-sm" id="add-sundry-btn" onclick="event.stopPropagation();"><span class="material-symbols-outlined">add</span> Add manual sundry line</button>
           </div>
-          <p style="font-size:12px;color:var(--text-muted);margin:0 0 10px;">
-            Cables / consumables from your area lines are aggregated here for quick review. Add free-text sundries below — they roll into the materials total.
-          </p>
-          <div class="agg-block" id="cables-host"></div>
+          <div class="acc-body">
+            <p style="font-size:12px;color:var(--text-muted);margin:0 0 10px;">
+              Cables / consumables from your area lines are aggregated here for quick review. Add free-text sundries below — they roll into the materials total.
+            </p>
+            <div class="agg-block" id="cables-host"></div>
+          </div>
         </div>
 
-        <!-- Services section (now includes labour — Steven's note: labour and services are the same thing) -->
-        <h3 class="section-h" style="margin-top:30px;">Services &amp; Labour</h3>
-        <div class="panel" style="padding:0;">
-          <div class="table-scroll">
-            <table class="data-table services-table">
-              <thead>
-                <tr>
-                  <th style="width:30px;"></th>
-                  <th>Service</th>
-                  <th style="width:80px;">Unit</th>
-                  <th class="right" style="width:60px;">Qty</th>
-                  <th class="right" style="width:70px;">Hours</th>
-                  <th class="right" style="width:90px;">Rate</th>
-                  <th class="right" style="width:90px;">Cost</th>
-                  <th class="right" style="width:75px;">Margin %</th>
-                  <th class="right" style="width:110px;">Sell</th>
-                </tr>
-              </thead>
-              <tbody id="services-host"></tbody>
-            </table>
+        <!-- Services & Labour (collapsible) -->
+        <div class="accordion section-acc" id="acc-services" data-acc-key="services">
+          <div class="acc-head">
+            <span class="acc-chev material-symbols-outlined">expand_more</span>
+            <h3>Services &amp; Labour</h3>
           </div>
-          <div style="padding:10px 14px;border-top:1px solid var(--border-light);background:var(--surface-card);display:flex;gap:8px;">
-            <button class="btn btn-secondary btn-sm" id="add-service-btn"><span class="material-symbols-outlined">add</span> Add custom service</button>
-            <button class="btn btn-secondary btn-sm" id="add-labour-btn"><span class="material-symbols-outlined">engineering</span> Add labour</button>
+          <div class="acc-body">
+            <div class="panel" style="padding:0;">
+              <div class="table-scroll">
+                <table class="data-table services-table">
+                  <thead>
+                    <tr>
+                      <th style="width:30px;"></th>
+                      <th>Service</th>
+                      <th style="width:80px;">Unit</th>
+                      <th class="right" style="width:60px;">Qty</th>
+                      <th class="right" style="width:70px;">Hours</th>
+                      <th class="right" style="width:90px;">Rate</th>
+                      <th class="right" style="width:95px;">Cost</th>
+                      <th class="right" style="width:75px;">Margin %</th>
+                      <th class="right" style="width:110px;">Sell</th>
+                    </tr>
+                  </thead>
+                  <tbody id="services-host"></tbody>
+                </table>
+              </div>
+              <div style="padding:10px 14px;border-top:1px solid var(--border-light);background:var(--surface-card);display:flex;gap:8px;">
+                <button class="btn btn-secondary btn-sm" id="add-service-btn"><span class="material-symbols-outlined">add</span> Add custom service</button>
+                <button class="btn btn-secondary btn-sm" id="add-labour-btn"><span class="material-symbols-outlined">engineering</span> Add labour</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Document settings (moved here from Review; Review is preview-only) -->
+        <div class="accordion section-acc" id="acc-doc" data-acc-key="doc">
+          <div class="acc-head">
+            <span class="acc-chev material-symbols-outlined">expand_more</span>
+            <h3>Document settings</h3>
+            <span style="font-weight:400;color:var(--text-muted);font-size:11px;text-transform:none;letter-spacing:0;">notes, attachments, exclusions, terms — applied to the client quote document</span>
+          </div>
+          <div class="acc-body">
+
+            <div class="doc-section">
+              <h4>Notes to client</h4>
+              <textarea id="notes-to-client" style="width:100%;min-height:60px;border:1px solid var(--border-input);border-radius:var(--radius-md);padding:10px;font:inherit;font-size:13px;background:var(--surface-white);" placeholder="Optional message shown on the client document (e.g. 'Pricing assumes works completed in one mobilisation…')"></textarea>
+            </div>
+
+            <div class="doc-section">
+              <h4>Attachments <span class="hint">(appended to the client quote document)</span></h4>
+              <label class="att-drop" id="att-drop">
+                <span class="material-symbols-outlined" style="font-size:22px;color:var(--text-muted);vertical-align:middle;margin-right:6px;">upload_file</span>
+                Drag &amp; drop PDFs / images / marked-up drawings here, or click to browse.
+                <input type="file" id="att-input" multiple style="display:none;">
+              </label>
+              <div class="att-list" id="att-list"></div>
+            </div>
+
+            <div class="doc-section">
+              <h4>Exclusions <span class="hint">(shown on client document)</span></h4>
+              <div id="exclusions-host"></div>
+              <div style="margin-top:8px;display:flex;gap:8px;">
+                <button class="btn btn-secondary btn-sm" id="add-exclusion"><span class="material-symbols-outlined">add</span> Add exclusion</button>
+                <button class="btn btn-secondary btn-sm" id="suggest-exclusions"><span class="material-symbols-outlined">auto_awesome</span> Suggest more</button>
+              </div>
+            </div>
+
+            <div class="doc-section">
+              <h4>Terms &amp; conditions</h4>
+              <textarea id="terms-text" style="width:100%;min-height:140px;border:1px solid var(--border-input);border-radius:var(--radius-md);padding:10px 12px;font:inherit;font-size:12px;background:var(--surface-white);"></textarea>
+              <div style="margin-top:6px;color:var(--text-muted);font-size:11px;">Loaded from the SKS standard template — edit inline if needed.</div>
+            </div>
+
+            <div class="doc-section">
+              <h4>Output options</h4>
+              <div class="toggle-options">
+                <label><input type="checkbox" id="opt-show-models" checked> Show model numbers on client doc</label>
+                <label><input type="checkbox" id="opt-itemise-labour"> Itemise labour per area (vs lump sum)</label>
+                <label><input type="checkbox" id="opt-expand-pkgs"> Expand package groups</label>
+                <label><input type="checkbox" id="opt-contingency"> Add contingency line</label>
+              </div>
+            </div>
+
           </div>
         </div>
       </div>
@@ -375,12 +472,12 @@
     </div>
   </main>
 
-  <script src="js/mock-data.js?v=20260515r7"></script>
-  <script src="js/mock-state.js?v=20260515r7"></script>
-  <script src="js/mock-ui.js?v=20260515r7"></script>
-  <script src="js/mock-shell.js?v=20260515r7"></script>
-  <script src="js/mock-expiry.js?v=20260515r7"></script>
-  <script src="../_shared/review-tools/mock-review.js?v=20260515r7"></script>
+  <script src="js/mock-data.js?v=20260515r8"></script>
+  <script src="js/mock-state.js?v=20260515r8"></script>
+  <script src="js/mock-ui.js?v=20260515r8"></script>
+  <script src="js/mock-shell.js?v=20260515r8"></script>
+  <script src="js/mock-expiry.js?v=20260515r8"></script>
+  <script src="../_shared/review-tools/mock-review.js?v=20260515r8"></script>
   <script>
     // -------- Shell --------
     MockShell.mount({
@@ -396,11 +493,11 @@
       throw new Error('No active quote — redirecting to mode select');
     }
 
-    // Quick mode UI tweaks
+    // Quick mode UI tweaks — in Quick the scope panel already shows the
+    // "Scope" heading, so the heading row above the area card is redundant.
     const isQuick = quote.mode === 'quick';
     if (isQuick) {
-      document.getElementById('add-area-btn').style.display = 'none';
-      document.getElementById('builder-heading').textContent = 'Scope';
+      document.getElementById('builder-heading-row').style.display = 'none';
       document.getElementById('step3-label').textContent = 'Build Scope';
     }
 
@@ -451,114 +548,36 @@
 
       const visibleLines = area.lines.filter(isAreaLineRendered);
       const hideAreaActions = isQuick && q.areas.length === 1;
+      // Per-area cards are themselves accordions (click header to collapse).
+      // Quick mode's single forced area starts expanded; subsequent areas can
+      // be collapsed for easy navigation when there are many.
       return `
-        <div class="area-card" data-area-id="${area.id}">
-          <div class="area-head">
-            <div class="area-name-wrap">
+        <div class="area-card accordion" data-area-id="${area.id}" data-acc-key="area-${area.id}">
+          <div class="area-head acc-head">
+            <span class="acc-chev material-symbols-outlined">expand_more</span>
+            <div class="area-name-wrap" onclick="event.stopPropagation();">
               <label class="area-name-label" for="area-name-${area.id}">${isQuick ? 'Heading' : 'Area name'}</label>
               <input id="area-name-${area.id}" class="area-name" value="${area.name}" placeholder="${isQuick ? 'e.g. Boardroom Level 3 — AV upgrade' : 'e.g. Boardroom Level 3'}" data-area-input="${area.id}">
               <div class="area-name-help">Becomes this area's heading on the client document.</div>
             </div>
             <span class="area-meta">${visibleLines.length} item${visibleLines.length === 1 ? '' : 's'} · ${MockUI.fmtMoney(at.materialsSell + at.labourSell)}</span>
-            ${hideAreaActions ? '' : `<div class="area-actions">
+            ${hideAreaActions ? '' : `<div class="area-actions" onclick="event.stopPropagation();">
               <button class="icon-btn" title="Duplicate" data-dup="${area.id}"><span class="material-symbols-outlined">content_copy</span></button>
               <button class="icon-btn" title="Move up"  data-up="${area.id}"><span class="material-symbols-outlined">arrow_upward</span></button>
               <button class="icon-btn" title="Move down" data-down="${area.id}"><span class="material-symbols-outlined">arrow_downward</span></button>
               <button class="icon-btn danger" title="Remove" data-rm-area="${area.id}"><span class="material-symbols-outlined">delete_outline</span></button>
             </div>`}
           </div>
-          <div class="area-body">
+          <div class="area-body acc-body">
             ${linesHtml}
           </div>
-          <div class="area-foot">
+          <div class="area-foot acc-body">
             <button class="btn btn-secondary btn-sm" data-add-line="${area.id}"><span class="material-symbols-outlined">add</span> Add Product</button>
             <button class="btn btn-secondary btn-sm" data-add-pkg="${area.id}"><span class="material-symbols-outlined">layers</span> Apply Package</button>
             <div style="flex:1;"></div>
             <button class="btn btn-secondary btn-sm" data-notes="${area.id}" title="Internal notes"><span class="material-symbols-outlined">edit_note</span> Notes</button>
           </div>
         </div>`;
-    }
-
-    // Per-area Installation labour block — auto roll-up + manual entries
-    function renderLabourBlock(area, q) {
-      const at = MockState.areaTotals(area, q);
-      const tradeRows = Object.entries(at.labourByTrade || {})
-        .filter(([, hrs]) => hrs > 0)
-        .sort((a, b) => b[1] - a[1]);
-      const manual = (area.labourLines || []);
-      const rows = [];
-
-      // Auto-aggregated rows (read-only)
-      tradeRows.forEach(([trade, hrs]) => {
-        const rate = MockState.rateForTrade(trade, q);
-        const cost = hrs * rate;
-        const sell = MockState.sellFromCost(cost, MockState.labourMargin(q));
-        const fromManual = (manual.filter(l => (l.trade || 'AV Tech') === trade).reduce((n, l) => n + (Number(l.hours) || 0), 0));
-        const fromProducts = hrs - fromManual;
-        rows.push(`
-          <tr class="row-auto">
-            <td>${trade}</td>
-            <td><div style="font-size:11px;color:var(--text-muted);">auto from products</div></td>
-            <td class="right"><b>${MockUI.fmtHours(fromProducts)}</b></td>
-            <td class="right">${MockUI.fmtMoney(rate)}/hr</td>
-            <td class="right">${MockUI.fmtMoney(fromProducts * rate)}</td>
-            <td class="right">${MockUI.fmtMoney(MockState.sellFromCost(fromProducts * rate, MockState.labourMargin(q)))}</td>
-            <td></td>
-          </tr>
-        `);
-      });
-
-      // Manual entry rows (editable)
-      manual.forEach(l => {
-        const rateUsed = (l.rateOverride !== null && l.rateOverride !== undefined && l.rateOverride !== '')
-          ? Number(l.rateOverride)
-          : MockState.rateForTrade(l.trade || 'AV Tech', q);
-        const cost = (Number(l.hours) || 0) * rateUsed;
-        const sell = MockState.sellFromCost(cost, MockState.labourMargin(q));
-        rows.push(`
-          <tr data-lab-row="${l.id}">
-            <td>
-              <select class="cell-input" data-lab-edit="${l.id}" data-field="trade">
-                <option ${l.trade === 'AV Tech' ? 'selected' : ''}>AV Tech</option>
-                <option ${l.trade === 'Data Tech' ? 'selected' : ''}>Data Tech</option>
-                <option ${l.trade === 'Electrician' ? 'selected' : ''}>Electrician</option>
-                <option ${l.trade === 'PM' ? 'selected' : ''}>PM</option>
-              </select>
-            </td>
-            <td><input class="cell-input" type="text" placeholder="Note (e.g. wiring cleanup)" value="${(l.note || '').replace(/"/g, '&quot;')}" data-lab-edit="${l.id}" data-field="note"></td>
-            <td class="right"><input class="cell-input cell-num" type="number" min="0" step="0.5" value="${l.hours || 0}" data-lab-edit="${l.id}" data-field="hours"></td>
-            <td class="right"><input class="cell-input cell-num cell-narrow" type="number" min="0" step="5" value="${l.rateOverride === null || l.rateOverride === undefined ? '' : l.rateOverride}" placeholder="${MockState.rateForTrade(l.trade || 'AV Tech', q)}" data-lab-edit="${l.id}" data-field="rateOverride"></td>
-            <td class="right">${MockUI.fmtMoney(cost)}</td>
-            <td class="right"><b>${MockUI.fmtMoney(sell)}</b></td>
-            <td class="right"><button class="icon-btn danger" data-lab-remove="${l.id}"><span class="material-symbols-outlined">delete_outline</span></button></td>
-          </tr>
-        `);
-      });
-
-      if (rows.length === 0) {
-        return `<div class="labour-block">
-          <div class="lh"><span class="material-symbols-outlined">engineering</span> Installation labour</div>
-          <div style="font-size:12px;color:var(--text-muted);">No labour yet — add products with subcategory defaults, or click "+ Add labour" below.</div>
-        </div>`;
-      }
-
-      return `
-        <div class="labour-block">
-          <div class="lh"><span class="material-symbols-outlined">engineering</span> Installation labour</div>
-          <table class="labour-table">
-            <thead><tr>
-              <th style="width:120px;">Trade</th>
-              <th>Note</th>
-              <th class="right" style="width:80px;">Hours</th>
-              <th class="right" style="width:90px;">Rate</th>
-              <th class="right" style="width:90px;">Cost</th>
-              <th class="right" style="width:90px;">Sell</th>
-              <th class="right" style="width:30px;"></th>
-            </tr></thead>
-            <tbody>${rows.join('')}</tbody>
-          </table>
-        </div>
-      `;
     }
 
     // Cables and consumables aggregate into the Cables & Accessories section
@@ -622,8 +641,8 @@
             <td><div style="font-size:11px;color:var(--text-muted);">${line.unit}</div></td>
             <td><input class="cell-input cell-num" type="number" min="0" step="0.1" value="${line.labourHours}" data-line-edit="${line.id}" data-field="labourHours" ${line.isSupplyOnly ? 'disabled' : ''}></td>
             <td class="col-num col-cost"><input class="cell-input cell-num cell-narrow" type="number" min="0" step="1" value="${line.costPrice}" data-line-edit="${line.id}" data-field="costPrice" title="Manual cost override"></td>
-            <td class="col-num col-margin"><input class="cell-input cell-num cell-narrow" type="number" min="0" max="90" step="1" value="${line.marginPct === null ? '' : line.marginPct}" placeholder="${q.materialsMarginPct ?? q.globalMarginPct ?? 25}" data-line-edit="${line.id}" data-field="marginPct" title="Leave blank to inherit (${effMargin}%)"></td>
-            <td><div class="num"><b>${MockUI.fmtMoney(t.sellTotal)}</b></div></td>
+            <td class="col-num col-margin"><input class="cell-input cell-num cell-narrow" type="number" min="0" max="90" step="1" value="${line.marginPct === null ? '' : Math.round((line.marginPct + Number.EPSILON) * 10) / 10}" placeholder="${q.materialsMarginPct ?? q.globalMarginPct ?? 25}" data-line-edit="${line.id}" data-field="marginPct" title="Leave blank to inherit (${effMargin}%) — typing here back-calcs nothing"></td>
+            <td><input class="cell-input cell-num" type="number" min="0" step="1" value="${Math.round(t.sellTotal)}" data-line-edit="${line.id}" data-field="sellTotal" title="Edit Sell — back-calculates margin from cost"></td>
             <td class="right">
               <div style="display:inline-flex;gap:2px;">
                 <button class="icon-btn" title="Supply only" data-line-toggle="${line.id}" data-toggle="supply"><span class="material-symbols-outlined" style="color:${line.isSupplyOnly ? 'var(--status-warning)' : 'inherit'};">local_shipping</span></button>
@@ -681,24 +700,47 @@
         }
       });
 
-      // Line edits
+      // Line edits — qty/cost/labour/margin update fields directly; Sell
+      // back-calculates margin from cost so reviewers can type any sell price.
       card.querySelectorAll('[data-line-edit]').forEach(input => {
         const lineId = input.getAttribute('data-line-edit');
         const field = input.getAttribute('data-field');
         input.addEventListener('input', () => {
-          let val;
-          if (field === 'marginPct') {
-            val = input.value === '' ? null : parseFloat(input.value);
+          if (field === 'sellTotal') {
+            const newSell = parseFloat(input.value) || 0;
+            const cur = MockState.getCurrentQuote().areas.find(a => a.id === areaId).lines.find(l => l.id === lineId);
+            const qty = Number(cur.qty) || 1;
+            const costEach = Number(cur.costPrice) || 0;
+            const sellEach = qty > 0 ? newSell / qty : newSell;
+            let newMargin;
+            if (sellEach > 0 && costEach > 0) newMargin = (1 - costEach / sellEach) * 100;
+            else newMargin = 0;
+            MockState.updateLine(q.id, areaId, lineId, { marginPct: newMargin });
           } else {
-            val = parseFloat(input.value) || 0;
+            let val;
+            if (field === 'marginPct') val = input.value === '' ? null : parseFloat(input.value);
+            else val = parseFloat(input.value) || 0;
+            MockState.updateLine(q.id, areaId, lineId, { [field]: val });
           }
-          MockState.updateLine(q.id, areaId, lineId, { [field]: val });
           renderTotals();
-          // Re-render just this row's sell column without re-rendering everything
+          // Refresh this row's dependent inputs without losing focus
           const cur = MockState.getCurrentQuote().areas.find(a => a.id === areaId).lines.find(l => l.id === lineId);
           const t = MockState.lineTotals(cur, MockState.getCurrentQuote().areas.find(a => a.id === areaId), MockState.getCurrentQuote());
           const row = card.querySelector(`[data-line-row="${lineId}"]`);
-          if (row) row.querySelector('td:nth-last-child(2) b').textContent = MockUI.fmtMoney(t.sellTotal);
+          if (row) {
+            // Sell input — update unless the user just typed it
+            if (field !== 'sellTotal') {
+              const sellIn = row.querySelector(`[data-field="sellTotal"][data-line-edit="${lineId}"]`);
+              if (sellIn && document.activeElement !== sellIn) sellIn.value = Math.round(t.sellTotal);
+            }
+            // Margin input — update unless the user just typed it
+            if (field !== 'marginPct') {
+              const marIn = row.querySelector(`[data-field="marginPct"][data-line-edit="${lineId}"]`);
+              if (marIn && document.activeElement !== marIn) {
+                marIn.value = cur.marginPct === null || cur.marginPct === undefined ? '' : Math.round((cur.marginPct + Number.EPSILON) * 10) / 10;
+              }
+            }
+          }
           renderCables();
         });
       });
@@ -723,29 +765,9 @@
         });
       });
 
-      // Manual labour edit / remove
-      card.querySelectorAll('[data-lab-edit]').forEach(input => {
-        const lineId = input.getAttribute('data-lab-edit');
-        const field = input.getAttribute('data-field');
-        const evt = (input.tagName === 'SELECT') ? 'change' : 'input';
-        input.addEventListener(evt, () => {
-          let val = input.value;
-          if (field === 'hours') val = parseFloat(input.value) || 0;
-          else if (field === 'rateOverride') val = input.value === '' ? null : parseFloat(input.value);
-          MockState.updateAreaLabourLine(q.id, areaId, lineId, { [field]: val });
-          renderAreas(); renderTotals();
-        });
-      });
-      card.querySelectorAll('[data-lab-remove]').forEach(btn => {
-        const lineId = btn.getAttribute('data-lab-remove');
-        btn.addEventListener('click', () => {
-          MockState.removeAreaLabourLine(q.id, areaId, lineId);
-          renderAll();
-        });
-      });
-
-      // (Per-area "Add labour" button removed — labour now lives in the
-      // global Services & Labour table at the bottom of the page.)
+      // Per-area Installation labour was removed — labour now lives in the
+      // global Services & Labour table at the bottom of the page. Legacy
+      // labourLines data is migrated to services on load (mock-state.js).
     }
 
     function moveArea(areaId, dir) {
@@ -763,9 +785,10 @@
     // -------- Add area --------
     document.getElementById('add-area-btn').addEventListener('click', () => {
       const cur = MockState.getCurrentQuote();
-      const name = prompt('Area name:', `Area ${cur.areas.length + 1}`);
-      if (!name) return;
-      MockState.addArea(cur.id, name);
+      const suggested = MockState.suggestAreaName(cur);
+      const name = prompt('Area name:', suggested);
+      if (name === null) return;          // cancelled
+      MockState.addArea(cur.id, name);    // empty → addArea will use suggestion
       renderAll();
     });
 
@@ -906,15 +929,15 @@
         const isCustom = sv.serviceId === null;
         const includedClass = sv.included ? 'services-row' : 'services-row dim';
         const dis = !sv.included ? 'disabled' : '';
-        const qtyCell  = isLab
-          ? '<td class="right"><span style="color:var(--text-muted);">—</span></td>'
-          : `<td class="right"><input class="cell-input cell-num" type="number" min="0" step="0.5" value="${sv.qty || 0}" data-svc-edit="${sv.id}" data-field="qty" ${dis}></td>`;
+        // Qty is now editable on every row — for labour it acts as a multiplier
+        // (e.g. 3 days × 8 hrs), defaulting to 1.
+        const qtyCell  = `<td class="right"><input class="cell-input cell-num" type="number" min="0" step="${isLab ? '1' : '0.5'}" value="${sv.qty == null ? (isLab ? 1 : 0) : sv.qty}" data-svc-edit="${sv.id}" data-field="qty" ${dis} title="${isLab ? 'Iterations (× hours)' : 'Quantity'}"></td>`;
         const hoursCell = isLab
           ? `<td class="right"><input class="cell-input cell-num" type="number" min="0" step="0.5" value="${sv.hours || 0}" data-svc-edit="${sv.id}" data-field="hours" ${dis} title="Hours of labour"></td>`
           : '<td class="right"><span style="color:var(--text-muted);">—</span></td>';
         const labourTag = isLab ? '<span class="cat-tag" style="background:var(--status-warning-bg);color:var(--status-warning);">Labour</span>' : '';
         return `
-          <tr class="${includedClass}" style="${sv.included ? '' : 'opacity:0.55;'}">
+          <tr class="${includedClass}" data-svc-row="${sv.id}" style="${sv.included ? '' : 'opacity:0.55;'}">
             <td><input type="checkbox" data-svc-toggle="${sv.serviceId || sv.id}" ${sv.included ? 'checked' : ''}></td>
             <td>
               <span class="name">${sv.name}</span>
@@ -925,9 +948,9 @@
             ${qtyCell}
             ${hoursCell}
             <td class="right"><input class="cell-input cell-num" type="number" min="0" step="5" value="${sv.rate}" data-svc-edit="${sv.id}" data-field="rate" ${dis}></td>
-            <td class="right"><div class="num">${MockUI.fmtMoney(cost)}</div></td>
-            <td class="right"><input class="cell-input cell-num cell-narrow" type="number" min="0" max="80" step="1" value="${sv.marginPct}" data-svc-edit="${sv.id}" data-field="marginPct" ${dis}></td>
-            <td class="right"><b>${MockUI.fmtMoney(sell)}</b></td>
+            <td class="right"><input class="cell-input cell-num" type="number" min="0" step="1" value="${Math.round(cost)}" data-svc-edit="${sv.id}" data-field="costTotal" ${dis} title="Edit Cost — overrides rate"></td>
+            <td class="right"><input class="cell-input cell-num cell-narrow" type="number" min="0" max="80" step="1" value="${Math.round((sv.marginPct + Number.EPSILON) * 10) / 10}" data-svc-edit="${sv.id}" data-field="marginPct" ${dis}></td>
+            <td class="right"><input class="cell-input cell-num" type="number" min="0" step="1" value="${Math.round(sell)}" data-svc-edit="${sv.id}" data-field="sellTotal" ${dis} title="Edit Sell — back-calculates margin"></td>
           </tr>
         `;
       }).join('');
@@ -944,8 +967,25 @@
         const id = input.getAttribute('data-svc-edit');
         const field = input.getAttribute('data-field');
         input.addEventListener('input', () => {
-          const v = parseFloat(input.value) || 0;
-          MockState.updateService(MockState.getCurrentQuote().id, id, { [field]: v });
+          const cq = MockState.getCurrentQuote();
+          const cur = cq.services.find(x => x.id === id);
+          if (!cur) return;
+          if (field === 'sellTotal') {
+            // Back-calc margin from current cost
+            const newSell = parseFloat(input.value) || 0;
+            const cost = MockState.serviceCost(cur);
+            const newMargin = (newSell > 0 && cost > 0) ? (1 - cost / newSell) * 100 : 0;
+            MockState.updateService(cq.id, id, { marginPct: newMargin });
+          } else if (field === 'costTotal') {
+            // Back-calc rate from current units (hours×qty for labour, qty for non-labour)
+            const newCost = parseFloat(input.value) || 0;
+            const units = MockState.serviceUnitCount(cur);
+            const newRate = units > 0 ? newCost / units : 0;
+            MockState.updateService(cq.id, id, { rate: newRate });
+          } else {
+            const v = parseFloat(input.value) || 0;
+            MockState.updateService(cq.id, id, { [field]: v });
+          }
           renderServices();
           renderTotals();
         });
@@ -1087,16 +1127,25 @@
       let runningCost = 0, runningSell = 0;
       groups.forEach(g => {
         html += `<div class="area-sub-h">From ${g.area.name}</div>`;
-        html += `<table class="agg-table"><thead><tr><th>Item</th><th class="right" style="width:60px;">Qty</th><th style="width:70px;">Unit</th><th class="right" style="width:90px;">Cost</th><th class="right" style="width:100px;">Sell</th></tr></thead><tbody>`;
+        html += `<table class="agg-table"><thead><tr>
+          <th>Item</th>
+          <th class="right" style="width:60px;">Qty</th>
+          <th style="width:60px;">Unit</th>
+          <th class="right" style="width:80px;">Cost ea</th>
+          <th class="right" style="width:70px;">Margin %</th>
+          <th class="right" style="width:100px;">Sell</th>
+        </tr></thead><tbody>`;
         g.items.forEach(line => {
           const t = MockState.lineTotals(line, g.area, q);
+          const effM = MockState.effectiveMargin(line, g.area, q);
           runningCost += t.costTotal; runningSell += t.sellTotal;
-          html += `<tr>
+          html += `<tr data-cbl-row="${line.id}" data-cbl-area="${g.area.id}">
             <td><b>${line.manufacturer} ${line.model}</b><div style="font-size:11px;color:var(--text-muted);">${line.description}</div></td>
-            <td class="right">${line.qty}</td>
+            <td class="right"><input class="cell-input cell-num" type="number" min="0" step="1" value="${line.qty}" data-cbl-edit="${line.id}" data-area="${g.area.id}" data-field="qty"></td>
             <td>${line.unit}</td>
-            <td class="right">${MockUI.fmtMoney(t.costTotal)}</td>
-            <td class="right"><b>${MockUI.fmtMoney(t.sellTotal)}</b></td>
+            <td class="right"><input class="cell-input cell-num cell-narrow" type="number" min="0" step="0.5" value="${line.costPrice}" data-cbl-edit="${line.id}" data-area="${g.area.id}" data-field="costPrice"></td>
+            <td class="right"><input class="cell-input cell-num cell-narrow" type="number" min="0" max="90" step="1" value="${line.marginPct === null || line.marginPct === undefined ? '' : Math.round((line.marginPct + Number.EPSILON) * 10) / 10}" placeholder="${effM}" data-cbl-edit="${line.id}" data-area="${g.area.id}" data-field="marginPct" title="Leave blank to inherit (${effM}%)"></td>
+            <td class="right"><input class="cell-input cell-num" type="number" min="0" step="1" value="${Math.round(t.sellTotal)}" data-cbl-edit="${line.id}" data-area="${g.area.id}" data-field="sellTotal" title="Edit Sell — back-calculates margin"></td>
           </tr>`;
         });
         html += `</tbody></table>`;
@@ -1123,8 +1172,8 @@
             <td class="right"><input class="cell-input cell-num" type="number" min="0" step="1" value="${sn.qty}" data-sn-edit="${sn.id}" data-field="qty"></td>
             <td><input class="cell-input" type="text" value="${sn.unit || 'lot'}" data-sn-edit="${sn.id}" data-field="unit" style="width:60px;"></td>
             <td class="right"><input class="cell-input cell-num" type="number" min="0" step="1" value="${sn.costPrice}" data-sn-edit="${sn.id}" data-field="costPrice"></td>
-            <td class="right"><input class="cell-input cell-num cell-narrow" type="number" min="0" max="80" step="1" value="${sn.marginPct === null || sn.marginPct === undefined ? '' : sn.marginPct}" placeholder="${q.materialsMarginPct ?? 25}" data-sn-edit="${sn.id}" data-field="marginPct"></td>
-            <td class="right"><b>${MockUI.fmtMoney(sell)}</b></td>
+            <td class="right"><input class="cell-input cell-num cell-narrow" type="number" min="0" max="80" step="1" value="${sn.marginPct === null || sn.marginPct === undefined ? '' : Math.round((sn.marginPct + Number.EPSILON) * 10) / 10}" placeholder="${q.materialsMarginPct ?? 25}" data-sn-edit="${sn.id}" data-field="marginPct"></td>
+            <td class="right"><input class="cell-input cell-num" type="number" min="0" step="1" value="${Math.round(sell)}" data-sn-edit="${sn.id}" data-field="sellTotal" title="Edit Sell — back-calculates margin"></td>
             <td class="right"><button class="icon-btn danger" data-sn-remove="${sn.id}"><span class="material-symbols-outlined">delete_outline</span></button></td>
           </tr>`;
         });
@@ -1136,15 +1185,56 @@
 
       host.innerHTML = html;
 
-      // Wire sundry edits
+      // Wire aggregated cable-line edits — these write back to the underlying
+      // area line so cost/margin/sell stay consistent everywhere.
+      host.querySelectorAll('[data-cbl-edit]').forEach(input => {
+        const lineId = input.getAttribute('data-cbl-edit');
+        const areaId = input.getAttribute('data-area');
+        const field  = input.getAttribute('data-field');
+        input.addEventListener('input', () => {
+          const cq = MockState.getCurrentQuote();
+          const cArea = cq.areas.find(a => a.id === areaId);
+          const cLine = cArea && cArea.lines.find(l => l.id === lineId);
+          if (!cLine) return;
+          if (field === 'sellTotal') {
+            const newSell = parseFloat(input.value) || 0;
+            const qty = Number(cLine.qty) || 1;
+            const costEach = Number(cLine.costPrice) || 0;
+            const sellEach = qty > 0 ? newSell / qty : newSell;
+            const newMargin = (sellEach > 0 && costEach > 0) ? (1 - costEach / sellEach) * 100 : 0;
+            MockState.updateLine(cq.id, areaId, lineId, { marginPct: newMargin });
+          } else {
+            let val;
+            if (field === 'marginPct') val = input.value === '' ? null : parseFloat(input.value);
+            else val = parseFloat(input.value) || 0;
+            MockState.updateLine(cq.id, areaId, lineId, { [field]: val });
+          }
+          // Re-render cables + totals; also re-render areas to keep main table
+          // in sync (since cable rows are also area lines).
+          renderAreas(); renderCables(); renderTotals();
+        });
+      });
+
+      // Wire sundry edits — same Sell back-calc pattern
       host.querySelectorAll('[data-sn-edit]').forEach(input => {
         const id = input.getAttribute('data-sn-edit');
         const field = input.getAttribute('data-field');
         input.addEventListener('input', () => {
-          let val = input.value;
-          if (field === 'qty' || field === 'costPrice') val = parseFloat(input.value) || 0;
-          else if (field === 'marginPct') val = input.value === '' ? null : parseFloat(input.value);
-          MockState.updateSundry(MockState.getCurrentQuote().id, id, { [field]: val });
+          const cq = MockState.getCurrentQuote();
+          const cur = (cq.sundries || []).find(x => x.id === id);
+          if (field === 'sellTotal') {
+            const newSell = parseFloat(input.value) || 0;
+            const qty = Number(cur?.qty) || 1;
+            const costEach = Number(cur?.costPrice) || 0;
+            const sellEach = qty > 0 ? newSell / qty : newSell;
+            const newMargin = (sellEach > 0 && costEach > 0) ? (1 - costEach / sellEach) * 100 : 0;
+            MockState.updateSundry(cq.id, id, { marginPct: newMargin });
+          } else {
+            let val = input.value;
+            if (field === 'qty' || field === 'costPrice') val = parseFloat(input.value) || 0;
+            else if (field === 'marginPct') val = input.value === '' ? null : parseFloat(input.value);
+            MockState.updateSundry(cq.id, id, { [field]: val });
+          }
           renderCables(); renderTotals();
         });
       });
@@ -1210,6 +1300,163 @@
       setTimeout(() => location.href = '01-quote-list.html', 500);
     });
 
+    // -------- Document settings (moved from Review) --------
+    function renderExclusions() {
+      const q = MockState.getCurrentQuote();
+      const host = document.getElementById('exclusions-host');
+      host.innerHTML = (q.exclusions || []).map((ex, i) => `
+        <div class="ex-row">
+          <input type="checkbox" checked data-ex-idx="${i}">
+          <div class="text"><input value="${ex.replace(/"/g, '&quot;')}" data-ex-edit="${i}"></div>
+          <button class="icon-btn danger" data-ex-rm="${i}"><span class="material-symbols-outlined">delete_outline</span></button>
+        </div>
+      `).join('');
+      host.querySelectorAll('[data-ex-edit]').forEach(input => {
+        input.addEventListener('input', () => {
+          const i = parseInt(input.getAttribute('data-ex-edit'));
+          const cur = MockState.getCurrentQuote();
+          cur.exclusions[i] = input.value;
+          MockState.updateQuote(cur.id, cur);
+        });
+      });
+      host.querySelectorAll('[data-ex-rm]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const i = parseInt(btn.getAttribute('data-ex-rm'));
+          const cur = MockState.getCurrentQuote();
+          cur.exclusions.splice(i, 1);
+          MockState.updateQuote(cur.id, cur);
+          renderExclusions();
+        });
+      });
+    }
+    document.getElementById('add-exclusion').addEventListener('click', () => {
+      const text = prompt('New exclusion:', 'Any exclusion text…');
+      if (!text) return;
+      const cur = MockState.getCurrentQuote();
+      cur.exclusions.push(text);
+      MockState.updateQuote(cur.id, cur);
+      renderExclusions();
+    });
+    document.getElementById('suggest-exclusions').addEventListener('click', () => {
+      const cur = MockState.getCurrentQuote();
+      const remaining = MockData.exclusionsLibrary.filter(x => !cur.exclusions.includes(x));
+      if (remaining.length === 0) { MockUI.toast('All library exclusions already added'); return; }
+      cur.exclusions.push(remaining[0]);
+      MockState.updateQuote(cur.id, cur);
+      renderExclusions();
+      MockUI.toast('Added suggested exclusion');
+    });
+
+    function renderAttachments() {
+      const q = MockState.getCurrentQuote();
+      const list = document.getElementById('att-list');
+      const atts = q.attachments || [];
+      if (atts.length === 0) {
+        list.innerHTML = '<div style="color:var(--text-muted);font-size:12px;grid-column:1/-1;text-align:center;padding:6px;">No attachments yet.</div>';
+        return;
+      }
+      list.innerHTML = atts.map(a => `
+        <div class="att-card">
+          <button class="rm" data-att-rm="${a.id}" title="Remove"><span class="material-symbols-outlined">close</span></button>
+          <div class="thumb">${a.type && a.type.startsWith('image/')
+            ? `<img src="${a.dataUrl}" alt="">`
+            : `<span class="material-symbols-outlined" style="font-size:28px;">picture_as_pdf</span>`}</div>
+          <div class="name" title="${a.name}">${a.name}</div>
+          <div class="size">${Math.max(1, Math.round((a.size || 0) / 1024))} KB</div>
+        </div>
+      `).join('');
+      list.querySelectorAll('[data-att-rm]').forEach(b => {
+        b.addEventListener('click', () => {
+          MockState.removeAttachment(MockState.getCurrentQuote().id, b.getAttribute('data-att-rm'));
+          renderAttachments();
+        });
+      });
+    }
+    function handleAttachFiles(files) {
+      const q = MockState.getCurrentQuote();
+      Array.from(files || []).forEach(f => {
+        const reader = new FileReader();
+        reader.onload = () => {
+          MockState.addAttachment(q.id, { name: f.name, size: f.size, type: f.type, dataUrl: reader.result });
+          renderAttachments();
+        };
+        reader.readAsDataURL(f);
+      });
+    }
+    document.getElementById('att-input').addEventListener('change', e => handleAttachFiles(e.target.files));
+    (function () {
+      const dropZone = document.getElementById('att-drop');
+      ['dragenter','dragover'].forEach(ev => dropZone.addEventListener(ev, e => { e.preventDefault(); dropZone.classList.add('dragover'); }));
+      ['dragleave','drop'].forEach(ev => dropZone.addEventListener(ev, e => { e.preventDefault(); dropZone.classList.remove('dragover'); }));
+      dropZone.addEventListener('drop', e => handleAttachFiles(e.dataTransfer.files));
+    })();
+
+    document.getElementById('notes-to-client').value = quote.notesToClient || '';
+    document.getElementById('notes-to-client').addEventListener('input', e => {
+      const cur = MockState.getCurrentQuote();
+      cur.notesToClient = e.target.value;
+      MockState.updateQuote(cur.id, cur);
+    });
+    document.getElementById('terms-text').value = quote.terms || MockData.standardTerms;
+    document.getElementById('terms-text').addEventListener('input', e => {
+      const cur = MockState.getCurrentQuote();
+      cur.terms = e.target.value;
+      MockState.updateQuote(cur.id, cur);
+    });
+    // Output-option checkboxes — store on quote.outputOptions (mockup-only)
+    (function () {
+      const opts = (MockState.getCurrentQuote().outputOptions) || { showModels: true };
+      const wire = (id, key) => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.checked = !!opts[key];
+        el.addEventListener('change', () => {
+          const cur = MockState.getCurrentQuote();
+          cur.outputOptions = Object.assign({}, cur.outputOptions || {}, { [key]: el.checked });
+          MockState.updateQuote(cur.id, cur);
+        });
+      };
+      wire('opt-show-models', 'showModels');
+      wire('opt-itemise-labour', 'itemiseLabour');
+      wire('opt-expand-pkgs', 'expandPackages');
+      wire('opt-contingency', 'addContingency');
+    })();
+
+    // -------- Accordion collapse (scope + sections + per-area cards) --------
+    // Persist open/closed state per quote in sessionStorage so re-renders and
+    // page navigation within a tab feel sticky.
+    const ACC_STORAGE_KEY = 'fq_mockup_acc_' + (quote.id || 'global');
+    function loadAccState() {
+      try { return JSON.parse(sessionStorage.getItem(ACC_STORAGE_KEY) || '{}'); }
+      catch (e) { return {}; }
+    }
+    function saveAccState(state) {
+      try { sessionStorage.setItem(ACC_STORAGE_KEY, JSON.stringify(state)); }
+      catch (e) {}
+    }
+    function applyAccState() {
+      const st = loadAccState();
+      document.querySelectorAll('.accordion[data-acc-key]').forEach(el => {
+        const key = el.getAttribute('data-acc-key');
+        if (st[key] === 'closed') el.classList.add('closed');
+        else el.classList.remove('closed');
+      });
+    }
+    document.addEventListener('click', (e) => {
+      const head = e.target.closest('.acc-head');
+      if (!head) return;
+      const acc = head.closest('.accordion[data-acc-key]');
+      if (!acc) return;
+      // Don't toggle when clicking buttons/inputs/links INSIDE the head
+      if (e.target.closest('button, input, select, textarea, a')) return;
+      const key = acc.getAttribute('data-acc-key');
+      const willClose = !acc.classList.contains('closed');
+      acc.classList.toggle('closed', willClose);
+      const st = loadAccState();
+      if (willClose) st[key] = 'closed'; else delete st[key];
+      saveAccState(st);
+    });
+
     // -------- Render everything --------
     function renderAll() {
       renderMeta();
@@ -1217,7 +1464,10 @@
       renderAreas();
       renderCables();
       renderServices();
+      renderExclusions();
+      renderAttachments();
       renderTotals();
+      applyAccState();
     }
     setupSliders();
     renderAll();

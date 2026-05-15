@@ -313,11 +313,59 @@ window.MockState = (function () {
   // -------------------------------------------------------------
   // Area & line operations
   // -------------------------------------------------------------
+  // Guess a sensible area heading from the project scope text. Picks the
+  // first matching keyword (e.g. "boardroom" → "Boardroom"). Falls back to
+  // `Area N` when nothing matches. Used when the user adds an area without
+  // supplying a name, so the heading reads as a real space description.
+  const AREA_KEYWORDS = [
+    ['boardroom', 'Boardroom'],
+    ['board room', 'Boardroom'],
+    ['meeting room', 'Meeting Room'],
+    ['training room', 'Training Room'],
+    ['huddle', 'Huddle Room'],
+    ['conference', 'Conference Room'],
+    ['reception', 'Reception'],
+    ['lobby', 'Lobby'],
+    ['foyer', 'Foyer'],
+    ['open office', 'Open Office'],
+    ['open plan', 'Open Office'],
+    ['cafe', 'Café'],
+    ['kitchen', 'Kitchen'],
+    ['breakout', 'Breakout Area'],
+    ['lunch', 'Lunch Room'],
+    ['atrium', 'Atrium'],
+    ['auditorium', 'Auditorium'],
+    ['warehouse', 'Warehouse'],
+    ['workshop', 'Workshop'],
+    ['classroom', 'Classroom'],
+    ['lecture', 'Lecture Theatre'],
+    ['gym', 'Gymnasium'],
+    ['lab', 'Laboratory'],
+    ['comms room', 'Comms Room'],
+    ['comms rack', 'Comms Room'],
+    ['server room', 'Server Room'],
+    ['ground floor', 'Ground Floor'],
+    ['level ', 'Level'],            // "Level 3" → "Level"
+    ['floor ', 'Floor'],
+    ['office', 'Office']
+  ];
+  function suggestAreaName(quote) {
+    const used = new Set((quote.areas || []).map(a => (a.name || '').toLowerCase().trim()));
+    const text = (quote.project && quote.project.scopeOfWorks || '').toLowerCase();
+    if (text) {
+      for (const [kw, label] of AREA_KEYWORDS) {
+        if (text.includes(kw) && !used.has(label.toLowerCase())) return label;
+      }
+    }
+    return `Area ${quote.areas.length + 1}`;
+  }
+
   function addArea(quoteId, name) {
     const s = load();
     const q = s.quotes.find(q => q.id === quoteId);
     if (!q) return null;
-    const area = { id: uid('ar'), name: name || `Area ${q.areas.length + 1}`, type: '', notes: '', lines: [], labourLines: [] };
+    const finalName = (name && name.trim()) ? name : suggestAreaName(q);
+    const area = { id: uid('ar'), name: finalName, type: '', notes: '', lines: [], labourLines: [] };
     q.areas.push(area);
     q.value = quoteTotal(q).sellExGST;
     save(s);
@@ -718,7 +766,10 @@ window.MockState = (function () {
     return !!sv.isLabour || (sv.category === 'Labour');
   }
   function serviceUnitCount(sv) {
-    return isLabourService(sv) ? (Number(sv.hours) || 0) : (Number(sv.qty) || 0);
+    // Labour rows use hours as the base unit, with qty as an optional multiplier
+    // (e.g. 3 days × 8 hrs). Non-labour rows just use qty.
+    if (isLabourService(sv)) return (Number(sv.qty) || 1) * (Number(sv.hours) || 0);
+    return Number(sv.qty) || 0;
   }
   function serviceCost(sv) {
     return serviceUnitCount(sv) * (Number(sv.rate) || 0);
@@ -903,7 +954,7 @@ window.MockState = (function () {
     // quote lifecycle
     newQuote, getCurrentQuote, setCurrentQuote, getQuote, getQuotes, updateQuote,
     // areas/lines
-    addArea, removeArea, duplicateArea, updateArea,
+    addArea, removeArea, duplicateArea, updateArea, suggestAreaName,
     addLineFromProduct, addPackageToArea, updateLine, removeLine,
     // per-area manual labour
     addAreaLabourLine, updateAreaLabourLine, removeAreaLabourLine,
