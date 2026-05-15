@@ -6,8 +6,8 @@
   <title>Build Areas — SKS Quotes</title>
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/icon?family=Material+Symbols+Outlined" rel="stylesheet">
-  <link rel="stylesheet" href="css/theme.css?v=20260515r12">
-  <link rel="stylesheet" href="css/mockups.css?v=20260515r12">
+  <link rel="stylesheet" href="css/theme.css?v=20260515r13">
+  <link rel="stylesheet" href="css/mockups.css?v=20260515r13">
   <style>
     .quote-meta { display: flex; gap: 18px; padding: 12px 16px; background: var(--surface-inset); border-radius: var(--radius-md); margin-bottom: 14px; flex-wrap: wrap; align-items: center; }
     .quote-meta .mi { display: flex; flex-direction: column; gap: 2px; }
@@ -132,7 +132,10 @@
     /* Excel-like equipment & services tables (round 5: c_bva92k, c_ot5fv1,
        c_zg8ywg). Fixed layout so a column drag doesn't shrink siblings, and
        visible 1px borders on every cell so the table reads as a spreadsheet. */
-    table.lines, table.data-table.services-table { table-layout: fixed; border-collapse: collapse; width: 100%; }
+    /* Tables sit at their natural width (sum of column widths). The parent
+       .table-scroll provides overflow-x:auto so growing any column just
+       widens the table instead of stealing space from siblings. (c_44318k) */
+    table.lines, table.data-table.services-table { table-layout: fixed; border-collapse: collapse; width: auto; }
     table.lines th, table.lines td,
     table.data-table.services-table th, table.data-table.services-table td {
       border: 1px solid var(--border);
@@ -530,12 +533,12 @@
     </div>
   </main>
 
-  <script src="js/mock-data.js?v=20260515r12"></script>
-  <script src="js/mock-state.js?v=20260515r12"></script>
-  <script src="js/mock-ui.js?v=20260515r12"></script>
-  <script src="js/mock-shell.js?v=20260515r12"></script>
-  <script src="js/mock-expiry.js?v=20260515r12"></script>
-  <script src="../_shared/review-tools/mock-review.js?v=20260515r12"></script>
+  <script src="js/mock-data.js?v=20260515r13"></script>
+  <script src="js/mock-state.js?v=20260515r13"></script>
+  <script src="js/mock-ui.js?v=20260515r13"></script>
+  <script src="js/mock-shell.js?v=20260515r13"></script>
+  <script src="js/mock-expiry.js?v=20260515r13"></script>
+  <script src="../_shared/review-tools/mock-review.js?v=20260515r13"></script>
   <script>
     // -------- Shell --------
     MockShell.mount({
@@ -658,16 +661,16 @@
           <table class="lines" data-area-table="${area.id}">
             <thead>
               <tr>
-                <th class="col-mfr" data-col-key="mfr">Brand<span class="col-resizer"></span></th>
-                <th class="col-model" data-col-key="model">Model<span class="col-resizer"></span></th>
-                <th data-col-key="desc">Description<span class="col-resizer"></span></th>
-                <th class="col-qty" data-col-key="qty">Qty<span class="col-resizer"></span></th>
-                <th class="col-unit" data-col-key="unit">Unit<span class="col-resizer"></span></th>
-                ${isQuick ? '' : '<th class="col-num" data-col-key="lab">Labour (hr)<span class="col-resizer"></span></th>'}
-                <th class="col-num col-cost" data-col-key="cost">Cost<span class="col-resizer"></span></th>
-                <th class="col-num col-margin" data-col-key="margin">Margin %<span class="col-resizer"></span></th>
-                <th class="col-num" data-col-key="sell">Sell<span class="col-resizer"></span></th>
-                <th class="col-actions"></th>
+                <th class="col-mfr" data-col-key="mfr" style="width:110px;">Brand<span class="col-resizer"></span></th>
+                <th class="col-model" data-col-key="model" style="width:140px;">Model<span class="col-resizer"></span></th>
+                <th data-col-key="desc" style="width:280px;">Description<span class="col-resizer"></span></th>
+                <th class="col-qty" data-col-key="qty" style="width:60px;">Qty<span class="col-resizer"></span></th>
+                <th class="col-unit" data-col-key="unit" style="width:50px;">Unit<span class="col-resizer"></span></th>
+                ${isQuick ? '' : '<th class="col-num" data-col-key="lab" style="width:80px;">Labour (hr)<span class="col-resizer"></span></th>'}
+                <th class="col-num col-cost" data-col-key="cost" style="width:80px;">Cost<span class="col-resizer"></span></th>
+                <th class="col-num col-margin" data-col-key="margin" style="width:80px;">Margin %<span class="col-resizer"></span></th>
+                <th class="col-num" data-col-key="sell" style="width:90px;">Sell<span class="col-resizer"></span></th>
+                <th class="col-actions" style="width:80px;"></th>
               </tr>
             </thead>
             <tbody>
