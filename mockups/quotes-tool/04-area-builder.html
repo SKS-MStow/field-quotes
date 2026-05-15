@@ -6,8 +6,8 @@
   <title>Build Areas — SKS Quotes</title>
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/icon?family=Material+Symbols+Outlined" rel="stylesheet">
-  <link rel="stylesheet" href="css/theme.css?v=20260515r11">
-  <link rel="stylesheet" href="css/mockups.css?v=20260515r11">
+  <link rel="stylesheet" href="css/theme.css?v=20260515r12">
+  <link rel="stylesheet" href="css/mockups.css?v=20260515r12">
   <style>
     .quote-meta { display: flex; gap: 18px; padding: 12px 16px; background: var(--surface-inset); border-radius: var(--radius-md); margin-bottom: 14px; flex-wrap: wrap; align-items: center; }
     .quote-meta .mi { display: flex; flex-direction: column; gap: 2px; }
@@ -129,13 +129,42 @@
     .cell-overridden { background: #fff7d6 !important; box-shadow: inset 0 0 0 1px #f0c419; }
     .cell-overridden input { background: transparent !important; }
 
-    /* Column resizer handle on equipment table headers. Reuses the styling
-       pattern from the quote-list table. */
+    /* Excel-like equipment & services tables (round 5: c_bva92k, c_ot5fv1,
+       c_zg8ywg). Fixed layout so a column drag doesn't shrink siblings, and
+       visible 1px borders on every cell so the table reads as a spreadsheet. */
+    table.lines, table.data-table.services-table { table-layout: fixed; border-collapse: collapse; width: 100%; }
+    table.lines th, table.lines td,
+    table.data-table.services-table th, table.data-table.services-table td {
+      border: 1px solid var(--border);
+      padding: 4px 6px;
+      overflow: hidden;
+      vertical-align: middle;
+    }
+    table.lines th, table.data-table.services-table th { background: var(--surface-inset); font-weight: 600; }
+    /* Inputs fill their cell — prevents clipped numbers in narrow columns */
+    table.lines .cell-input, table.data-table.services-table .cell-input { width: 100%; box-sizing: border-box; }
+    /* Help long text wrap in textual cells rather than cut off */
+    table.lines td input[type=text] { text-overflow: ellipsis; }
+
+    /* Column resizer handle — visible vertical bar so users know it's grabbable */
     th { position: relative; }
-    .col-resizer { position: absolute; top: 0; right: 0; width: 6px; height: 100%; cursor: col-resize; user-select: none; }
-    .col-resizer:hover { background: linear-gradient(90deg, transparent, var(--accent-primary)); opacity: 0.5; }
+    .col-resizer { position: absolute; top: 0; right: -1px; width: 8px; height: 100%; cursor: col-resize; user-select: none; z-index: 2; }
+    .col-resizer::after {
+      content: ''; position: absolute; top: 18%; right: 3px;
+      width: 2px; height: 64%; background: var(--border-input); opacity: 0.65;
+    }
+    .col-resizer:hover::after,
+    body.is-col-resizing .col-resizer::after { background: var(--accent-primary); opacity: 1; }
     body.is-col-resizing { cursor: col-resize; user-select: none; }
     body.is-col-resizing * { user-select: none !important; }
+
+    /* Attachment drop hover — keep instructional text legible (c_34o29d) */
+    .att-drop:hover, .att-drop.dragover {
+      border-color: var(--accent-primary);
+      background: var(--surface-white);
+      color: var(--text-primary);
+      box-shadow: inset 0 0 0 2px var(--accent-primary);
+    }
 
     /* Reviewer page note: bump UI ~15% for readability ('better at 120% zoom'). */
     body { font-size: 16.5px; }
@@ -501,12 +530,12 @@
     </div>
   </main>
 
-  <script src="js/mock-data.js?v=20260515r11"></script>
-  <script src="js/mock-state.js?v=20260515r11"></script>
-  <script src="js/mock-ui.js?v=20260515r11"></script>
-  <script src="js/mock-shell.js?v=20260515r11"></script>
-  <script src="js/mock-expiry.js?v=20260515r11"></script>
-  <script src="../_shared/review-tools/mock-review.js?v=20260515r11"></script>
+  <script src="js/mock-data.js?v=20260515r12"></script>
+  <script src="js/mock-state.js?v=20260515r12"></script>
+  <script src="js/mock-ui.js?v=20260515r12"></script>
+  <script src="js/mock-shell.js?v=20260515r12"></script>
+  <script src="js/mock-expiry.js?v=20260515r12"></script>
+  <script src="../_shared/review-tools/mock-review.js?v=20260515r12"></script>
   <script>
     // -------- Shell --------
     MockShell.mount({
@@ -1072,12 +1101,21 @@
         const isCustom = sv.serviceId === null;
         const includedClass = sv.included ? 'services-row' : 'services-row dim';
         const dis = !sv.included ? 'disabled' : '';
-        // Qty is now editable on every row — for labour it acts as a multiplier
-        // (e.g. 3 days × 8 hrs), defaulting to 1.
-        const qtyCell  = `<td class="right"><input class="cell-input cell-num" type="number" min="0" step="${isLab ? '1' : '0.5'}" value="${sv.qty == null ? (isLab ? 1 : 0) : sv.qty}" data-svc-edit="${sv.id}" data-field="qty" ${dis} title="${isLab ? 'Iterations (× hours)' : 'Quantity'}"></td>`;
-        const hoursCell = isLab
-          ? `<td class="right"><input class="cell-input cell-num" type="number" min="0" step="0.5" value="${sv.hours || 0}" data-svc-edit="${sv.id}" data-field="hours" ${dis} title="Hours of labour"></td>`
-          : '<td class="right"><span style="color:var(--text-muted);">—</span></td>';
+        // Category-aware qty/hours columns (c_yx24t7):
+        //   Labour     -> Hours only (Qty cell shows '—')
+        //   Expense    -> Qty only   (Hours cell shows '—')
+        //   Custom     -> both editable (it's a free-form row)
+        const isExpense = sv.category === 'Expense';
+        const qtyCell = isLab
+          ? '<td class="right"><span style="color:var(--text-muted);">—</span></td>'
+          : `<td class="right"><input class="cell-input cell-num" type="number" min="0" step="0.5" value="${sv.qty == null ? 1 : sv.qty}" data-svc-edit="${sv.id}" data-field="qty" ${dis} title="Quantity"></td>`;
+        const hoursCell = isExpense
+          ? '<td class="right"><span style="color:var(--text-muted);">—</span></td>'
+          : (isLab
+              ? `<td class="right"><input class="cell-input cell-num" type="number" min="0" step="0.5" value="${sv.hours || 0}" data-svc-edit="${sv.id}" data-field="hours" ${dis} title="Hours of labour"></td>`
+              : (sv.category === 'Custom'
+                  ? `<td class="right"><input class="cell-input cell-num" type="number" min="0" step="0.5" value="${sv.hours || 0}" data-svc-edit="${sv.id}" data-field="hours" ${dis} title="Hours (optional)"></td>`
+                  : '<td class="right"><span style="color:var(--text-muted);">—</span></td>'));
         const labourTag = isLab ? '<span class="cat-tag" style="background:var(--status-warning-bg);color:var(--status-warning);">Labour</span>' : '';
         return `
           <tr class="${includedClass}" data-svc-row="${sv.id}" style="${sv.included ? '' : 'opacity:0.55;'}">

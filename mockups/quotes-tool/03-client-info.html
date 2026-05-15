@@ -6,8 +6,8 @@
   <title>Client &amp; Project — SKS Quotes</title>
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/icon?family=Material+Symbols+Outlined" rel="stylesheet">
-  <link rel="stylesheet" href="css/theme.css?v=20260515r11">
-  <link rel="stylesheet" href="css/mockups.css?v=20260515r11">
+  <link rel="stylesheet" href="css/theme.css?v=20260515r12">
+  <link rel="stylesheet" href="css/mockups.css?v=20260515r12">
   <style>
     .info-grid { display: grid; grid-template-columns: 1fr 360px; gap: 18px; align-items: start; }
     @media (max-width: 1100px) { .info-grid { grid-template-columns: 1fr; } }
@@ -234,12 +234,12 @@
     </div>
   </main>
 
-  <script src="js/mock-data.js?v=20260515r11"></script>
-  <script src="js/mock-state.js?v=20260515r11"></script>
-  <script src="js/mock-ui.js?v=20260515r11"></script>
-  <script src="js/mock-shell.js?v=20260515r11"></script>
-  <script src="js/mock-expiry.js?v=20260515r11"></script>
-  <script src="../_shared/review-tools/mock-review.js?v=20260515r11"></script>
+  <script src="js/mock-data.js?v=20260515r12"></script>
+  <script src="js/mock-state.js?v=20260515r12"></script>
+  <script src="js/mock-ui.js?v=20260515r12"></script>
+  <script src="js/mock-shell.js?v=20260515r12"></script>
+  <script src="js/mock-expiry.js?v=20260515r12"></script>
+  <script src="../_shared/review-tools/mock-review.js?v=20260515r12"></script>
   <script>
     MockShell.mount({
       title: 'Client & Project',
@@ -362,8 +362,38 @@ Project Manager — University of Adelaide
       };
     }
 
-    document.getElementById('ai-demo').addEventListener('click', () => {
-      document.getElementById('ai-input').value = demoEmail;
+    // "Use demo text" hits the real Gemini Flash backed endpoint so reviewers
+    // see varied scope text on each click. Falls back to the hardcoded
+    // demoEmail if the endpoint is unreachable. (c_chvcpu)
+    document.getElementById('ai-demo').addEventListener('click', async () => {
+      const btn = document.getElementById('ai-demo');
+      const orig = btn.innerHTML;
+      btn.disabled = true;
+      btn.innerHTML = '<span class="material-symbols-outlined">hourglass_top</span> Generating…';
+      try {
+        const cur = MockState.getCurrentQuote();
+        const r = await fetch('/api/ai/quote-helper', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            kind: 'scope-demo',
+            clientName: (cur && cur.client && cur.client.name) || '',
+            projectName: (cur && cur.project && cur.project.name) || ''
+          })
+        });
+        if (!r.ok) throw new Error('ai-' + r.status);
+        const j = await r.json();
+        if (!j.scope) throw new Error('no-scope');
+        document.getElementById('ai-input').value = j.scope.trim();
+        MockUI.toast('AI scope generated — click Extract to parse', 'success');
+      } catch (e) {
+        // Offline / endpoint down — fall back to the canned demo
+        document.getElementById('ai-input').value = demoEmail;
+        MockUI.toast('AI offline — using canned demo', 'warn');
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = orig;
+      }
     });
     document.getElementById('ai-extract').addEventListener('click', () => {
       const text = document.getElementById('ai-input').value.trim();

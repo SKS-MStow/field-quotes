@@ -6,8 +6,8 @@
   <title>Output Preview — SKS Quotes</title>
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/icon?family=Material+Symbols+Outlined" rel="stylesheet">
-  <link rel="stylesheet" href="css/theme.css?v=20260515r11">
-  <link rel="stylesheet" href="css/mockups.css?v=20260515r11">
+  <link rel="stylesheet" href="css/theme.css?v=20260515r12">
+  <link rel="stylesheet" href="css/mockups.css?v=20260515r12">
   <style>
     .tab-bar { display: flex; gap: 4px; margin-bottom: 16px; padding: 4px; background: var(--surface-inset); border-radius: var(--radius-md); width: fit-content; }
     .tab-bar button { background: transparent; border: none; padding: 7px 14px; border-radius: var(--radius-sm); font-size: 12px; color: var(--text-secondary); cursor: pointer; font-family: var(--font-body); font-weight: 500; display: flex; align-items: center; gap: 5px; }
@@ -98,12 +98,12 @@
     </div>
   </main>
 
-  <script src="js/mock-data.js?v=20260515r11"></script>
-  <script src="js/mock-state.js?v=20260515r11"></script>
-  <script src="js/mock-ui.js?v=20260515r11"></script>
-  <script src="js/mock-shell.js?v=20260515r11"></script>
-  <script src="js/mock-expiry.js?v=20260515r11"></script>
-  <script src="../_shared/review-tools/mock-review.js?v=20260515r11"></script>
+  <script src="js/mock-data.js?v=20260515r12"></script>
+  <script src="js/mock-state.js?v=20260515r12"></script>
+  <script src="js/mock-ui.js?v=20260515r12"></script>
+  <script src="js/mock-shell.js?v=20260515r12"></script>
+  <script src="js/mock-expiry.js?v=20260515r12"></script>
+  <script src="../_shared/review-tools/mock-review.js?v=20260515r12"></script>
   <script>
     MockShell.mount({
       title: 'Output Preview',
@@ -164,7 +164,6 @@
                   <th style="width:30%;">Description</th>
                   ${showModels ? '<th style="width:18%;">Model</th>' : ''}
                   <th class="right" style="width:60px;">Qty</th>
-                  <th style="width:60px;">Unit</th>
                   <th class="right" style="width:90px;">Total</th>
                 </tr>
               </thead>
@@ -176,7 +175,6 @@
               <td>${l.description}${tags}</td>
               ${showModels ? `<td>${l.manufacturer} ${l.model}</td>` : ''}
               <td class="right">${l.qty}</td>
-              <td>${l.unit}</td>
               <td class="right">${MockUI.fmtMoney(t.sellTotal)}</td>
             </tr>`;
           });
@@ -190,12 +188,12 @@
       if (includedSvcs.length > 0) {
         html += `<div class="doc-section-h">Services &amp; Labour</div>
           <table>
-            <thead><tr><th>Service</th><th class="right" style="width:70px;">Qty / Hrs</th><th style="width:70px;">Unit</th><th class="right" style="width:100px;">Total</th></tr></thead>
+            <thead><tr><th>Service</th><th class="right" style="width:70px;">Qty / Hrs</th><th class="right" style="width:100px;">Total</th></tr></thead>
             <tbody>`;
         includedSvcs.forEach(sv => {
           const sell = MockState.serviceSell(sv);
           const unitCount = MockState.serviceUnitCount(sv);
-          html += `<tr><td>${sv.name}</td><td class="right">${unitCount}</td><td>${sv.unit}</td><td class="right">${MockUI.fmtMoney(sell)}</td></tr>`;
+          html += `<tr><td>${sv.name}</td><td class="right">${unitCount}</td><td class="right">${MockUI.fmtMoney(sell)}</td></tr>`;
         });
         html += `</tbody></table>`;
       }
@@ -298,12 +296,12 @@
         html += `</tbody></table>`;
         host.innerHTML = html;
       } else if (tab === 'services') {
-        let html = `<table class="internal-table"><thead><tr><th>Service</th><th>Category</th><th>Unit</th><th class="right">Qty</th><th class="right">Hours</th><th class="right">Rate</th><th class="right">Cost</th><th class="right">Margin %</th><th class="right">Sell total</th></tr></thead><tbody>`;
+        let html = `<table class="internal-table"><thead><tr><th>Service</th><th>Category</th><th class="right">Qty</th><th class="right">Hours</th><th class="right">Rate</th><th class="right">Cost</th><th class="right">Margin %</th><th class="right">Sell total</th></tr></thead><tbody>`;
         quote.services.filter(s => s.included).forEach(s => {
           const isLab = MockState.isLabourService(s);
           const cost = MockState.serviceCost(s);
           const sell = MockState.serviceSell(s);
-          html += `<tr><td>${s.name}</td><td>${s.category}</td><td>${s.unit}</td><td class="right">${isLab ? '—' : s.qty}</td><td class="right">${isLab ? (s.hours || 0) : '—'}</td><td class="right">${MockUI.fmtMoneyCents(s.rate)}</td><td class="right">${MockUI.fmtMoneyCents(cost)}</td><td class="right">${s.marginPct}%</td><td class="right">${MockUI.fmtMoneyCents(sell)}</td></tr>`;
+          html += `<tr><td>${s.name}</td><td>${s.category}</td><td class="right">${isLab ? '—' : s.qty}</td><td class="right">${isLab ? (s.hours || 0) : '—'}</td><td class="right">${MockUI.fmtMoneyCents(s.rate)}</td><td class="right">${MockUI.fmtMoneyCents(cost)}</td><td class="right">${s.marginPct}%</td><td class="right">${MockUI.fmtMoneyCents(sell)}</td></tr>`;
         });
         html += `</tbody></table>`;
         host.innerHTML = html;
