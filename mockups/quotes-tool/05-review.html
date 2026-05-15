@@ -6,8 +6,8 @@
   <title>Review — SKS Quotes</title>
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/icon?family=Material+Symbols+Outlined" rel="stylesheet">
-  <link rel="stylesheet" href="css/theme.css?v=20260515r8">
-  <link rel="stylesheet" href="css/mockups.css?v=20260515r8">
+  <link rel="stylesheet" href="css/theme.css?v=20260515r9">
+  <link rel="stylesheet" href="css/mockups.css?v=20260515r9">
   <style>
     /* Review = read-only preview (per c_pmbc05 / c_bz6mcl).
        All editing controls live on the Build page now. */
@@ -191,12 +191,12 @@
     </div>
   </main>
 
-  <script src="js/mock-data.js?v=20260515r8"></script>
-  <script src="js/mock-state.js?v=20260515r8"></script>
-  <script src="js/mock-ui.js?v=20260515r8"></script>
-  <script src="js/mock-shell.js?v=20260515r8"></script>
-  <script src="js/mock-expiry.js?v=20260515r8"></script>
-  <script src="../_shared/review-tools/mock-review.js?v=20260515r8"></script>
+  <script src="js/mock-data.js?v=20260515r9"></script>
+  <script src="js/mock-state.js?v=20260515r9"></script>
+  <script src="js/mock-ui.js?v=20260515r9"></script>
+  <script src="js/mock-shell.js?v=20260515r9"></script>
+  <script src="js/mock-expiry.js?v=20260515r9"></script>
+  <script src="../_shared/review-tools/mock-review.js?v=20260515r9"></script>
   <script>
     MockShell.mount({
       title: 'Review Quote',
@@ -234,7 +234,7 @@
     // -------- Areas summary --------
     function renderAreasSummary() {
       const q = MockState.getCurrentQuote();
-      document.getElementById('areas-heading').firstChild.nodeValue = q.mode === 'quick' ? 'Scope ' : 'Areas ';
+      document.getElementById('areas-heading').firstChild.nodeValue = q.mode === 'quick' ? 'Scope ' : 'Equipment ';
       const host = document.getElementById('areas-summary-host');
       if (q.areas.length === 0) { host.innerHTML = '<div style="color:var(--text-muted);font-size:12px;">No areas in this quote.</div>'; return; }
       const HIDE = new Set(['Cabling & Pathways', 'Consumables']);

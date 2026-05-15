@@ -6,8 +6,8 @@
   <title>Build Areas — SKS Quotes</title>
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/icon?family=Material+Symbols+Outlined" rel="stylesheet">
-  <link rel="stylesheet" href="css/theme.css?v=20260515r8">
-  <link rel="stylesheet" href="css/mockups.css?v=20260515r8">
+  <link rel="stylesheet" href="css/theme.css?v=20260515r9">
+  <link rel="stylesheet" href="css/mockups.css?v=20260515r9">
   <style>
     .quote-meta { display: flex; gap: 18px; padding: 12px 16px; background: var(--surface-inset); border-radius: var(--radius-md); margin-bottom: 14px; flex-wrap: wrap; align-items: center; }
     .quote-meta .mi { display: flex; flex-direction: column; gap: 2px; }
@@ -123,6 +123,13 @@
     .att-card .rm { position: absolute; top: 6px; right: 6px; background: white; border-radius: 50%; width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; cursor: pointer; border: 1px solid var(--border); }
     .att-card .rm .material-symbols-outlined { font-size: 14px; color: var(--status-danger); }
 
+    /* Fix horizontal overflow: grid children need min-width:0 so wide tables
+       scroll inside their container instead of pushing the page wider.
+       Reviewer c_hvdwoq — Services & Labour was blowing out the page. */
+    .builder-layout > div { min-width: 0; }
+    .section-acc, .section-acc .acc-body, .section-acc .panel { min-width: 0; }
+    .section-acc .table-scroll { max-width: 100%; overflow-x: auto; }
+
     /* ---- Accordion sections (scope, top-level Areas/Cables/Services, per-area cards) ---- */
     .accordion .acc-head { cursor: pointer; user-select: none; display: flex; align-items: center; gap: 6px; }
     .accordion .acc-chev { font-size: 20px; color: var(--text-muted); transition: transform 0.18s ease; }
@@ -170,7 +177,7 @@
         <div class="accordion section-acc" id="acc-areas" data-acc-key="areas">
           <div id="builder-heading-row" class="acc-head">
             <span class="acc-chev material-symbols-outlined">expand_more</span>
-            <h3 id="builder-heading">Areas</h3>
+            <h3 id="builder-heading">Equipment</h3>
             <button class="btn btn-secondary btn-sm" id="add-area-btn" onclick="event.stopPropagation();"><span class="material-symbols-outlined">add</span> Add Area</button>
           </div>
           <div class="acc-body">
@@ -472,12 +479,12 @@
     </div>
   </main>
 
-  <script src="js/mock-data.js?v=20260515r8"></script>
-  <script src="js/mock-state.js?v=20260515r8"></script>
-  <script src="js/mock-ui.js?v=20260515r8"></script>
-  <script src="js/mock-shell.js?v=20260515r8"></script>
-  <script src="js/mock-expiry.js?v=20260515r8"></script>
-  <script src="../_shared/review-tools/mock-review.js?v=20260515r8"></script>
+  <script src="js/mock-data.js?v=20260515r9"></script>
+  <script src="js/mock-state.js?v=20260515r9"></script>
+  <script src="js/mock-ui.js?v=20260515r9"></script>
+  <script src="js/mock-shell.js?v=20260515r9"></script>
+  <script src="js/mock-expiry.js?v=20260515r9"></script>
+  <script src="../_shared/review-tools/mock-review.js?v=20260515r9"></script>
   <script>
     // -------- Shell --------
     MockShell.mount({
@@ -556,7 +563,7 @@
           <div class="area-head acc-head">
             <span class="acc-chev material-symbols-outlined">expand_more</span>
             <div class="area-name-wrap" onclick="event.stopPropagation();">
-              <label class="area-name-label" for="area-name-${area.id}">${isQuick ? 'Heading' : 'Area name'}</label>
+              <label class="area-name-label" for="area-name-${area.id}">Equipment</label>
               <input id="area-name-${area.id}" class="area-name" value="${area.name}" placeholder="${isQuick ? 'e.g. Boardroom Level 3 — AV upgrade' : 'e.g. Boardroom Level 3'}" data-area-input="${area.id}">
               <div class="area-name-help">Becomes this area's heading on the client document.</div>
             </div>
