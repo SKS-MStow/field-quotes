@@ -970,11 +970,11 @@
     // Top-level buttons + modal wiring
     // ============================================================
     document.getElementById('rescan-btn').addEventListener('click', () => {
-      MockUI.toast('Mockup placeholder — would re-walk the folder via the desktop watcher and refresh this page (wired in v2).');
+      MockUI.toast('Mockup placeholder — would re-walk the folder via the desktop watcher, then open the supersedes wizard with whatever\'s new.');
+      setTimeout(() => { window.location.href = '11-supersedes-wizard.html'; }, 700);
     });
     document.getElementById('inbox-review-btn').addEventListener('click', () => {
-      document.querySelector('#lr-filter button[data-filter="attention"]').click();
-      MockUI.toast('Filtered to suppliers with pending events.');
+      window.location.href = '11-supersedes-wizard.html';
     });
     document.getElementById('rules-btn').addEventListener('click', () => {
       // populate rules list

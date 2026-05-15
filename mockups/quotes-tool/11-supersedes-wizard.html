@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Supersedes wizard — review new files</title>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Symbols+Outlined" rel="stylesheet">
+  <link rel="stylesheet" href="css/theme.css?v=20260515r18">
+  <link rel="stylesheet" href="css/mockups.css?v=20260515r18">
+  <style>
+    /* ---------- Summary header ---------- */
+    .sw-head {
+      background: var(--surface-card); border: 1px solid var(--border);
+      border-radius: var(--radius-lg); padding: 14px 18px;
+      display: grid; grid-template-columns: 44px 1fr auto; gap: 14px;
+      align-items: center; margin-bottom: 12px;
+    }
+    .sw-head .icon-big {
+      width: 44px; height: 44px; border-radius: 8px;
+      background: rgba(91,108,245,0.12); display: flex; align-items: center; justify-content: center;
+    }
+    .sw-head .icon-big .material-symbols-outlined { font-size: 24px; color: var(--accent-primary); }
+    .sw-head h2 { font-family: var(--font-heading); font-weight: 700; font-size: 16px; }
+    .sw-head .sub { font-size: 12.5px; color: var(--text-secondary); margin-top: 3px; }
+    .sw-head .sub b { color: var(--text-primary); }
+
+    /* ---------- Stats strip ---------- */
+    .stats-strip {
+      display: flex; gap: 12px; padding: 0; margin-bottom: 12px; flex-wrap: wrap;
+    }
+    .stats-strip .stat {
+      flex: 1; min-width: 140px; padding: 12px 14px; background: var(--surface-card);
+      border: 1px solid var(--border); border-radius: var(--radius-md);
+      display: flex; gap: 10px; align-items: center;
+    }
+    .stats-strip .stat .icon {
+      width: 28px; height: 28px; border-radius: 6px;
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    }
+    .stats-strip .stat.replace .icon { background: rgba(91,108,245,0.12); color: var(--accent-primary); }
+    .stats-strip .stat.add    .icon { background: var(--status-success-bg); color: var(--status-success); }
+    .stats-strip .stat.skip   .icon { background: var(--surface-inset); color: var(--text-muted); }
+    .stats-strip .stat.attn   .icon { background: #fef0c7; color: #b45309; }
+    .stats-strip .stat .v { font-family: var(--font-heading); font-weight: 700; font-size: 22px; }
+    .stats-strip .stat .l { font-size: 10.5px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.04em; font-weight: 600; }
+
+    /* ---------- Filter pills ---------- */
+    .sw-filter {
+      display: flex; gap: 4px; padding: 4px;
+      background: var(--surface-inset); border-radius: 6px;
+      margin-bottom: 12px; flex-wrap: wrap;
+    }
+    .sw-filter button {
+      background: transparent; border: none; padding: 7px 12px;
+      font-size: 12px; color: var(--text-secondary); cursor: pointer;
+      border-radius: 5px; font-family: var(--font-body);
+      display: flex; align-items: center; gap: 6px;
+    }
+    .sw-filter button.active {
+      background: var(--surface-white); color: var(--text-primary); font-weight: 600;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.06);
+    }
+    .sw-filter button .count {
+      font-size: 10px; padding: 1px 6px; border-radius: 8px; font-weight: 700;
+      background: var(--text-muted); color: white;
+    }
+    .sw-filter button[data-filter="attention"] .count { background: var(--status-warning); }
+    .sw-filter button[data-filter="replace"]   .count { background: var(--accent-primary); }
+    .sw-filter button[data-filter="add"]       .count { background: var(--status-success); }
+    .sw-filter button[data-filter="skip"]      .count { background: var(--text-muted); }
+
+    /* ---------- Wizard table ---------- */
+    .wizard-card {
+      background: var(--surface-card); border: 1px solid var(--border);
+      border-radius: var(--radius-lg); overflow: hidden;
+      margin-bottom: 14px;
+    }
+
+    table.wizard-table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+    table.wizard-table th {
+      padding: 9px 14px; background: var(--surface-inset);
+      font-size: 10px; text-transform: uppercase; color: var(--text-muted);
+      text-align: left; letter-spacing: 0.04em; font-weight: 600;
+      position: sticky; top: 0; border-bottom: 1px solid var(--border);
+    }
+    table.wizard-table td {
+      padding: 12px 14px; border-top: 1px solid var(--border-light); vertical-align: middle;
+    }
+    table.wizard-table tr.hidden { display: none; }
+    table.wizard-table tr.skip-row td { opacity: 0.5; }
+    table.wizard-table .col-check { width: 32px; }
+    table.wizard-table .col-action { width: 175px; }
+    table.wizard-table .col-supersedes { min-width: 280px; }
+
+    /* file cell */
+    .fname { font-family: 'JetBrains Mono', monospace; font-weight: 600; font-size: 12px; color: var(--text-primary); word-break: break-all; }
+    .fmeta { font-size: 10.5px; color: var(--text-muted); margin-top: 3px; display: flex; gap: 10px; flex-wrap: wrap; }
+    .fmeta .conf {
+      font-family: 'JetBrains Mono', monospace; font-weight: 600;
+      padding: 1px 5px; border-radius: 3px;
+    }
+    .fmeta .conf.ok   { background: var(--status-success-bg); color: var(--status-success); }
+    .fmeta .conf.warn { background: #fef0c7; color: #b45309; }
+    .fmeta .conf.low  { background: #fee2e2; color: #b91c1c; }
+    .fmeta .matched   { color: var(--text-secondary); }
+    .fmeta .matched b { color: var(--text-primary); font-weight: 600; }
+
+    /* action select */
+    .action-select {
+      width: 100%; padding: 6px 10px; font-size: 12px;
+      border: 1px solid var(--border-input); border-radius: 5px;
+      font-family: var(--font-body); background: white; cursor: pointer;
+    }
+    .action-select.replace { background: rgba(91,108,245,0.08); border-color: rgba(91,108,245,0.40); color: var(--accent-primary); font-weight: 600; }
+    .action-select.add     { background: var(--status-success-bg); border-color: var(--status-success); color: var(--status-success); font-weight: 600; }
+    .action-select.skip    { background: var(--surface-inset); color: var(--text-muted); }
+    .action-select.unknown { background: #fef0c7; border-color: var(--status-warning); color: #b45309; font-weight: 600; }
+
+    /* supersedes column variants */
+    .sup-replace, .sup-add, .sup-skip, .sup-unknown { display: flex; flex-direction: column; gap: 4px; }
+    .sup-replace select, .sup-add input, .sup-unknown select {
+      padding: 6px 10px; font-size: 12px;
+      border: 1px solid var(--border-input); border-radius: 5px;
+      font-family: var(--font-body); background: white;
+    }
+    .sup-add input { font-family: var(--font-body); font-size: 12.5px; }
+    .sup-replace .current,
+    .sup-add .hint,
+    .sup-unknown .hint {
+      font-size: 10.5px; color: var(--text-muted);
+    }
+    .sup-replace .current b { color: var(--text-primary); font-family: 'JetBrains Mono', monospace; font-size: 10.5px; }
+    .sup-replace .current .arr { color: var(--accent-primary); margin: 0 4px; }
+    .sup-skip { font-size: 11.5px; color: var(--text-muted); font-style: italic; }
+    .sup-unknown .hint { color: #b45309; }
+
+    /* ---------- Bottom action bar ---------- */
+    .sw-actions {
+      background: var(--surface-card); border: 1px solid var(--border);
+      border-radius: var(--radius-lg); padding: 12px 18px;
+      display: flex; gap: 10px; align-items: center; flex-wrap: wrap;
+      position: sticky; bottom: 0;
+    }
+    .sw-actions .summary {
+      flex: 1; font-size: 13px; color: var(--text-primary);
+    }
+    .sw-actions .summary b { font-weight: 600; }
+    .sw-actions .summary .chips { display: inline-flex; gap: 6px; margin-left: 8px; flex-wrap: wrap; }
+    .sw-actions .chip {
+      font-size: 10.5px; padding: 2px 7px; border-radius: 10px; font-weight: 600;
+      text-transform: uppercase; letter-spacing: 0.04em;
+    }
+    .sw-actions .chip.replace { background: rgba(91,108,245,0.12); color: var(--accent-primary); }
+    .sw-actions .chip.add     { background: var(--status-success-bg); color: var(--status-success); }
+    .sw-actions .chip.attn    { background: #fef0c7; color: #b45309; }
+
+    /* ---------- Empty state ---------- */
+    .empty-state {
+      padding: 60px 20px; text-align: center;
+      background: var(--surface-card); border: 1px solid var(--border);
+      border-radius: var(--radius-lg); color: var(--text-muted);
+    }
+    .empty-state .material-symbols-outlined { font-size: 48px; color: var(--status-success); display: block; margin-bottom: 12px; }
+  </style>
+</head>
+<body data-page="admin-files">
+  <main id="content" class="content">
+
+    <!-- Header summary -->
+    <div class="sw-head">
+      <div class="icon-big"><span class="material-symbols-outlined">checklist</span></div>
+      <div>
+        <h2>Supersedes wizard — <span id="head-count">6</span> new files since last scan</h2>
+        <div class="sub">Folder rescan at <b>2026-05-15 16:18</b>. The matcher auto-matched what it could; review each row and pick what each file should do, then click <b>Continue</b> to walk through the import.</div>
+      </div>
+      <div>
+        <a class="btn btn-secondary" href="09-files.html"><span class="material-symbols-outlined">arrow_back</span> Back to files</a>
+      </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-strip">
+      <div class="stat replace"><div class="icon"><span class="material-symbols-outlined">swap_horiz</span></div><div><div class="v" id="stat-replace">3</div><div class="l">Will replace</div></div></div>
+      <div class="stat add"><div class="icon"><span class="material-symbols-outlined">add_circle</span></div><div><div class="v" id="stat-add">1</div><div class="l">New pricelist scope</div></div></div>
+      <div class="stat attn"><div class="icon"><span class="material-symbols-outlined">warning</span></div><div><div class="v" id="stat-attn">2</div><div class="l">Need your attention</div></div></div>
+      <div class="stat skip"><div class="icon"><span class="material-symbols-outlined">visibility_off</span></div><div><div class="v" id="stat-skip">0</div><div class="l">Skipped</div></div></div>
+    </div>
+
+    <!-- Filter pills -->
+    <div class="sw-filter" id="sw-filter">
+      <button data-filter="all" class="active">All <span class="count" id="cnt-all">6</span></button>
+      <button data-filter="attention">Need attention <span class="count" id="cnt-attn">2</span></button>
+      <button data-filter="replace">Will replace <span class="count" id="cnt-rep">3</span></button>
+      <button data-filter="add">New scope <span class="count" id="cnt-add">1</span></button>
+      <button data-filter="skip">Skipped <span class="count" id="cnt-skip">0</span></button>
+    </div>
+
+    <!-- Wizard table -->
+    <div class="wizard-card">
+      <table class="wizard-table" id="wizard-table">
+        <thead>
+          <tr>
+            <th class="col-check"><input type="checkbox" id="check-all" checked title="Select all"></th>
+            <th>New file</th>
+            <th class="col-action">Action</th>
+            <th class="col-supersedes">Supersedes / new scope</th>
+          </tr>
+        </thead>
+        <tbody id="wizard-tbody"></tbody>
+      </table>
+    </div>
+
+    <!-- Bottom actions -->
+    <div class="sw-actions">
+      <div class="summary">
+        <span id="continue-count">4</span> files will be imported
+        <span class="chips" id="continue-chips"></span>
+      </div>
+      <a class="btn btn-secondary" href="09-files.html">Cancel</a>
+      <button class="btn btn-primary" id="continue-btn">
+        <span class="material-symbols-outlined">arrow_forward</span> Continue to import
+      </button>
+    </div>
+
+  </main>
+
+  <script src="js/mock-data.js?v=20260515r18"></script>
+  <script src="js/mock-state.js?v=20260515r18"></script>
+  <script src="js/mock-ui.js?v=20260515r18"></script>
+  <script src="js/mock-shell.js?v=20260515r18"></script>
+  <script src="js/mock-expiry.js?v=20260515r18"></script>
+  <script src="../_shared/review-tools/mock-review.js?v=20260515r18"></script>
+  <script>
+    MockShell.mount({
+      title: 'Supersedes wizard',
+      subtitle: 'Review what each new file is going to do · then import',
+      actionsHtml: ''
+    });
+
+    // ============================================================
+    // Seed — all currently-known supplier + scope combinations.
+    // Mirrors what 09-files.html shows so the dropdown options
+    // line up with reviewers' mental model.
+    // ============================================================
+    const knownPricelists = [
+      { key: 'crestron:Crestron',                 label: 'Rutledge AV — Crestron',                        current: 'crestron-pricelist-may-2026.xlsx' },
+      { key: 'crestron:Atlona',                   label: 'Rutledge AV — Atlona',                          current: '(no active pricelist yet)' },
+      { key: '4c:default',                        label: '4C Communications',                             current: '4C_SERVICE173_cat(2026-04).xlsx' },
+      { key: 'atdec:default',                     label: 'ATDEC',                                         current: 'ATDEC Feb 2026 Pricelist.xlsx' },
+      { key: 'aumaster:default',                  label: 'AU-Master-Dealer',                              current: 'AU-Master-Dealer 1-Apr-26.xlsx' },
+      { key: 'avad:default',                      label: 'AVAD',                                          current: 'AVAD Dealer Price List - May 2026_P.xlsx' },
+      { key: 'avd:default',                       label: 'AVD',                                           current: 'AVD-Dealer-Price-List-01-January-2026-REV1TL.xlsx' },
+      { key: 'australis:default',                 label: 'Australis Pro Audio',                           current: 'Australis Pro Audio Pricelist - January 2026.xlsx' },
+      { key: 'biamp:default',                     label: 'Biamp',                                         current: 'Biamp_AUD_Price List 2_EZip_23Feb26_single_tab.xlsx' },
+      { key: 'cisco:default',                     label: 'Cisco',                                         current: 'Cisco Pricelist June_2025.xlsx' },
+      { key: 'dickerlogi:logitechVC',             label: 'Dicker Data — Logitech Video Conferencing',     current: 'Dicker Data - LOGITECH VIDEO CONFERENCING May 2026.xlsx' },
+      { key: 'ezymount:default',                  label: 'EZYmount',                                      current: 'EZYmount A-Z TDE price list Sep-2025.xlsx' },
+      { key: 'inogeni:platinum',                  label: 'Inogeni — Platinum',                            current: 'Inogeni Platinum Aus -April26.xlsx' },
+      { key: 'kordz:default',                     label: 'Kordz',                                         current: 'Kordz Priclist - Q2 2026 March 26.xlsx' },
+      { key: 'kramer:default',                    label: 'Kramer',                                        current: 'Kramer AUD MSRP February 2026 (Initial).xlsx' },
+      { key: 'lfdsam:samsung',                    label: 'LFD — Samsung Display',                         current: 'LFD Samsung Display Dealer Price List May 2026.xlsx' },
+      { key: 'lindy:sysint',                      label: 'LINDY — System Integrator',                     current: 'LINDY System Integrator Pricelist JAN 2026.xlsx' },
+      { key: 'lwr:avprodealer',                   label: 'LWR — AV Pro Dealer',                           current: 'LWR AU_AV Pro Dealer Pricing_January 2026_V1.0_20251219.xlsx' },
+      { key: 'madison:Diamond',                   label: 'Madison Technologies — Diamond',                current: 'MADISONAV PRICE LIST - Diamond - April 2026.xlsx' },
+      { key: 'madison:Yealink Premium Partners',  label: 'Madison Technologies — Yealink Premium Partners', current: 'MADISONAV PRICE LIST - Yealink Premium Partners - April 2026.xlsx' },
+      { key: 'midwich:platinum',                  label: 'Midwich — Platinum',                            current: 'Midwich Platinum Price list May 2026.xlsx' },
+      { key: 'nas:default',                       label: 'NAS Australia',                                 current: 'NAS AUSTRALIA dealer price list_MAY 2026.xlsx' },
+      { key: 'netgear:audioBrands',               label: 'NETGEAR — SKS Audio Brands',                    current: 'NETGEAR_SKS Technologies_Audio Brands_Price List_May 2025.xlsx' },
+      { key: 'premium:default',                   label: 'Premium / Wesco / Anixter',                     current: 'Premium_Wesco_Anixter_AV_Pricelist_April_2026.xlsx' },
+      { key: 'sksepson:epson',                    label: 'SKS — Epson Premium Reseller',                  current: 'SKS Epson Premium Reseller Pricelist February 2026.xlsx' },
+      { key: 'sksaudio:audioBrands',              label: 'SKS — Audio Brands (Dealer)',                   current: 'SKS Technologies_Audio Brands_Dealer Price List_June 2025.xlsx' },
+      { key: 'sennheiser:AV Integration Specialist', label: 'Sennheiser — AV Integration Specialist',     current: 'Sennheiser AV Integration Specialist - AU - 37%_march 2026.xlsx' },
+      { key: 'sennheiser:Pro Audio',              label: 'Sennheiser — Pro Audio',                        current: 'Sennheiser Pro Audio - AU - 37% March 2026.xlsx' },
+      { key: 'tag:default',                       label: 'TAG',                                           current: 'TAG DEC 2025 Pricelist.xls' },
+      { key: 'vogels:tdePro',                     label: "Vogel's — TDE Professional",                    current: "Vogel's TDE Professional Price List - May 2025.xlsx" },
+      { key: 'wbtd:default',                      label: 'WBTD',                                          current: 'WBTD Master Pricing May 2026.xlsb' }
+    ];
+
+    // ============================================================
+    // Seed — new files since the previous scan
+    // ============================================================
+    const newFiles = [
+      {
+        id: 1,
+        filename: '1 JUNE 2026 Crestron Pricelist.xlsx',
+        size: '412 KB', mtime: '2026-06-01 09:14',
+        detected: { supplier: 'Rutledge AV', scope: 'Crestron', conf: 0.92 },
+        suggestedAction: 'replace',
+        suggestedReplaces: 'crestron:Crestron'
+      },
+      {
+        id: 2,
+        filename: 'MADISONAV PRICE LIST - Touring Pro - May 2026.xlsx',
+        size: '380 KB', mtime: '2026-05-22 11:20',
+        detected: { supplier: 'Madison Technologies', scope: 'Touring Pro (new)', conf: 0.74 },
+        suggestedAction: 'add',
+        suggestedScopeName: 'Touring Pro',
+        suggestedSupplierKey: 'madison'
+      },
+      {
+        id: 3,
+        filename: 'Sennheiser Pro Audio - AU - 37% April 2026.xlsx',
+        size: '290 KB', mtime: '2026-05-04 14:33',
+        detected: { supplier: 'Sennheiser', scope: 'Pro Audio', conf: 0.96 },
+        suggestedAction: 'replace',
+        suggestedReplaces: 'sennheiser:Pro Audio'
+      },
+      {
+        id: 4,
+        filename: 'Kramer AUD MSRP May 2026 (Revised).xlsx',
+        size: '730 KB', mtime: '2026-05-09 08:00',
+        detected: { supplier: 'Kramer', scope: '(no tiers)', conf: 0.97 },
+        suggestedAction: 'replace',
+        suggestedReplaces: 'kramer:default'
+      },
+      {
+        id: 5,
+        filename: 'Atlona-DealerPrice-Jun26.xlsx',
+        size: '128 KB', mtime: '2026-06-02 16:50',
+        detected: { supplier: 'Rutledge AV', scope: 'Atlona (likely)', conf: 0.61 },
+        suggestedAction: 'replace',
+        suggestedReplaces: 'crestron:Atlona',
+        attention: 'Best guess only — Atlona could also be carried by another distributor. Confirm before importing.'
+      },
+      {
+        id: 6,
+        filename: 'Logitech-DealerPricing-May26.xlsx',
+        size: '210 KB', mtime: '2026-05-18 10:02',
+        detected: { supplier: '— unknown —', scope: '', conf: 0.38 },
+        suggestedAction: 'unknown',
+        attention: 'Could be a new direct-from-Logitech pricelist OR an update to Dicker Data\'s Logitech VC scope. Map a supplier before importing.'
+      }
+    ];
+
+    // ============================================================
+    // Renderers
+    // ============================================================
+    function confidenceClass(c) { return c >= 0.85 ? 'ok' : (c >= 0.6 ? 'warn' : 'low'); }
+
+    function renderRow(f) {
+      const checked = f.suggestedAction !== 'unknown'; // unknown rows start unchecked
+      const action  = f.suggestedAction;
+      const confCls = confidenceClass(f.detected.conf);
+      const attnHtml = f.attention
+        ? `<div class="fmeta"><span style="color:#b45309;display:flex;align-items:center;gap:4px;"><span class="material-symbols-outlined" style="font-size:13px;">warning</span> ${f.attention}</span></div>`
+        : '';
+      const supScopeHtml = (f.detected.supplier === '— unknown —')
+        ? `<span class="matched">no supplier match · <b>needs assignment</b></span>`
+        : `<span class="matched">matched: <b>${f.detected.supplier}</b>${f.detected.scope ? ' — <b>' + f.detected.scope + '</b>' : ''}</span>`;
+
+      return `
+        <tr data-row-id="${f.id}" data-action="${action}">
+          <td class="col-check"><input type="checkbox" class="row-check" ${checked ? 'checked' : ''}></td>
+          <td>
+            <div class="fname">${f.filename}</div>
+            <div class="fmeta">
+              <span>${f.size} · modified ${f.mtime}</span>
+              <span class="conf ${confCls}">${Math.round(f.detected.conf*100)}% match</span>
+              ${supScopeHtml}
+            </div>
+            ${attnHtml}
+          </td>
+          <td class="col-action">
+            <select class="action-select ${action}" data-action-for="${f.id}">
+              <option value="replace" ${action==='replace'?'selected':''}>↻ Replace existing</option>
+              <option value="add"     ${action==='add'?'selected':''}>+ Add as new scope</option>
+              <option value="unknown" ${action==='unknown'?'selected':''}>? Map supplier first</option>
+              <option value="skip"    ${action==='skip'?'selected':''}>✕ Skip this file</option>
+            </select>
+          </td>
+          <td class="col-supersedes" data-supersedes-for="${f.id}">
+            ${renderSupersedesCell(f)}
+          </td>
+        </tr>
+      `;
+    }
+
+    function renderSupersedesCell(f) {
+      const action = f.suggestedAction;
+      if (action === 'replace') {
+        const opts = knownPricelists.map(p =>
+          `<option value="${p.key}" ${p.key === f.suggestedReplaces ? 'selected' : ''}>${p.label}</option>`
+        ).join('');
+        const matched = knownPricelists.find(p => p.key === f.suggestedReplaces);
+        return `
+          <div class="sup-replace">
+            <select>${opts}</select>
+            <div class="current">replaces <b>${matched ? matched.current : '?'}</b></div>
+          </div>`;
+      }
+      if (action === 'add') {
+        // Group existing scopes for this supplier
+        const supplierKey = f.suggestedSupplierKey || '';
+        const sibling = knownPricelists.filter(p => p.key.startsWith(supplierKey + ':')).map(p => p.label.split(' — ').slice(1).join(' — ') || p.label);
+        return `
+          <div class="sup-add">
+            <input type="text" value="${f.suggestedScopeName || ''}" placeholder="Name for the new scope (e.g. Touring Pro)">
+            <div class="hint">creates a new active pricelist under <b>${f.detected.supplier}</b> alongside ${sibling.length ? sibling.map(s => '<b>' + s + '</b>').join(', ') : 'the existing pricelists'}</div>
+          </div>`;
+      }
+      if (action === 'unknown') {
+        const opts = ['<option value="">— Pick a supplier —</option>']
+          .concat(knownPricelists.map(p => `<option value="${p.key}">${p.label}</option>`))
+          .join('');
+        return `
+          <div class="sup-unknown">
+            <select>${opts}</select>
+            <div class="hint">map this file to an existing supplier, or add a new one from Folders &amp; rules</div>
+          </div>`;
+      }
+      // skip
+      return `<div class="sup-skip">— file will be left in the folder, not imported</div>`;
+    }
+
+    function renderAll() {
+      const tbody = document.getElementById('wizard-tbody');
+      tbody.innerHTML = newFiles.map(renderRow).join('');
+      wireRows();
+      recomputeSummary();
+    }
+
+    // ============================================================
+    // Wiring
+    // ============================================================
+    function wireRows() {
+      document.querySelectorAll('.row-check').forEach(cb => {
+        cb.addEventListener('change', recomputeSummary);
+      });
+      document.getElementById('check-all').addEventListener('change', (e) => {
+        document.querySelectorAll('.wizard-table tbody tr:not(.hidden) .row-check').forEach(cb => cb.checked = e.target.checked);
+        recomputeSummary();
+      });
+      document.querySelectorAll('.action-select').forEach(sel => {
+        sel.addEventListener('change', (e) => {
+          const id = parseInt(sel.getAttribute('data-action-for'));
+          const newAction = e.target.value;
+          const file = newFiles.find(f => f.id === id);
+          file.suggestedAction = newAction;
+          // Update row class so filter pills work
+          const row = document.querySelector(`tr[data-row-id="${id}"]`);
+          row.setAttribute('data-action', newAction);
+          // Update select styling
+          sel.className = 'action-select ' + newAction;
+          // Re-render supersedes cell
+          document.querySelector(`[data-supersedes-for="${id}"]`).innerHTML = renderSupersedesCell(file);
+          // If switched to skip, uncheck. If switched away from skip, check.
+          const rc = row.querySelector('.row-check');
+          rc.checked = newAction !== 'skip' && newAction !== 'unknown';
+          recomputeSummary();
+        });
+      });
+    }
+
+    function recomputeSummary() {
+      const counts = { all: newFiles.length, attention: 0, replace: 0, add: 0, skip: 0, unknown: 0 };
+      let willImport = 0;
+      let chipsHtml = '';
+      newFiles.forEach(f => {
+        const row = document.querySelector(`tr[data-row-id="${f.id}"]`);
+        const checked = row?.querySelector('.row-check')?.checked;
+        if (f.suggestedAction === 'unknown') counts.attention++;
+        else if (f.attention)               counts.attention++;
+        counts[f.suggestedAction] = (counts[f.suggestedAction] || 0) + 1;
+        if (checked && (f.suggestedAction === 'replace' || f.suggestedAction === 'add')) willImport++;
+      });
+      // Update stats
+      document.getElementById('stat-replace').textContent = counts.replace;
+      document.getElementById('stat-add').textContent     = counts.add;
+      document.getElementById('stat-attn').textContent    = counts.attention;
+      document.getElementById('stat-skip').textContent    = counts.skip;
+      // Update filter pill counts
+      document.getElementById('cnt-all').textContent  = counts.all;
+      document.getElementById('cnt-attn').textContent = counts.attention;
+      document.getElementById('cnt-rep').textContent  = counts.replace;
+      document.getElementById('cnt-add').textContent  = counts.add;
+      document.getElementById('cnt-skip').textContent = counts.skip;
+      // Continue summary
+      document.getElementById('continue-count').textContent = willImport;
+      if (counts.replace > 0) chipsHtml += `<span class="chip replace">${counts.replace} replace</span>`;
+      if (counts.add     > 0) chipsHtml += `<span class="chip add">${counts.add} new scope</span>`;
+      if (counts.attention > 0) chipsHtml += `<span class="chip attn">${counts.attention} need attention</span>`;
+      document.getElementById('continue-chips').innerHTML = chipsHtml;
+      // Continue button disabled when nothing to import
+      const btn = document.getElementById('continue-btn');
+      btn.disabled = willImport === 0;
+      btn.style.opacity = willImport === 0 ? '0.5' : '1';
+    }
+
+    // Filter pills
+    document.querySelectorAll('#sw-filter button').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('#sw-filter button').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        const f = btn.getAttribute('data-filter');
+        document.querySelectorAll('.wizard-table tbody tr').forEach(row => {
+          const a = row.getAttribute('data-action');
+          let show;
+          if (f === 'all') show = true;
+          else if (f === 'attention') {
+            const id = parseInt(row.getAttribute('data-row-id'));
+            const file = newFiles.find(x => x.id === id);
+            show = !!file.attention || a === 'unknown';
+          } else if (f === 'skip') show = a === 'skip';
+          else show = a === f;
+          row.classList.toggle('hidden', !show);
+        });
+      });
+    });
+
+    // Continue
+    document.getElementById('continue-btn').addEventListener('click', () => {
+      const queued = newFiles.filter(f => {
+        const row = document.querySelector(`tr[data-row-id="${f.id}"]`);
+        const checked = row?.querySelector('.row-check')?.checked;
+        return checked && (f.suggestedAction === 'replace' || f.suggestedAction === 'add');
+      });
+      MockUI.toast('Mockup placeholder — would queue ' + queued.length + ' imports through the Accept flow, starting with "' + queued[0].filename + '" (wired in v2).');
+      // For the mockup, jump to the first import's accept-flow page so reviewers see the chain
+      setTimeout(() => { window.location.href = '10-import-pricelist.html'; }, 900);
+    });
+
+    // ============================================================
+    // Initial render
+    // ============================================================
+    renderAll();
+  </script>
+</body>
+</html>
