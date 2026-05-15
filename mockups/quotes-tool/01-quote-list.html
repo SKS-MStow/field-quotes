@@ -6,8 +6,8 @@
   <title>Quotes — SKS Quotes</title>
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/icon?family=Material+Symbols+Outlined" rel="stylesheet">
-  <link rel="stylesheet" href="css/theme.css?v=20260515r16">
-  <link rel="stylesheet" href="css/mockups.css?v=20260515r16">
+  <link rel="stylesheet" href="css/theme.css?v=20260515r17">
+  <link rel="stylesheet" href="css/mockups.css?v=20260515r17">
   <style>
     .quote-num { font-family: var(--font-heading); font-weight: 600; color: var(--text-primary); }
     .quote-rev { color: var(--text-muted); font-size: 11px; margin-left: 6px; font-weight: 500; }
@@ -118,13 +118,13 @@
 
   </main>
 
-  <script src="js/mock-data.js?v=20260515r16"></script>
-  <script src="js/mock-state.js?v=20260515r16"></script>
-  <script src="js/mock-ui.js?v=20260515r16"></script>
-  <script src="js/mock-shell.js?v=20260515r16"></script>
-  <script src="js/mock-expiry.js?v=20260515r16"></script>
-  <script src="../_shared/tables/grid-table.js?v=20260515r16"></script>
-  <script src="../_shared/review-tools/mock-review.js?v=20260515r16"></script>
+  <script src="js/mock-data.js?v=20260515r17"></script>
+  <script src="js/mock-state.js?v=20260515r17"></script>
+  <script src="js/mock-ui.js?v=20260515r17"></script>
+  <script src="js/mock-shell.js?v=20260515r17"></script>
+  <script src="js/mock-expiry.js?v=20260515r17"></script>
+  <script src="../_shared/tables/grid-table.js?v=20260515r17"></script>
+  <script src="../_shared/review-tools/mock-review.js?v=20260515r17"></script>
   <script>
     MockShell.mount({
       title: 'Quotes',
@@ -304,14 +304,14 @@
           <table class="data-table grid-table">
             <thead>
               <tr>
-                <th data-col="number">Quote #<span class="col-resizer"></span></th>
-                <th data-col="client">Client / Project<span class="col-resizer"></span></th>
-                <th class="right" data-col="value">Value<span class="col-resizer"></span></th>
-                <th data-col="issued">Issued<span class="col-resizer"></span></th>
-                <th data-col="validUntil">Valid Until<span class="col-resizer"></span></th>
-                <th data-col="status">Status<span class="col-resizer"></span></th>
-                <th data-col="mode">Mode<span class="col-resizer"></span></th>
-                <th data-col="prep">Prepared by<span class="col-resizer"></span></th>
+                <th data-col="number" data-col-key="number">Quote #<span class="col-resizer"></span></th>
+                <th data-col="client" data-col-key="client">Client / Project<span class="col-resizer"></span></th>
+                <th class="right" data-col="value" data-col-key="value">Value<span class="col-resizer"></span></th>
+                <th data-col="issued" data-col-key="issued">Issued<span class="col-resizer"></span></th>
+                <th data-col="validUntil" data-col-key="validUntil">Valid Until<span class="col-resizer"></span></th>
+                <th data-col="status" data-col-key="status">Status<span class="col-resizer"></span></th>
+                <th data-col="mode" data-col-key="mode">Mode<span class="col-resizer"></span></th>
+                <th data-col="prep" data-col-key="prep">Prepared by<span class="col-resizer"></span></th>
                 <th class="right"></th>
               </tr>
             </thead>
@@ -326,6 +326,12 @@
             <button class="pager-btn" disabled>Next ›</button>
           </div>
         </div>`;
+
+      // Wire the grid-table widget — resize + drag-reorder + persistence
+      if (window.GridTable) {
+        const tbl = host.querySelector('table.grid-table');
+        if (tbl) GridTable.wire(tbl, 'quote-list-main');
+      }
 
       // Wire row clicks
       host.querySelectorAll('[data-open]').forEach(el => {

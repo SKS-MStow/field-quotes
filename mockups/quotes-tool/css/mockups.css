@@ -89,6 +89,55 @@ table.data-table tbody tr.clickable:hover { background: rgba(0,0,0,0.015); curso
 .num { font-variant-numeric: tabular-nums; }
 .right { text-align: right; }
 
+/* ---------- Grid table widget ----------
+   Excel-like data table used across the mockup. Drop the `grid-table`
+   class on any <table> to get: fixed layout, visible cell borders,
+   draggable column widths, drag-to-reorder columns, override tint.
+   Pair with GridTable in _shared/tables/grid-table.js for the JS. */
+.grid-table { table-layout: fixed; border-collapse: collapse; width: 100%; font-size: 13px; }
+.grid-table th, .grid-table td {
+  border: 1px solid var(--border);
+  padding: 5px 8px;
+  text-align: left;
+  vertical-align: middle;
+  overflow: hidden;
+}
+.grid-table thead th {
+  background: var(--surface-inset);
+  color: var(--text-secondary);
+  font-weight: 600;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+  position: relative;
+}
+.grid-table th.right, .grid-table td.right { text-align: right; font-variant-numeric: tabular-nums; }
+.grid-table tbody tr:hover td { background: rgba(0,0,0,0.015); }
+.grid-table tbody tr.subtotal-row td,
+.grid-table tbody tr.section td { background: var(--surface-inset); font-weight: 700; }
+.grid-table .cell-overridden,
+.grid-table .cell-overridden input { background: #fff7d6 !important; }
+.grid-table .cell-overridden { box-shadow: inset 0 0 0 1px #f0c419; }
+
+/* Column resizer handle — visible vertical bar, right edge of each th */
+.grid-table th .col-resizer { position: absolute; top: 0; right: -1px; width: 8px; height: 100%; cursor: col-resize; user-select: none; z-index: 2; }
+.grid-table th .col-resizer::after {
+  content: ''; position: absolute; top: 18%; right: 3px;
+  width: 2px; height: 64%; background: var(--border-input); opacity: 0.55;
+}
+.grid-table th .col-resizer:hover::after,
+body.is-col-resizing .grid-table th .col-resizer::after { background: var(--accent-primary); opacity: 1; }
+body.is-col-resizing { cursor: col-resize; user-select: none; }
+body.is-col-resizing * { user-select: none !important; }
+
+/* Drag-to-reorder columns — cursor + drop indicator (left/right insertion bar) */
+.grid-table th[data-col-key][draggable="true"] { cursor: grab; }
+.grid-table th[data-col-key][draggable="true"]:active { cursor: grabbing; }
+.grid-table th.gt-dragging { opacity: 0.45; }
+.grid-table th.gt-drop-before { box-shadow: inset 3px 0 0 0 var(--accent-primary); }
+.grid-table th.gt-drop-after  { box-shadow: inset -3px 0 0 0 var(--accent-primary); }
+
 /* Inline edit cells */
 .cell-input { width: 100%; border: 1px solid transparent; background: transparent; padding: 4px 6px; border-radius: 4px; font: inherit; color: inherit; }
 .cell-input:hover { border-color: var(--border); background: var(--surface-white); }
