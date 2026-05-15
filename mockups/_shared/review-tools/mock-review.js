@@ -8,10 +8,21 @@
 window.MockReview = (function () {
 
   // Auto-detect env from the URL path so the same JS file can serve both
-  //   /quotes-mockup/        → prod tables
-  //   /quotes-mockup-staging/ → staging tables
-  const STAGING = /\/quotes-mockup-staging\//.test(location.pathname);
-  const API = STAGING ? '/api/quotes-mockup-staging/notes' : '/api/quotes-mockup/notes';
+  //   /mockups/<slug>/         → prod  (canonical)
+  //   /mockups-staging/<slug>/ → staging
+  //   /quotes-mockup/, /quotes-mockup-staging/ → legacy aliases (deprecated 2026-05-22)
+  const m = location.pathname.match(/^\/(mockups|mockups-staging)\/([^\/]+)\//);
+  let STAGING, API_BASE, MOCKUP_SLUG;
+  if (m) {
+    STAGING     = m[1] === 'mockups-staging';
+    MOCKUP_SLUG = m[2];
+    API_BASE    = (STAGING ? '/api/mockups-staging/' : '/api/mockups/') + MOCKUP_SLUG;
+  } else {
+    STAGING     = /\/quotes-mockup-staging\//.test(location.pathname);
+    MOCKUP_SLUG = 'quotes-tool';
+    API_BASE    = STAGING ? '/api/quotes-mockup-staging' : '/api/quotes-mockup';
+  }
+  const API = API_BASE + '/notes';
   const POLL_MS = 12000;
   const REVIEWER_KEY = STAGING ? 'mr_reviewer_v1_staging' : 'mr_reviewer_v1';
 
