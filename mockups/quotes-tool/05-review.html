@@ -6,8 +6,8 @@
   <title>Review — SKS Quotes</title>
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/icon?family=Material+Symbols+Outlined" rel="stylesheet">
-  <link rel="stylesheet" href="css/theme.css?v=20260515r15">
-  <link rel="stylesheet" href="css/mockups.css?v=20260515r15">
+  <link rel="stylesheet" href="css/theme.css?v=20260515r16">
+  <link rel="stylesheet" href="css/mockups.css?v=20260515r16">
   <style>
     /* Reviewer page note: bump UI ~15% for readability ('better at 120% zoom'). */
     body { font-size: 16.5px; }
@@ -200,12 +200,13 @@
     </div>
   </main>
 
-  <script src="js/mock-data.js?v=20260515r15"></script>
-  <script src="js/mock-state.js?v=20260515r15"></script>
-  <script src="js/mock-ui.js?v=20260515r15"></script>
-  <script src="js/mock-shell.js?v=20260515r15"></script>
-  <script src="js/mock-expiry.js?v=20260515r15"></script>
-  <script src="../_shared/review-tools/mock-review.js?v=20260515r15"></script>
+  <script src="js/mock-data.js?v=20260515r16"></script>
+  <script src="js/mock-state.js?v=20260515r16"></script>
+  <script src="js/mock-ui.js?v=20260515r16"></script>
+  <script src="js/mock-shell.js?v=20260515r16"></script>
+  <script src="js/mock-expiry.js?v=20260515r16"></script>
+  <script src="../_shared/tables/grid-table.js?v=20260515r16"></script>
+  <script src="../_shared/review-tools/mock-review.js?v=20260515r16"></script>
   <script>
     MockShell.mount({
       title: 'Review Quote',
@@ -287,7 +288,7 @@
         </tr>`;
       }).join('');
       host.innerHTML = `
-        <table class="lab-overview-table">
+        <table class="lab-overview-table grid-table">
           <thead><tr><th>Trade</th><th class="right">Hours</th><th class="right">Rate</th><th class="right">Cost</th><th class="right">Sell</th></tr></thead>
           <tbody>${rows}</tbody>
           <tfoot><tr><td>Total</td><td class="right">${MockUI.fmtHours(totalH)}</td><td class="right">—</td><td class="right">${MockUI.fmtMoney(totalCost)}</td><td class="right">${MockUI.fmtMoney(totalSell)}</td></tr></tfoot>

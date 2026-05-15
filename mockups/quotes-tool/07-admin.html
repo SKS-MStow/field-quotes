@@ -6,8 +6,8 @@
   <title>Admin — SKS Quotes</title>
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/icon?family=Material+Symbols+Outlined" rel="stylesheet">
-  <link rel="stylesheet" href="css/theme.css?v=20260515r15">
-  <link rel="stylesheet" href="css/mockups.css?v=20260515r15">
+  <link rel="stylesheet" href="css/theme.css?v=20260515r16">
+  <link rel="stylesheet" href="css/mockups.css?v=20260515r16">
   <style>
     .tab-bar { display: flex; gap: 4px; margin-bottom: 16px; padding: 4px; background: var(--surface-inset); border-radius: var(--radius-md); flex-wrap: wrap; }
     .tab-bar button { background: transparent; border: none; padding: 7px 12px; border-radius: var(--radius-sm); font-size: 12px; color: var(--text-secondary); cursor: pointer; font-family: var(--font-body); font-weight: 500; display: flex; align-items: center; gap: 5px; }
@@ -119,12 +119,13 @@
 
   </main>
 
-  <script src="js/mock-data.js?v=20260515r15"></script>
-  <script src="js/mock-state.js?v=20260515r15"></script>
-  <script src="js/mock-ui.js?v=20260515r15"></script>
-  <script src="js/mock-shell.js?v=20260515r15"></script>
-  <script src="js/mock-expiry.js?v=20260515r15"></script>
-  <script src="../_shared/review-tools/mock-review.js?v=20260515r15"></script>
+  <script src="js/mock-data.js?v=20260515r16"></script>
+  <script src="js/mock-state.js?v=20260515r16"></script>
+  <script src="js/mock-ui.js?v=20260515r16"></script>
+  <script src="js/mock-shell.js?v=20260515r16"></script>
+  <script src="js/mock-expiry.js?v=20260515r16"></script>
+  <script src="../_shared/tables/grid-table.js?v=20260515r16"></script>
+  <script src="../_shared/review-tools/mock-review.js?v=20260515r16"></script>
   <script>
     MockShell.mount({
       title: 'Admin — Catalogue & Library',
@@ -177,7 +178,7 @@
 
         <div class="table-wrap">
           <div class="table-scroll">
-            <table class="data-table product-rows" id="p-table">
+            <table class="data-table product-rows grid-table" id="p-table">
               <thead>
                 <tr>
                   <th>Brand / Model</th>
@@ -241,7 +242,7 @@
         </div>
         <div class="table-wrap">
           <div class="table-scroll">
-            <table class="data-table">
+            <table class="data-table grid-table">
               <thead><tr>
                 <th>Supplier</th><th>Code</th><th>Products</th><th>Contact</th><th>Lead time</th><th>Preferred</th><th class="right"></th>
               </tr></thead>
@@ -335,7 +336,7 @@
         </div>
         <div class="table-wrap">
           <div class="table-scroll">
-            <table class="data-table">
+            <table class="data-table grid-table">
               <thead><tr><th>Subcategory</th><th>Trade</th><th class="right">Hours per unit</th><th class="right">Rate / hr</th><th>Task description</th><th class="right"></th></tr></thead>
               <tbody>
                 ${Object.entries(rowsByCat).map(([cat, rows]) => `
@@ -396,7 +397,7 @@
         </div>
         <div class="table-wrap">
           <div class="table-scroll">
-            <table class="data-table">
+            <table class="data-table grid-table">
               <thead><tr><th>Service</th><th>Category</th><th>Unit</th><th class="right">Default rate</th><th class="right">Default qty</th><th class="right">Margin %</th><th>Default-on?</th><th class="right"></th></tr></thead>
               <tbody>
                 ${MockData.services.map(s => `<tr>
@@ -473,7 +474,7 @@
           <button class="btn btn-primary btn-sm"><span class="material-symbols-outlined">upload</span> Upload file</button>
           <button class="btn btn-secondary btn-sm" id="files-history-btn"><span class="material-symbols-outlined">history</span> View by version</button>
         </div>
-        <table class="files-table">
+        <table class="files-table grid-table">
           <thead><tr><th>File</th><th>Supplier</th><th>Uploaded</th><th>By</th><th class="right" style="width:120px;">Status</th></tr></thead>
           <tbody>${rows}</tbody>
         </table>

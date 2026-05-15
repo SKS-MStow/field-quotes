@@ -6,8 +6,8 @@
   <title>Output Preview — SKS Quotes</title>
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/icon?family=Material+Symbols+Outlined" rel="stylesheet">
-  <link rel="stylesheet" href="css/theme.css?v=20260515r15">
-  <link rel="stylesheet" href="css/mockups.css?v=20260515r15">
+  <link rel="stylesheet" href="css/theme.css?v=20260515r16">
+  <link rel="stylesheet" href="css/mockups.css?v=20260515r16">
   <style>
     .tab-bar { display: flex; gap: 4px; margin-bottom: 16px; padding: 4px; background: var(--surface-inset); border-radius: var(--radius-md); width: fit-content; }
     .tab-bar button { background: transparent; border: none; padding: 7px 14px; border-radius: var(--radius-sm); font-size: 12px; color: var(--text-secondary); cursor: pointer; font-family: var(--font-body); font-weight: 500; display: flex; align-items: center; gap: 5px; }
@@ -98,12 +98,13 @@
     </div>
   </main>
 
-  <script src="js/mock-data.js?v=20260515r15"></script>
-  <script src="js/mock-state.js?v=20260515r15"></script>
-  <script src="js/mock-ui.js?v=20260515r15"></script>
-  <script src="js/mock-shell.js?v=20260515r15"></script>
-  <script src="js/mock-expiry.js?v=20260515r15"></script>
-  <script src="../_shared/review-tools/mock-review.js?v=20260515r15"></script>
+  <script src="js/mock-data.js?v=20260515r16"></script>
+  <script src="js/mock-state.js?v=20260515r16"></script>
+  <script src="js/mock-ui.js?v=20260515r16"></script>
+  <script src="js/mock-shell.js?v=20260515r16"></script>
+  <script src="js/mock-expiry.js?v=20260515r16"></script>
+  <script src="../_shared/tables/grid-table.js?v=20260515r16"></script>
+  <script src="../_shared/review-tools/mock-review.js?v=20260515r16"></script>
   <script>
     MockShell.mount({
       title: 'Output Preview',
@@ -255,7 +256,7 @@
       const host = document.getElementById('sheet-host');
       if (tab === 'summary') {
         host.innerHTML = `
-          <table class="internal-table">
+          <table class="internal-table grid-table">
             <thead><tr><th>Item</th><th class="right">Cost</th><th class="right">Sell</th><th class="right">Margin $</th><th class="right">Margin %</th></tr></thead>
             <tbody>
               ${quote.areas.map(a => {
@@ -275,7 +276,7 @@
             </tbody>
           </table>`;
       } else if (tab === 'bom') {
-        let html = `<table class="internal-table"><thead><tr>
+        let html = `<table class="internal-table grid-table"><thead><tr>
             <th>Area</th><th>Cat</th><th>Brand</th><th>Model</th><th>Description</th>
             <th class="right">Qty</th><th class="right">Cost</th><th class="right">Margin %</th><th class="right">Sell each</th><th class="right">Sell total</th><th class="right">Labour hr</th>
           </tr></thead><tbody>`;
@@ -296,7 +297,7 @@
         html += `</tbody></table>`;
         host.innerHTML = html;
       } else if (tab === 'services') {
-        let html = `<table class="internal-table"><thead><tr><th>Service</th><th>Category</th><th class="right">Qty</th><th class="right">Hours</th><th class="right">Rate</th><th class="right">Cost</th><th class="right">Margin %</th><th class="right">Sell total</th></tr></thead><tbody>`;
+        let html = `<table class="internal-table grid-table"><thead><tr><th>Service</th><th>Category</th><th class="right">Qty</th><th class="right">Hours</th><th class="right">Rate</th><th class="right">Cost</th><th class="right">Margin %</th><th class="right">Sell total</th></tr></thead><tbody>`;
         quote.services.filter(s => s.included).forEach(s => {
           const isLab = MockState.isLabourService(s);
           const cost = MockState.serviceCost(s);
@@ -314,7 +315,7 @@
           const hrs = (l.labourHours || 0) * (l.qty || 0);
           trades[trade] = (trades[trade] || 0) + hrs;
         }));
-        let html = `<table class="internal-table"><thead><tr><th>Trade</th><th class="right">Total hours</th><th class="right">Rate / hr</th><th class="right">Sell total</th></tr></thead><tbody>`;
+        let html = `<table class="internal-table grid-table"><thead><tr><th>Trade</th><th class="right">Total hours</th><th class="right">Rate / hr</th><th class="right">Sell total</th></tr></thead><tbody>`;
         html += `<tr class="section"><td colspan="4">Auto-rolled from product labour defaults</td></tr>`;
         Object.entries(trades).forEach(([trade, hrs]) => {
           const rate = MockData.rateForTrade(trade);

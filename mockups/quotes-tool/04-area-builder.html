@@ -6,8 +6,8 @@
   <title>Build Areas — SKS Quotes</title>
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/icon?family=Material+Symbols+Outlined" rel="stylesheet">
-  <link rel="stylesheet" href="css/theme.css?v=20260515r15">
-  <link rel="stylesheet" href="css/mockups.css?v=20260515r15">
+  <link rel="stylesheet" href="css/theme.css?v=20260515r16">
+  <link rel="stylesheet" href="css/mockups.css?v=20260515r16">
   <style>
     .quote-meta { display: flex; gap: 18px; padding: 12px 16px; background: var(--surface-inset); border-radius: var(--radius-md); margin-bottom: 14px; flex-wrap: wrap; align-items: center; }
     .quote-meta .mi { display: flex; flex-direction: column; gap: 2px; }
@@ -293,16 +293,16 @@
           <div class="acc-body">
             <div class="panel" style="padding:0;">
               <div class="table-scroll">
-                <table class="data-table services-table">
+                <table class="data-table services-table grid-table">
                   <thead>
                     <tr>
-                      <th style="width:30px;"></th>
-                      <th>Service</th>
-                      <th class="right" style="width:60px;">Qty</th>
-                      <th class="right" style="width:70px;">Hours</th>
-                      <th class="right" style="width:90px;">Rate</th>
-                      <th class="right" style="width:100px;">Cost</th>
-                      <th class="right" style="width:110px;">Sell</th>
+                      <th data-col-key="svc-on" style="width:30px;"></th>
+                      <th data-col-key="svc-name">Service<span class="col-resizer"></span></th>
+                      <th class="right" data-col-key="svc-qty" style="width:60px;">Qty<span class="col-resizer"></span></th>
+                      <th class="right" data-col-key="svc-hrs" style="width:70px;">Hours<span class="col-resizer"></span></th>
+                      <th class="right" data-col-key="svc-rate" style="width:90px;">Rate<span class="col-resizer"></span></th>
+                      <th class="right" data-col-key="svc-cost" style="width:100px;">Cost<span class="col-resizer"></span></th>
+                      <th class="right" data-col-key="svc-sell" style="width:110px;">Sell<span class="col-resizer"></span></th>
                     </tr>
                   </thead>
                   <tbody id="services-host"></tbody>
@@ -574,12 +574,13 @@
     </div>
   </main>
 
-  <script src="js/mock-data.js?v=20260515r15"></script>
-  <script src="js/mock-state.js?v=20260515r15"></script>
-  <script src="js/mock-ui.js?v=20260515r15"></script>
-  <script src="js/mock-shell.js?v=20260515r15"></script>
-  <script src="js/mock-expiry.js?v=20260515r15"></script>
-  <script src="../_shared/review-tools/mock-review.js?v=20260515r15"></script>
+  <script src="js/mock-data.js?v=20260515r16"></script>
+  <script src="js/mock-state.js?v=20260515r16"></script>
+  <script src="js/mock-ui.js?v=20260515r16"></script>
+  <script src="js/mock-shell.js?v=20260515r16"></script>
+  <script src="js/mock-expiry.js?v=20260515r16"></script>
+  <script src="../_shared/tables/grid-table.js?v=20260515r16"></script>
+  <script src="../_shared/review-tools/mock-review.js?v=20260515r16"></script>
   <script>
     // -------- Shell --------
     MockShell.mount({
@@ -699,7 +700,7 @@
       }
       let html = `
         <div class="table-scroll">
-          <table class="lines" data-area-table="${area.id}">
+          <table class="lines grid-table" data-area-table="${area.id}">
             <thead>
               <tr>
                 <th class="col-mfr" data-col-key="mfr" style="width:90px;">Brand<span class="col-resizer"></span></th>
@@ -770,49 +771,10 @@
     }
 
     // -------- Wire area-card events --------
-    // Persisted column widths per quote (sessionStorage). Restores on render
-    // so resizing survives the surgical updates and accordion toggles.
+    // Column resizing + per-quote width persistence handled by the shared
+    // GridTable widget (see _shared/tables/grid-table.js). One sessionStorage
+    // key per quote so width changes survive re-renders + accordion toggles.
     const COL_W_KEY = 'fq_mockup_colw_' + (quote.id || 'global');
-    function loadColWidths() {
-      try { return JSON.parse(sessionStorage.getItem(COL_W_KEY) || '{}'); }
-      catch (e) { return {}; }
-    }
-    function saveColWidth(key, width) {
-      const all = loadColWidths();
-      all[key] = width;
-      try { sessionStorage.setItem(COL_W_KEY, JSON.stringify(all)); } catch (e) {}
-    }
-    function applyColWidths(table) {
-      const all = loadColWidths();
-      table.querySelectorAll('th[data-col-key]').forEach(th => {
-        const k = th.getAttribute('data-col-key');
-        if (all[k]) th.style.width = all[k] + 'px';
-      });
-    }
-    function wireColResizers(table) {
-      table.querySelectorAll('th .col-resizer').forEach(handle => {
-        handle.addEventListener('mousedown', e => {
-          e.preventDefault();
-          const th = handle.parentElement;
-          const key = th.getAttribute('data-col-key');
-          const startX = e.clientX;
-          const startW = th.offsetWidth;
-          document.body.classList.add('is-col-resizing');
-          const move = ev => {
-            const w = Math.max(50, startW + (ev.clientX - startX));
-            th.style.width = w + 'px';
-          };
-          const up = () => {
-            document.body.classList.remove('is-col-resizing');
-            document.removeEventListener('mousemove', move);
-            document.removeEventListener('mouseup', up);
-            if (key) saveColWidth(key, th.offsetWidth);
-          };
-          document.addEventListener('mousemove', move);
-          document.addEventListener('mouseup', up);
-        });
-      });
-    }
 
     function wireAreaEvents(areaId) {
       const q = MockState.getCurrentQuote();
@@ -821,10 +783,7 @@
 
       // Apply persisted column widths + wire resizers (c_jx4dzw)
       const lineTable = card.querySelector('table.lines');
-      if (lineTable) {
-        applyColWidths(lineTable);
-        wireColResizers(lineTable);
-      }
+      if (lineTable && window.GridTable) GridTable.wire(lineTable, COL_W_KEY);
 
       // Rename
       const nameInput = card.querySelector('[data-area-input]');
@@ -1439,7 +1398,7 @@
       let runningCost = 0, runningSell = 0;
       groups.forEach(g => {
         html += `<div class="area-sub-h">From ${g.area.name}</div>`;
-        html += `<table class="agg-table"><thead><tr>
+        html += `<table class="agg-table grid-table"><thead><tr>
           <th>Item</th>
           <th class="right" style="width:60px;">Qty</th>
           <th style="width:60px;">Unit</th>
@@ -1465,7 +1424,7 @@
 
       if (sundries.length) {
         html += `<div class="area-sub-h">Manual sundries</div>`;
-        html += `<table class="agg-table"><thead><tr>
+        html += `<table class="agg-table grid-table"><thead><tr>
           <th>Description</th>
           <th class="right" style="width:60px;">Qty</th>
           <th style="width:70px;">Unit</th>
@@ -1493,7 +1452,7 @@
       }
 
       // Subtotal row
-      html += `<table class="agg-table"><tbody><tr class="subtotal-row"><td>Cables, consumables &amp; sundries — subtotal</td><td class="right" colspan="3">Cost ${MockUI.fmtMoney(runningCost)}</td><td class="right">${MockUI.fmtMoney(runningSell)}</td></tr></tbody></table>`;
+      html += `<table class="agg-table grid-table"><tbody><tr class="subtotal-row"><td>Cables, consumables &amp; sundries — subtotal</td><td class="right" colspan="3">Cost ${MockUI.fmtMoney(runningCost)}</td><td class="right">${MockUI.fmtMoney(runningSell)}</td></tr></tbody></table>`;
 
       host.innerHTML = html;
 
@@ -1804,6 +1763,13 @@
     }
     setupSliders();
     renderAll();
+    // Wire the Services & Labour table widget once (rendered statically; only
+    // its tbody re-renders so a single wire-up is enough). Equipment tables
+    // are wired in wireAreaEvents because they re-render on add/remove.
+    if (window.GridTable) {
+      const svcTable = document.querySelector('table.services-table');
+      if (svcTable) GridTable.wire(svcTable, 'fq_mockup_colw_svc_' + (quote.id || 'global'));
+    }
     window.addEventListener('mock-state-synced', renderAll);
 
     // Hash scroll: when arriving from Review's "View in builder" link, scroll
