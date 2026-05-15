@@ -313,7 +313,16 @@ window.MockReview = (function () {
         background: white; border: 1px solid #e8e6e1; border-radius: 12px; padding: 8px;
         display: flex; gap: 6px; align-items: center;
         box-shadow: 0 8px 24px rgba(0,0,0,0.12);
-        font-family: 'Inter', -apple-system, sans-serif; }
+        font-family: 'Inter', -apple-system, sans-serif;
+        user-select: none; }
+      .mr-toolbar.dragging { transition: none; cursor: grabbing !important; box-shadow: 0 12px 32px rgba(0,0,0,0.22); }
+      .mr-toolbar .mr-drag {
+        cursor: grab; padding: 0 2px; color: #b8b6af;
+        display: flex; align-items: center; justify-content: center;
+        align-self: stretch;
+      }
+      .mr-toolbar .mr-drag:hover { color: #2d2d2a; }
+      .mr-toolbar .mr-drag .material-symbols-outlined { font-size: 18px; }
       .mr-toolbar.collapsed > *:not(.mr-toggle) { display: none; }
       .mr-toolbar .mr-btn { background: #2d2d2a; color: white; border: none; padding: 8px 12px;
         border-radius: 6px; cursor: pointer; font: inherit; font-size: 12px; font-weight: 500;
@@ -488,6 +497,7 @@ window.MockReview = (function () {
     else if (inFlight > 0) { statusCls = 'busy'; statusText = 'saving…'; }
     else if (!cacheLoaded) { statusCls = 'busy'; statusText = 'loading…'; }
     toolbarEl.innerHTML = `
+      <span class="mr-drag" id="mr-drag" title="Drag to move · double-click to reset"><span class="material-symbols-outlined">drag_indicator</span></span>
       <button class="mr-btn mr-toggle" title="Hide toolbar" id="mr-toggle"><span class="material-symbols-outlined">edit_note</span></button>
       ${STAGING ? '<span style="background:#b8860b;color:white;padding:3px 8px;border-radius:4px;font-size:10px;font-weight:700;letter-spacing:0.05em;">STAGING</span>' : ''}
       ${quoteContextLabel() ? '<span title="Notes you leave here are scoped to this quote only" style="background:#4a5699;color:white;padding:3px 8px;border-radius:4px;font-size:10px;font-weight:600;display:inline-flex;align-items:center;gap:4px;"><span class="material-symbols-outlined" style="font-size:13px;">request_quote</span>' + escapeHtml(quoteContextLabel()) + '</span>' : ''}
@@ -507,6 +517,87 @@ window.MockReview = (function () {
     document.getElementById('mr-history').addEventListener('click', openHistoryDrawer);
     document.getElementById('mr-toggle').addEventListener('click', () => toolbarEl.classList.toggle('collapsed'));
     toolbarEl.querySelector('.mr-status').addEventListener('click', () => fetchAll());
+    wireToolbarDrag();
+    applySavedToolbarPos();
+  }
+
+  // -------------------------------------------------------------
+  // Toolbar drag — position persisted to localStorage so reviewers
+  // can park it wherever it doesn't cover the content they're noting.
+  // -------------------------------------------------------------
+  const TOOLBAR_POS_KEY = 'mr_toolbar_pos_v1';
+  function applySavedToolbarPos() {
+    if (!toolbarEl) return;
+    const raw = localStorage.getItem(TOOLBAR_POS_KEY);
+    if (!raw) return;
+    try {
+      const pos = JSON.parse(raw);
+      if (typeof pos.left !== 'number' || typeof pos.top !== 'number') return;
+      // Re-clamp in case the viewport shrank since the last save
+      const r = toolbarEl.getBoundingClientRect();
+      const maxLeft = Math.max(0, window.innerWidth  - r.width  - 4);
+      const maxTop  = Math.max(0, window.innerHeight - r.height - 4);
+      const left = Math.max(4, Math.min(pos.left, maxLeft));
+      const top  = Math.max(4, Math.min(pos.top,  maxTop));
+      toolbarEl.style.left = left + 'px';
+      toolbarEl.style.top  = top  + 'px';
+      toolbarEl.style.right = 'auto';
+      toolbarEl.style.bottom = 'auto';
+    } catch (e) { /* corrupt — ignore */ }
+  }
+  function resetToolbarPos() {
+    localStorage.removeItem(TOOLBAR_POS_KEY);
+    toolbarEl.style.left = '';
+    toolbarEl.style.top = '';
+    toolbarEl.style.right = '';
+    toolbarEl.style.bottom = '';
+  }
+  function wireToolbarDrag() {
+    const handle = document.getElementById('mr-drag');
+    if (!handle || handle._wired) return;
+    handle._wired = true;
+    handle.addEventListener('dblclick', resetToolbarPos);
+    handle.addEventListener('mousedown', e => beginDrag(e.clientX, e.clientY, e));
+    handle.addEventListener('touchstart', e => {
+      const t = e.touches[0]; if (!t) return;
+      beginDrag(t.clientX, t.clientY, e);
+    }, { passive: false });
+  }
+  function beginDrag(startX, startY, evt) {
+    evt.preventDefault();
+    const r = toolbarEl.getBoundingClientRect();
+    const offX = startX - r.left;
+    const offY = startY - r.top;
+    toolbarEl.classList.add('dragging');
+    function move(cx, cy) {
+      const maxLeft = Math.max(0, window.innerWidth  - r.width  - 4);
+      const maxTop  = Math.max(0, window.innerHeight - r.height - 4);
+      const left = Math.max(4, Math.min(cx - offX, maxLeft));
+      const top  = Math.max(4, Math.min(cy - offY, maxTop));
+      toolbarEl.style.left = left + 'px';
+      toolbarEl.style.top  = top  + 'px';
+      toolbarEl.style.right = 'auto';
+      toolbarEl.style.bottom = 'auto';
+    }
+    function end() {
+      toolbarEl.classList.remove('dragging');
+      const r2 = toolbarEl.getBoundingClientRect();
+      try {
+        localStorage.setItem(TOOLBAR_POS_KEY, JSON.stringify({ left: Math.round(r2.left), top: Math.round(r2.top) }));
+      } catch (e) {}
+      document.removeEventListener('mousemove', onMouseMove);
+      document.removeEventListener('mouseup',   onMouseUp);
+      document.removeEventListener('touchmove', onTouchMove);
+      document.removeEventListener('touchend',  onTouchEnd);
+    }
+    function onMouseMove(e) { move(e.clientX, e.clientY); }
+    function onMouseUp()    { end(); }
+    function onTouchMove(e) { const t = e.touches[0]; if (t) { e.preventDefault(); move(t.clientX, t.clientY); } }
+    function onTouchEnd()   { end(); }
+    document.addEventListener('mousemove', onMouseMove);
+    document.addEventListener('mouseup',   onMouseUp);
+    document.addEventListener('touchmove', onTouchMove, { passive: false });
+    document.addEventListener('touchend',  onTouchEnd);
   }
 
   // -------------------------------------------------------------
