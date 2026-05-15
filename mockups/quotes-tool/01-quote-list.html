@@ -612,6 +612,9 @@
       MockUI.toast('Mockup — would download a CSV of the current view');
     });
 
+    // Re-render when state syncs in from another browser
+    window.addEventListener('mock-state-synced', () => renderTable());
+
     // Apply initial status from URL ?filter= (sidebar links use this)
     applyStatusTab(initialStatus);
   </script>

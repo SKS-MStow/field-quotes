@@ -289,11 +289,15 @@
     const part = hr < 12 ? 'morning' : hr < 18 ? 'afternoon' : 'evening';
     document.getElementById('greeting').textContent = `Good ${part}, Mark`;
 
-    renderKpis();
-    renderChart();
-    renderActivity();
-    renderExpiring();
-    renderTopClients();
+    function renderAll() {
+      renderKpis();
+      renderChart();
+      renderActivity();
+      renderExpiring();
+      renderTopClients();
+    }
+    renderAll();
+    window.addEventListener('mock-state-synced', renderAll);
   </script>
 </body>
 </html>

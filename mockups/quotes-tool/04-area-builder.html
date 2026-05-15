@@ -1221,6 +1221,7 @@
     }
     setupSliders();
     renderAll();
+    window.addEventListener('mock-state-synced', renderAll);
 
     // Hash scroll: when arriving from Review's "View in builder" link, scroll
     // the matching area card into view + briefly highlight it.

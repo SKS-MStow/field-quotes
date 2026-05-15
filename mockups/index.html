@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mockups — SKS Field Apps</title>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Symbols+Outlined" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #faf9f6;
+      --card: #ffffff;
+      --border: #e8e6e1;
+      --text: #2d2d2a;
+      --muted: #6c6a64;
+      --accent: #c0553a;
+      --accent-bg: rgba(192,85,58,0.08);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      font-family: 'Inter', -apple-system, sans-serif;
+      color: var(--text);
+      min-height: 100vh;
+    }
+    .wrap { max-width: 920px; margin: 0 auto; padding: 60px 24px 80px; }
+    header { margin-bottom: 32px; }
+    h1 {
+      font-family: 'IBM Plex Sans', sans-serif; font-weight: 700;
+      font-size: 32px; margin: 0 0 6px;
+    }
+    .lead { color: var(--muted); font-size: 15px; max-width: 620px; line-height: 1.5; }
+    .lead a { color: var(--accent); text-decoration: none; border-bottom: 1px solid currentColor; }
+    .grid { display: grid; gap: 16px; grid-template-columns: 1fr; margin-top: 28px; }
+    @media (min-width: 640px) { .grid { grid-template-columns: 1fr 1fr; } }
+    .card {
+      background: var(--card); border: 1px solid var(--border); border-radius: 12px;
+      padding: 22px; text-decoration: none; color: inherit; display: block;
+      transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+      position: relative;
+    }
+    .card:hover {
+      border-color: var(--accent);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.06);
+      transform: translateY(-1px);
+    }
+    .card .icon {
+      width: 40px; height: 40px; border-radius: 8px;
+      background: var(--accent-bg); color: var(--accent);
+      display: flex; align-items: center; justify-content: center;
+      margin-bottom: 14px;
+    }
+    .card .icon .material-symbols-outlined { font-size: 22px; }
+    .card h3 {
+      font-family: 'IBM Plex Sans', sans-serif; font-weight: 600;
+      font-size: 17px; margin: 0 0 4px;
+    }
+    .card .slug { font-size: 11px; color: var(--muted); font-family: monospace; margin-bottom: 10px; }
+    .card p { font-size: 13px; color: var(--muted); margin: 0 0 12px; line-height: 1.5; }
+    .card .meta { font-size: 11px; color: var(--muted); display: flex; gap: 12px; flex-wrap: wrap; }
+    .card .meta .stat { display: flex; align-items: center; gap: 4px; }
+    .card .meta .stat .material-symbols-outlined { font-size: 14px; }
+    .card .arrow {
+      position: absolute; top: 22px; right: 22px;
+      color: var(--muted); transition: color 0.15s, transform 0.15s;
+    }
+    .card:hover .arrow { color: var(--accent); transform: translateX(2px); }
+    .badge-staging {
+      position: absolute; top: 18px; right: 50px;
+      background: #b8860b; color: white;
+      padding: 2px 8px; border-radius: 4px;
+      font-size: 10px; font-weight: 700; letter-spacing: 0.05em;
+    }
+    .empty {
+      grid-column: 1 / -1;
+      padding: 32px; text-align: center;
+      color: var(--muted); font-size: 13px;
+      border: 1px dashed var(--border); border-radius: 12px;
+    }
+    .footer {
+      margin-top: 48px; padding-top: 18px; border-top: 1px solid var(--border);
+      font-size: 12px; color: var(--muted);
+    }
+    .footer code {
+      background: var(--card); border: 1px solid var(--border);
+      padding: 2px 6px; border-radius: 4px; font-size: 11px;
+    }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <header>
+      <h1>Mockups</h1>
+      <div class="lead">
+        Interactive prototypes of new field apps. Each mockup is a fully clickable
+        flow you can walk end-to-end and leave notes on. Reviewer feedback lives
+        with each app and is browseable per snapshot.
+      </div>
+    </header>
+
+    <div class="grid" id="apps-grid">
+      <a class="card" href="quotes-tool/00-dashboard.html" id="card-quotes-tool">
+        <span class="material-symbols-outlined arrow">arrow_forward</span>
+        <div class="icon"><span class="material-symbols-outlined">request_quote</span></div>
+        <h3>SKS Quoting Tool</h3>
+        <div class="slug">/mockups/quotes-tool/</div>
+        <p>AI-assisted quoting tool. Quick + Large modes, area builder, services
+           &amp; labour, output preview, draggable review toolbar.</p>
+        <div class="meta">
+          <span class="stat" id="qt-revs"><span class="material-symbols-outlined">history</span> — revisions</span>
+          <span class="stat" id="qt-quotes"><span class="material-symbols-outlined">request_quote</span> — quotes</span>
+          <span class="stat" id="qt-updated"><span class="material-symbols-outlined">schedule</span> —</span>
+        </div>
+      </a>
+    </div>
+
+    <div class="footer">
+      Each mockup app lives at <code>/mockups/&lt;slug&gt;/</code> with a matching
+      API at <code>/api/mockups/&lt;slug&gt;/</code> for notes + state sync.
+      Staging mirror at <code>/mockups-staging/&lt;slug&gt;/</code>.
+    </div>
+  </main>
+
+  <script>
+    const STAGING = location.pathname.startsWith('/mockups-staging/');
+    const API_BASE = STAGING ? '/api/mockups-staging' : '/api/mockups';
+
+    // Detect staging from the URL we're served at + flag the cards
+    if (STAGING) {
+      document.querySelectorAll('.card').forEach(c => {
+        const badge = document.createElement('span');
+        badge.className = 'badge-staging';
+        badge.textContent = 'STAGING';
+        c.appendChild(badge);
+        // Rewrite href to staging mirror
+        if (c.getAttribute('href').startsWith('quotes-tool/')) {
+          c.setAttribute('href', c.getAttribute('href'));  // relative — already correct
+        }
+      });
+      document.querySelector('h1').insertAdjacentHTML('beforeend', ' <span style="color:#b8860b;font-size:14px;">(staging)</span>');
+    }
+
+    // Light up each app card with live numbers from its API
+    async function loadCard(slug, opts) {
+      try {
+        const [revs, state] = await Promise.all([
+          fetch(`${API_BASE}/${slug}/notes/revisions`, { cache: 'no-store' }).then(r => r.ok ? r.json() : null),
+          fetch(`${API_BASE}/${slug}/state`,           { cache: 'no-store' }).then(r => r.ok ? r.json() : null),
+        ]);
+        if (revs) {
+          const el = document.getElementById(opts.revEl);
+          if (el) el.innerHTML = `<span class="material-symbols-outlined">history</span> ${revs.revisions.length} revision${revs.revisions.length === 1 ? '' : 's'}`;
+        }
+        if (state) {
+          const el = document.getElementById(opts.quotesEl);
+          if (el) el.innerHTML = `<span class="material-symbols-outlined">request_quote</span> ${state.items.length} live quote${state.items.length === 1 ? '' : 's'}`;
+          // Most-recent updated_at
+          const newest = state.items.reduce((a, b) => {
+            const ta = new Date(a?.updatedAt || 0).getTime();
+            const tb = new Date(b?.updatedAt || 0).getTime();
+            return tb > ta ? b : a;
+          }, null);
+          if (newest && newest.updatedAt) {
+            const t = new Date(newest.updatedAt);
+            const ago = relTime(t);
+            const upEl = document.getElementById(opts.updatedEl);
+            if (upEl) upEl.innerHTML = `<span class="material-symbols-outlined">schedule</span> updated ${ago}`;
+          }
+        }
+      } catch (e) { /* silently leave the placeholders */ }
+    }
+    function relTime(d) {
+      const sec = Math.round((Date.now() - d.getTime()) / 1000);
+      if (sec < 60) return 'just now';
+      if (sec < 3600) return Math.round(sec/60) + 'm ago';
+      if (sec < 86400) return Math.round(sec/3600) + 'h ago';
+      return Math.round(sec/86400) + 'd ago';
+    }
+    loadCard('quotes-tool', { revEl: 'qt-revs', quotesEl: 'qt-quotes', updatedEl: 'qt-updated' });
+  </script>
+</body>
+</html>
