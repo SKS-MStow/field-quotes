@@ -6,9 +6,18 @@
   <title>Review — SKS Quotes</title>
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/icon?family=Material+Symbols+Outlined" rel="stylesheet">
-  <link rel="stylesheet" href="css/theme.css?v=20260515r9">
-  <link rel="stylesheet" href="css/mockups.css?v=20260515r9">
+  <link rel="stylesheet" href="css/theme.css?v=20260515r10">
+  <link rel="stylesheet" href="css/mockups.css?v=20260515r10">
   <style>
+    /* Reviewer page note: bump UI ~15% for readability ('better at 120% zoom'). */
+    body { font-size: 16.5px; }
+    .content { font-size: 14.5px; }
+    .summary-block, .ex-list li,
+    .area-summary-row, .totals-final .row { font-size: 14.5px; }
+    .btn, .btn-sm { font-size: 14px; }
+    .stepper { font-size: 13px; }
+    h3 { font-size: 15px; }
+
     /* Review = read-only preview (per c_pmbc05 / c_bz6mcl).
        All editing controls live on the Build page now. */
     .review-layout { display: grid; grid-template-columns: 1fr 320px; gap: 18px; }
@@ -191,12 +200,12 @@
     </div>
   </main>
 
-  <script src="js/mock-data.js?v=20260515r9"></script>
-  <script src="js/mock-state.js?v=20260515r9"></script>
-  <script src="js/mock-ui.js?v=20260515r9"></script>
-  <script src="js/mock-shell.js?v=20260515r9"></script>
-  <script src="js/mock-expiry.js?v=20260515r9"></script>
-  <script src="../_shared/review-tools/mock-review.js?v=20260515r9"></script>
+  <script src="js/mock-data.js?v=20260515r10"></script>
+  <script src="js/mock-state.js?v=20260515r10"></script>
+  <script src="js/mock-ui.js?v=20260515r10"></script>
+  <script src="js/mock-shell.js?v=20260515r10"></script>
+  <script src="js/mock-expiry.js?v=20260515r10"></script>
+  <script src="../_shared/review-tools/mock-review.js?v=20260515r10"></script>
   <script>
     MockShell.mount({
       title: 'Review Quote',

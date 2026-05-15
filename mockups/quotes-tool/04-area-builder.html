@@ -6,8 +6,8 @@
   <title>Build Areas — SKS Quotes</title>
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/icon?family=Material+Symbols+Outlined" rel="stylesheet">
-  <link rel="stylesheet" href="css/theme.css?v=20260515r9">
-  <link rel="stylesheet" href="css/mockups.css?v=20260515r9">
+  <link rel="stylesheet" href="css/theme.css?v=20260515r10">
+  <link rel="stylesheet" href="css/mockups.css?v=20260515r10">
   <style>
     .quote-meta { display: flex; gap: 18px; padding: 12px 16px; background: var(--surface-inset); border-radius: var(--radius-md); margin-bottom: 14px; flex-wrap: wrap; align-items: center; }
     .quote-meta .mi { display: flex; flex-direction: column; gap: 2px; }
@@ -123,6 +123,21 @@
     .att-card .rm { position: absolute; top: 6px; right: 6px; background: white; border-radius: 50%; width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; cursor: pointer; border: 1px solid var(--border); }
     .att-card .rm .material-symbols-outlined { font-size: 14px; color: var(--status-danger); }
 
+    /* Reviewer page note: bump UI ~15% for readability ('better at 120% zoom'). */
+    body { font-size: 16.5px; }
+    .content { font-size: 14.5px; }
+    .data-table th, .data-table td,
+    .cell-input, .form-input,
+    .btn, .btn-sm { font-size: 14px; }
+    .area-summary-row, .ex-row,
+    .doc-section, .toggle-options label,
+    .totals-final .row { font-size: 14.5px; }
+    .stepper { font-size: 13px; }
+    h1 { font-size: 20px; }
+    h2 { font-size: 18px; }
+    h3 { font-size: 15px; }
+    h4 { font-size: 14px; }
+
     /* Fix horizontal overflow: grid children need min-width:0 so wide tables
        scroll inside their container instead of pushing the page wider.
        Reviewer c_hvdwoq — Services & Labour was blowing out the page. */
@@ -190,6 +205,7 @@
           <div class="acc-head">
             <span class="acc-chev material-symbols-outlined">expand_more</span>
             <h3 class="sub-h" style="margin:0;">Cables &amp; accessories</h3>
+            <button class="btn btn-secondary btn-sm" id="add-cable-product-btn" onclick="event.stopPropagation();"><span class="material-symbols-outlined">inventory_2</span> Add cable / consumable</button>
             <button class="btn btn-secondary btn-sm" id="add-sundry-btn" onclick="event.stopPropagation();"><span class="material-symbols-outlined">add</span> Add manual sundry line</button>
           </div>
           <div class="acc-body">
@@ -214,7 +230,6 @@
                     <tr>
                       <th style="width:30px;"></th>
                       <th>Service</th>
-                      <th style="width:80px;">Unit</th>
                       <th class="right" style="width:60px;">Qty</th>
                       <th class="right" style="width:70px;">Hours</th>
                       <th class="right" style="width:90px;">Rate</th>
@@ -298,15 +313,8 @@
             <input type="range" id="materials-margin" min="0" max="60" step="1">
           </div>
 
-          <!-- Labour margin slider -->
-          <div class="slider-block">
-            <div class="slr-label"><span>Labour</span><span class="v" id="labour-margin-val">0%</span></div>
-            <input type="range" id="labour-margin" min="0" max="50" step="1">
-            <div class="readout">
-              <span class="l">Blended global margin</span>
-              <span class="v" id="global-margin-readout">—</span>
-            </div>
-          </div>
+          <!-- Labour margin slider removed per c_nz2jt6 — labour margin is now
+               set per-row in Services & Labour rather than globally. -->
 
           <button class="btn btn-secondary btn-sm" id="apply-all-margin" style="margin-top:6px;width:100%;justify-content:center;">Apply materials % to all lines</button>
 
@@ -479,12 +487,12 @@
     </div>
   </main>
 
-  <script src="js/mock-data.js?v=20260515r9"></script>
-  <script src="js/mock-state.js?v=20260515r9"></script>
-  <script src="js/mock-ui.js?v=20260515r9"></script>
-  <script src="js/mock-shell.js?v=20260515r9"></script>
-  <script src="js/mock-expiry.js?v=20260515r9"></script>
-  <script src="../_shared/review-tools/mock-review.js?v=20260515r9"></script>
+  <script src="js/mock-data.js?v=20260515r10"></script>
+  <script src="js/mock-state.js?v=20260515r10"></script>
+  <script src="js/mock-ui.js?v=20260515r10"></script>
+  <script src="js/mock-shell.js?v=20260515r10"></script>
+  <script src="js/mock-expiry.js?v=20260515r10"></script>
+  <script src="../_shared/review-tools/mock-review.js?v=20260515r10"></script>
   <script>
     // -------- Shell --------
     MockShell.mount({
@@ -580,6 +588,7 @@
           </div>
           <div class="area-foot acc-body">
             <button class="btn btn-secondary btn-sm" data-add-line="${area.id}"><span class="material-symbols-outlined">add</span> Add Product</button>
+            <button class="btn btn-secondary btn-sm" data-add-manual="${area.id}"><span class="material-symbols-outlined">edit</span> Add manual line</button>
             <button class="btn btn-secondary btn-sm" data-add-pkg="${area.id}"><span class="material-symbols-outlined">layers</span> Apply Package</button>
             <div style="flex:1;"></div>
             <button class="btn btn-secondary btn-sm" data-notes="${area.id}" title="Internal notes"><span class="material-symbols-outlined">edit_note</span> Notes</button>
@@ -611,7 +620,7 @@
                 <th>Description</th>
                 <th class="col-qty">Qty</th>
                 <th class="col-unit">Unit</th>
-                <th class="col-num">Labour (hr)</th>
+                ${isQuick ? '' : '<th class="col-num">Labour (hr)</th>'}
                 <th class="col-num col-cost">Cost</th>
                 <th class="col-num col-margin">Margin %</th>
                 <th class="col-num">Sell</th>
@@ -638,15 +647,22 @@
 
         html += `
           <tr data-line-row="${line.id}">
-            <td><div style="font-size:11px;color:var(--text-muted);font-weight:600;">${line.manufacturer}</div></td>
-            <td><div style="font-family:var(--font-heading);font-weight:500;font-size:12px;">${line.model}</div></td>
-            <td>
-              <div>${line.description}</div>
-              <div style="font-size:10px;color:var(--text-muted);margin-top:2px;">${line.cat} · ${line.sub} ${supplyTag} ${provTag}</div>
-            </td>
+            <td>${line.isManual
+              ? `<input class="cell-input" type="text" value="${(line.manufacturer || '').replace(/"/g, '&quot;')}" placeholder="Brand" data-line-edit="${line.id}" data-field="manufacturer">`
+              : `<div style="font-size:11px;color:var(--text-muted);font-weight:600;">${line.manufacturer}</div>`}</td>
+            <td>${line.isManual
+              ? `<input class="cell-input" type="text" value="${(line.model || '').replace(/"/g, '&quot;')}" placeholder="Model / part" data-line-edit="${line.id}" data-field="model">`
+              : `<div style="font-family:var(--font-heading);font-weight:500;font-size:12px;">${line.model}</div>`}</td>
+            <td>${line.isManual
+              ? `<input class="cell-input" type="text" value="${(line.description || '').replace(/"/g, '&quot;')}" placeholder="Description" data-line-edit="${line.id}" data-field="description">
+                 <div style="font-size:10px;color:var(--text-muted);margin-top:2px;">Manual line ${supplyTag} ${provTag}</div>`
+              : `<div>${line.description}</div>
+                 <div style="font-size:10px;color:var(--text-muted);margin-top:2px;">${line.cat} · ${line.sub} ${supplyTag} ${provTag}</div>`}</td>
             <td><input class="cell-input cell-num" type="number" min="0" step="1" value="${line.qty}" data-line-edit="${line.id}" data-field="qty"></td>
-            <td><div style="font-size:11px;color:var(--text-muted);">${line.unit}</div></td>
-            <td><input class="cell-input cell-num" type="number" min="0" step="0.1" value="${line.labourHours}" data-line-edit="${line.id}" data-field="labourHours" ${line.isSupplyOnly ? 'disabled' : ''}></td>
+            <td>${line.isManual
+              ? `<input class="cell-input" type="text" value="${(line.unit || 'ea').replace(/"/g, '&quot;')}" data-line-edit="${line.id}" data-field="unit" style="width:55px;">`
+              : `<div style="font-size:11px;color:var(--text-muted);">${line.unit}</div>`}</td>
+            ${isQuick ? '' : `<td><input class="cell-input cell-num" type="number" min="0" step="0.1" value="${line.labourHours}" data-line-edit="${line.id}" data-field="labourHours" ${line.isSupplyOnly ? 'disabled' : ''}></td>`}
             <td class="col-num col-cost"><input class="cell-input cell-num cell-narrow" type="number" min="0" step="1" value="${line.costPrice}" data-line-edit="${line.id}" data-field="costPrice" title="Manual cost override"></td>
             <td class="col-num col-margin"><input class="cell-input cell-num cell-narrow" type="number" min="0" max="90" step="1" value="${line.marginPct === null ? '' : Math.round((line.marginPct + Number.EPSILON) * 10) / 10}" placeholder="${q.materialsMarginPct ?? q.globalMarginPct ?? 25}" data-line-edit="${line.id}" data-field="marginPct" title="Leave blank to inherit (${effMargin}%) — typing here back-calcs nothing"></td>
             <td><input class="cell-input cell-num" type="number" min="0" step="1" value="${Math.round(t.sellTotal)}" data-line-edit="${line.id}" data-field="sellTotal" title="Edit Sell — back-calculates margin from cost"></td>
@@ -697,6 +713,15 @@
         moveArea(areaId, +1);
       });
       card.querySelector(`[data-add-line="${areaId}"]`)?.addEventListener('click', () => openDrawer(areaId));
+      card.querySelector(`[data-add-manual="${areaId}"]`)?.addEventListener('click', () => {
+        MockState.addManualLine(MockState.getCurrentQuote().id, areaId);
+        renderAll();
+        // Focus the new row's description input for immediate typing
+        requestAnimationFrame(() => {
+          const inputs = card.querySelectorAll('[data-field="description"]');
+          if (inputs.length) inputs[inputs.length - 1].focus();
+        });
+      });
       card.querySelector(`[data-add-pkg="${areaId}"]`)?.addEventListener('click', () => openPkgModal(areaId));
       card.querySelector(`[data-notes="${areaId}"]`)?.addEventListener('click', () => {
         const cur = MockState.getCurrentQuote().areas.find(a => a.id === areaId);
@@ -724,8 +749,11 @@
             else newMargin = 0;
             MockState.updateLine(q.id, areaId, lineId, { marginPct: newMargin });
           } else {
+            // String fields on manual lines (brand/model/description/unit) bypass parseFloat
+            const STRING_FIELDS = new Set(['manufacturer', 'model', 'description', 'unit']);
             let val;
-            if (field === 'marginPct') val = input.value === '' ? null : parseFloat(input.value);
+            if (STRING_FIELDS.has(field)) val = input.value;
+            else if (field === 'marginPct') val = input.value === '' ? null : parseFloat(input.value);
             else val = parseFloat(input.value) || 0;
             MockState.updateLine(q.id, areaId, lineId, { [field]: val });
           }
@@ -874,7 +902,12 @@
       host.querySelectorAll('[data-add-pid]').forEach(el => {
         el.addEventListener('click', () => {
           const pid = el.getAttribute('data-add-pid');
-          MockState.addLineFromProduct(MockState.getCurrentQuote().id, drawerAreaId, pid, 1);
+          const line = MockState.addLineFromProduct(MockState.getCurrentQuote().id, drawerAreaId, pid, 1);
+          // Quick (small) mode: labour belongs in Services & Labour, not on
+          // product lines — zero auto-roll labour to prevent double-counting.
+          if (isQuick && line && line.labourHours) {
+            MockState.updateLine(MockState.getCurrentQuote().id, drawerAreaId, line.id, { labourHours: 0 });
+          }
           MockUI.toast('Added');
           renderAll();
         });
@@ -951,7 +984,6 @@
               ${labourTag || `<span class="cat-tag">${sv.category}</span>`}
               ${isCustom ? '<span class="cat-tag" style="background:var(--status-accent-bg);color:var(--status-accent);">Custom</span>' : ''}
             </td>
-            <td><div style="font-size:11px;color:var(--text-muted);">${sv.unit}</div></td>
             ${qtyCell}
             ${hoursCell}
             <td class="right"><input class="cell-input cell-num" type="number" min="0" step="5" value="${sv.rate}" data-svc-edit="${sv.id}" data-field="rate" ${dis}></td>
@@ -1091,8 +1123,6 @@
       // Wizard footer mini-totals
       document.getElementById('f-sell').textContent     = MockUI.fmtMoney(t.sellExGST);
       document.getElementById('f-margin').textContent   = MockUI.fmtPct(t.marginPct);
-      // Global margin readout (blended overall margin %)
-      document.getElementById('global-margin-readout').textContent = MockUI.fmtPct(t.marginPct);
     }
 
     // -------- Scope panel --------
@@ -1254,6 +1284,25 @@
       });
     }
 
+    // Reviewer c_245sum: lets you pick cables/consumables from the catalog
+    // directly in the Cables section. Reuses the area-card drawer; for Quick
+    // mode we target the single area, for Large mode TODO: prompt for area.
+    document.getElementById('add-cable-product-btn').addEventListener('click', () => {
+      const cq = MockState.getCurrentQuote();
+      if (!cq.areas || cq.areas.length === 0) {
+        MockUI.toast('Add an area first', 'warn');
+        return;
+      }
+      const targetAreaId = cq.areas[0].id;
+      openDrawer(targetAreaId);
+      // Pre-select Cabling & Pathways once drawer DOM is populated
+      const catSel = document.getElementById('filter-cat');
+      if (catSel) {
+        catSel.value = 'Cabling & Pathways';
+        catSel.dispatchEvent(new Event('change'));
+      }
+    });
+
     document.getElementById('add-sundry-btn').addEventListener('click', () => {
       MockState.addSundry(MockState.getCurrentQuote().id, { description: 'Custom sundry', qty: 1, unit: 'lot', costPrice: 0 });
       renderCables(); renderTotals();
@@ -1264,24 +1313,15 @@
       const q = MockState.getCurrentQuote();
       const matSlider = document.getElementById('materials-margin');
       const matVal    = document.getElementById('materials-margin-val');
-      const labSlider = document.getElementById('labour-margin');
-      const labVal    = document.getElementById('labour-margin-val');
-
       matSlider.value = q.materialsMarginPct ?? q.globalMarginPct ?? 25;
       matVal.textContent = matSlider.value + '%';
-      labSlider.value = q.labourMarginPct ?? 0;
-      labVal.textContent = labSlider.value + '%';
-
       matSlider.addEventListener('input', () => {
         matVal.textContent = matSlider.value + '%';
         MockState.updateQuote(q.id, { materialsMarginPct: parseFloat(matSlider.value) });
         renderAreas(); renderCables(); renderTotals();
       });
-      labSlider.addEventListener('input', () => {
-        labVal.textContent = labSlider.value + '%';
-        MockState.updateQuote(q.id, { labourMarginPct: parseFloat(labSlider.value) });
-        renderAreas(); renderTotals();
-      });
+      // Labour-margin slider removed per c_nz2jt6. Labour margin lives per-row
+      // in Services & Labour now; MockState.labourMargin(q) returns 0 if unset.
     }
 
     document.getElementById('apply-all-margin').addEventListener('click', () => {

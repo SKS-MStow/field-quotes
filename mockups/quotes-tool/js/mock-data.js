@@ -175,7 +175,8 @@ window.MockData = (function () {
     { id:'s_freight',name:'Freight & Delivery',  category:'Expense',    unit:'lot', defaultRate: 320.00, defaultQty: 1,  marginPct: 0,  includedByDefault: true  },
     { id:'s_ahw',    name:'After-Hours Work',    category:'Labour',     unit:'hr',  defaultRate: 245.00, defaultQty: 0,  marginPct: 30, includedByDefault: false },
     { id:'s_elec',   name:'Electrical',          category:'Labour',     unit:'hr',  defaultRate: 145.00, defaultQty: 0,  marginPct: 25, includedByDefault: false },
-    { id:'s_warr',   name:'Warranty & Support',  category:'Labour',     unit:'lot', defaultRate: 0,      defaultQty: 1,  marginPct: 30, includedByDefault: false }
+    { id:'s_warr',   name:'Warranty & Support',  category:'Labour',     unit:'lot', defaultRate: 0,      defaultQty: 1,  marginPct: 30, includedByDefault: false },
+    { id:'s_install',name:'Installation',        category:'Labour',     unit:'hr',  defaultRate: 145.00, defaultQty: 0,  marginPct: 25, includedByDefault: true  }
   ];
 
   // -------------------------------------------------------------

@@ -451,6 +451,43 @@ window.MockState = (function () {
     return line;
   }
 
+  // Add a free-form (non-catalog) line to an area. Reviewer c_wnejwj — wants
+  // ability to type lines without picking from MockData.products. Same line
+  // schema as product lines so renderLinesForArea / lineTotals / updateLine
+  // all work unmodified; productId:null + isManual:true identify these rows
+  // so the render can swap Brand/Model/Description from read-only to inputs.
+  function addManualLine(quoteId, areaId, patch) {
+    const s = load();
+    const q = s.quotes.find(q => q.id === quoteId);
+    if (!q) return null;
+    const a = q.areas.find(a => a.id === areaId);
+    if (!a) return null;
+    const line = {
+      id: uid('ln'),
+      productId: null,
+      isManual: true,
+      manufacturer: patch?.manufacturer || '',
+      model: patch?.model || '',
+      description: patch?.description || 'Custom item',
+      cat: patch?.cat || 'Custom',
+      sub: patch?.sub || '',
+      qty: patch?.qty ?? 1,
+      unit: patch?.unit || 'ea',
+      costPrice: patch?.costPrice ?? 0,
+      marginPct: patch?.marginPct ?? null,
+      labourHours: patch?.labourHours ?? 0,
+      labourTrade: patch?.labourTrade || 'AV Tech',
+      isSupplyOnly: false,
+      isProvisional: false,
+      lineNote: '',
+      packageId: null
+    };
+    a.lines.push(line);
+    q.value = quoteTotal(q).sellExGST;
+    save(s);
+    return line;
+  }
+
   function addPackageToArea(quoteId, areaId, packageId) {
     const pkg = MockData.packages.find(p => p.id === packageId);
     if (!pkg) return [];
@@ -955,7 +992,7 @@ window.MockState = (function () {
     newQuote, getCurrentQuote, setCurrentQuote, getQuote, getQuotes, updateQuote,
     // areas/lines
     addArea, removeArea, duplicateArea, updateArea, suggestAreaName,
-    addLineFromProduct, addPackageToArea, updateLine, removeLine,
+    addLineFromProduct, addManualLine, addPackageToArea, updateLine, removeLine,
     // per-area manual labour
     addAreaLabourLine, updateAreaLabourLine, removeAreaLabourLine,
     // quote-level cables/accessories sundries
