@@ -6,8 +6,8 @@
   <title>Build Areas — SKS Quotes</title>
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/icon?family=Material+Symbols+Outlined" rel="stylesheet">
-  <link rel="stylesheet" href="css/theme.css?v=20260515r10">
-  <link rel="stylesheet" href="css/mockups.css?v=20260515r10">
+  <link rel="stylesheet" href="css/theme.css?v=20260515r11">
+  <link rel="stylesheet" href="css/mockups.css?v=20260515r11">
   <style>
     .quote-meta { display: flex; gap: 18px; padding: 12px 16px; background: var(--surface-inset); border-radius: var(--radius-md); margin-bottom: 14px; flex-wrap: wrap; align-items: center; }
     .quote-meta .mi { display: flex; flex-direction: column; gap: 2px; }
@@ -122,6 +122,20 @@
     .att-card .size { font-size: 11px; color: var(--text-muted); }
     .att-card .rm { position: absolute; top: 6px; right: 6px; background: white; border-radius: 50%; width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; cursor: pointer; border: 1px solid var(--border); }
     .att-card .rm .material-symbols-outlined { font-size: 14px; color: var(--status-danger); }
+
+    /* Override tint: cells whose value differs from the catalog default get
+       a warm yellow background so it's obvious at a glance which line items
+       have been hand-tweaked vs straight from the product catalog. (c_o67tl7) */
+    .cell-overridden { background: #fff7d6 !important; box-shadow: inset 0 0 0 1px #f0c419; }
+    .cell-overridden input { background: transparent !important; }
+
+    /* Column resizer handle on equipment table headers. Reuses the styling
+       pattern from the quote-list table. */
+    th { position: relative; }
+    .col-resizer { position: absolute; top: 0; right: 0; width: 6px; height: 100%; cursor: col-resize; user-select: none; }
+    .col-resizer:hover { background: linear-gradient(90deg, transparent, var(--accent-primary)); opacity: 0.5; }
+    body.is-col-resizing { cursor: col-resize; user-select: none; }
+    body.is-col-resizing * { user-select: none !important; }
 
     /* Reviewer page note: bump UI ~15% for readability ('better at 120% zoom'). */
     body { font-size: 16.5px; }
@@ -487,12 +501,12 @@
     </div>
   </main>
 
-  <script src="js/mock-data.js?v=20260515r10"></script>
-  <script src="js/mock-state.js?v=20260515r10"></script>
-  <script src="js/mock-ui.js?v=20260515r10"></script>
-  <script src="js/mock-shell.js?v=20260515r10"></script>
-  <script src="js/mock-expiry.js?v=20260515r10"></script>
-  <script src="../_shared/review-tools/mock-review.js?v=20260515r10"></script>
+  <script src="js/mock-data.js?v=20260515r11"></script>
+  <script src="js/mock-state.js?v=20260515r11"></script>
+  <script src="js/mock-ui.js?v=20260515r11"></script>
+  <script src="js/mock-shell.js?v=20260515r11"></script>
+  <script src="js/mock-expiry.js?v=20260515r11"></script>
+  <script src="../_shared/review-tools/mock-review.js?v=20260515r11"></script>
   <script>
     // -------- Shell --------
     MockShell.mount({
@@ -615,15 +629,15 @@
           <table class="lines" data-area-table="${area.id}">
             <thead>
               <tr>
-                <th class="col-mfr">Brand</th>
-                <th class="col-model">Model</th>
-                <th>Description</th>
-                <th class="col-qty">Qty</th>
-                <th class="col-unit">Unit</th>
-                ${isQuick ? '' : '<th class="col-num">Labour (hr)</th>'}
-                <th class="col-num col-cost">Cost</th>
-                <th class="col-num col-margin">Margin %</th>
-                <th class="col-num">Sell</th>
+                <th class="col-mfr" data-col-key="mfr">Brand<span class="col-resizer"></span></th>
+                <th class="col-model" data-col-key="model">Model<span class="col-resizer"></span></th>
+                <th data-col-key="desc">Description<span class="col-resizer"></span></th>
+                <th class="col-qty" data-col-key="qty">Qty<span class="col-resizer"></span></th>
+                <th class="col-unit" data-col-key="unit">Unit<span class="col-resizer"></span></th>
+                ${isQuick ? '' : '<th class="col-num" data-col-key="lab">Labour (hr)<span class="col-resizer"></span></th>'}
+                <th class="col-num col-cost" data-col-key="cost">Cost<span class="col-resizer"></span></th>
+                <th class="col-num col-margin" data-col-key="margin">Margin %<span class="col-resizer"></span></th>
+                <th class="col-num" data-col-key="sell">Sell<span class="col-resizer"></span></th>
                 <th class="col-actions"></th>
               </tr>
             </thead>
@@ -645,26 +659,27 @@
         const supplyTag = line.isSupplyOnly ? `<span class="line-flag supply">Supply only</span>` : '';
         const provTag   = line.isProvisional ? `<span class="line-flag prov">Prov</span>` : '';
 
+        // Override-tint classes (c_o67tl7) — yellow background when a catalog
+        // value has been changed in this quote.
+        const ovBrand = MockState.lineHasOverride(line, 'manufacturer') ? 'cell-overridden' : '';
+        const ovModel = MockState.lineHasOverride(line, 'model') ? 'cell-overridden' : '';
+        const ovDesc  = MockState.lineHasOverride(line, 'description') ? 'cell-overridden' : '';
+        const ovCost  = MockState.lineHasOverride(line, 'costPrice') ? 'cell-overridden' : '';
         html += `
           <tr data-line-row="${line.id}">
-            <td>${line.isManual
-              ? `<input class="cell-input" type="text" value="${(line.manufacturer || '').replace(/"/g, '&quot;')}" placeholder="Brand" data-line-edit="${line.id}" data-field="manufacturer">`
-              : `<div style="font-size:11px;color:var(--text-muted);font-weight:600;">${line.manufacturer}</div>`}</td>
-            <td>${line.isManual
-              ? `<input class="cell-input" type="text" value="${(line.model || '').replace(/"/g, '&quot;')}" placeholder="Model / part" data-line-edit="${line.id}" data-field="model">`
-              : `<div style="font-family:var(--font-heading);font-weight:500;font-size:12px;">${line.model}</div>`}</td>
-            <td>${line.isManual
-              ? `<input class="cell-input" type="text" value="${(line.description || '').replace(/"/g, '&quot;')}" placeholder="Description" data-line-edit="${line.id}" data-field="description">
-                 <div style="font-size:10px;color:var(--text-muted);margin-top:2px;">Manual line ${supplyTag} ${provTag}</div>`
-              : `<div>${line.description}</div>
-                 <div style="font-size:10px;color:var(--text-muted);margin-top:2px;">${line.cat} · ${line.sub} ${supplyTag} ${provTag}</div>`}</td>
+            <td class="${ovBrand}"><input class="cell-input" type="text" value="${(line.manufacturer || '').replace(/"/g, '&quot;')}" placeholder="Brand" data-line-edit="${line.id}" data-field="manufacturer"></td>
+            <td class="${ovModel}"><input class="cell-input" type="text" value="${(line.model || '').replace(/"/g, '&quot;')}" placeholder="Model / part" data-line-edit="${line.id}" data-field="model"></td>
+            <td class="${ovDesc}">
+              <input class="cell-input" type="text" value="${(line.description || '').replace(/"/g, '&quot;')}" placeholder="Description" data-line-edit="${line.id}" data-field="description">
+              <div style="font-size:10px;color:var(--text-muted);margin-top:2px;">${line.isManual ? 'Manual line' : (line.cat + ' · ' + line.sub)} ${supplyTag} ${provTag}</div>
+            </td>
             <td><input class="cell-input cell-num" type="number" min="0" step="1" value="${line.qty}" data-line-edit="${line.id}" data-field="qty"></td>
             <td>${line.isManual
               ? `<input class="cell-input" type="text" value="${(line.unit || 'ea').replace(/"/g, '&quot;')}" data-line-edit="${line.id}" data-field="unit" style="width:55px;">`
               : `<div style="font-size:11px;color:var(--text-muted);">${line.unit}</div>`}</td>
             ${isQuick ? '' : `<td><input class="cell-input cell-num" type="number" min="0" step="0.1" value="${line.labourHours}" data-line-edit="${line.id}" data-field="labourHours" ${line.isSupplyOnly ? 'disabled' : ''}></td>`}
-            <td class="col-num col-cost"><input class="cell-input cell-num cell-narrow" type="number" min="0" step="1" value="${line.costPrice}" data-line-edit="${line.id}" data-field="costPrice" title="Manual cost override"></td>
-            <td class="col-num col-margin"><input class="cell-input cell-num cell-narrow" type="number" min="0" max="90" step="1" value="${line.marginPct === null ? '' : Math.round((line.marginPct + Number.EPSILON) * 10) / 10}" placeholder="${q.materialsMarginPct ?? q.globalMarginPct ?? 25}" data-line-edit="${line.id}" data-field="marginPct" title="Leave blank to inherit (${effMargin}%) — typing here back-calcs nothing"></td>
+            <td class="col-num col-cost ${ovCost}"><input class="cell-input cell-num cell-narrow" type="number" min="0" step="1" value="${line.costPrice}" data-line-edit="${line.id}" data-field="costPrice" title="${ovCost ? 'Overridden from catalog' : 'Manual cost override'}"></td>
+            <td class="col-num col-margin ${line.marginPct !== null && line.marginPct !== undefined ? 'cell-overridden' : ''}"><input class="cell-input cell-num cell-narrow" type="number" min="0" max="90" step="1" value="${Math.round(((line.marginPct === null || line.marginPct === undefined ? effMargin : line.marginPct) + Number.EPSILON) * 10) / 10}" data-line-edit="${line.id}" data-field="marginPct" title="${line.marginPct === null || line.marginPct === undefined ? 'Inheriting global margin (' + effMargin + '%) — type/spin to override' : 'Overridden — clear to inherit'}"></td>
             <td><input class="cell-input cell-num" type="number" min="0" step="1" value="${Math.round(t.sellTotal)}" data-line-edit="${line.id}" data-field="sellTotal" title="Edit Sell — back-calculates margin from cost"></td>
             <td class="right">
               <div style="display:inline-flex;gap:2px;">
@@ -682,10 +697,61 @@
     }
 
     // -------- Wire area-card events --------
+    // Persisted column widths per quote (sessionStorage). Restores on render
+    // so resizing survives the surgical updates and accordion toggles.
+    const COL_W_KEY = 'fq_mockup_colw_' + (quote.id || 'global');
+    function loadColWidths() {
+      try { return JSON.parse(sessionStorage.getItem(COL_W_KEY) || '{}'); }
+      catch (e) { return {}; }
+    }
+    function saveColWidth(key, width) {
+      const all = loadColWidths();
+      all[key] = width;
+      try { sessionStorage.setItem(COL_W_KEY, JSON.stringify(all)); } catch (e) {}
+    }
+    function applyColWidths(table) {
+      const all = loadColWidths();
+      table.querySelectorAll('th[data-col-key]').forEach(th => {
+        const k = th.getAttribute('data-col-key');
+        if (all[k]) th.style.width = all[k] + 'px';
+      });
+    }
+    function wireColResizers(table) {
+      table.querySelectorAll('th .col-resizer').forEach(handle => {
+        handle.addEventListener('mousedown', e => {
+          e.preventDefault();
+          const th = handle.parentElement;
+          const key = th.getAttribute('data-col-key');
+          const startX = e.clientX;
+          const startW = th.offsetWidth;
+          document.body.classList.add('is-col-resizing');
+          const move = ev => {
+            const w = Math.max(50, startW + (ev.clientX - startX));
+            th.style.width = w + 'px';
+          };
+          const up = () => {
+            document.body.classList.remove('is-col-resizing');
+            document.removeEventListener('mousemove', move);
+            document.removeEventListener('mouseup', up);
+            if (key) saveColWidth(key, th.offsetWidth);
+          };
+          document.addEventListener('mousemove', move);
+          document.addEventListener('mouseup', up);
+        });
+      });
+    }
+
     function wireAreaEvents(areaId) {
       const q = MockState.getCurrentQuote();
       const card = document.querySelector(`[data-area-id="${areaId}"]`);
       if (!card) return;
+
+      // Apply persisted column widths + wire resizers (c_jx4dzw)
+      const lineTable = card.querySelector('table.lines');
+      if (lineTable) {
+        applyColWidths(lineTable);
+        wireColResizers(lineTable);
+      }
 
       // Rename
       const nameInput = card.querySelector('[data-area-input]');
@@ -941,6 +1007,32 @@
     document.getElementById('pkg-cancel').addEventListener('click', closePkgModal);
 
     // -------- Services --------
+    // Surgical row update — refreshes the computed Cost and Sell cells of a
+    // single services row after a user edit. Skips whichever cell the user
+    // just typed in so the active input keeps focus and its in-progress value.
+    function updateServiceRowComputedCells(row, sv, editedField) {
+      const newCost = MockState.serviceCost(sv);
+      const newSell = MockState.serviceSell(sv);
+      if (editedField !== 'costTotal') {
+        const c = row.querySelector('[data-field="costTotal"]');
+        if (c && document.activeElement !== c) c.value = Math.round(newCost);
+      }
+      if (editedField !== 'sellTotal') {
+        const s = row.querySelector('[data-field="sellTotal"]');
+        if (s && document.activeElement !== s) s.value = Math.round(newSell);
+      }
+      if (editedField !== 'marginPct') {
+        const m = row.querySelector('[data-field="marginPct"]');
+        if (m && document.activeElement !== m) {
+          m.value = Math.round((sv.marginPct + Number.EPSILON) * 10) / 10;
+        }
+      }
+      if (editedField !== 'rate') {
+        const r = row.querySelector('[data-field="rate"]');
+        if (r && document.activeElement !== r) r.value = sv.rate;
+      }
+    }
+
     function renderServices() {
       const q = MockState.getCurrentQuote();
       const host = document.getElementById('services-host');
@@ -1009,14 +1101,15 @@
           const cq = MockState.getCurrentQuote();
           const cur = cq.services.find(x => x.id === id);
           if (!cur) return;
+          // Treat empty intermediate state as the previous value so spinner
+          // clicks don't blip to 0 and re-render the row to 0. (c_al2cla)
+          if (input.value === '' && field !== 'sellTotal' && field !== 'costTotal') return;
           if (field === 'sellTotal') {
-            // Back-calc margin from current cost
             const newSell = parseFloat(input.value) || 0;
             const cost = MockState.serviceCost(cur);
             const newMargin = (newSell > 0 && cost > 0) ? (1 - cost / newSell) * 100 : 0;
             MockState.updateService(cq.id, id, { marginPct: newMargin });
           } else if (field === 'costTotal') {
-            // Back-calc rate from current units (hours×qty for labour, qty for non-labour)
             const newCost = parseFloat(input.value) || 0;
             const units = MockState.serviceUnitCount(cur);
             const newRate = units > 0 ? newCost / units : 0;
@@ -1025,7 +1118,12 @@
             const v = parseFloat(input.value) || 0;
             MockState.updateService(cq.id, id, { [field]: v });
           }
-          renderServices();
+          // Surgical update: refresh only the computed Cost & Sell cells in
+          // this row; leave every other input alone so focus is preserved.
+          // (c_wvaydm — full re-render was stealing focus mid-keystroke.)
+          const row = input.closest('tr');
+          const cur2 = MockState.getCurrentQuote().services.find(x => x.id === id);
+          if (row && cur2) updateServiceRowComputedCells(row, cur2, field);
           renderTotals();
         });
       });
@@ -1142,6 +1240,62 @@
     }
 
     // -------- Cables & Accessories aggregator --------
+    // Surgical row update for a cables-aggregator row. Refresh whichever
+    // computed inputs the user didn't just type into. (c_wvaydm)
+    function updateCableRowComputedCells(row, line, editedField, q) {
+      const t = MockState.lineTotals(line, q.areas.find(a => a.id === row.getAttribute('data-cbl-area')), q);
+      const effM = MockState.effectiveMargin(line, null, q);
+      if (editedField !== 'sellTotal') {
+        const s = row.querySelector('[data-field="sellTotal"]');
+        if (s && document.activeElement !== s) s.value = Math.round(t.sellTotal);
+      }
+      if (editedField !== 'marginPct') {
+        const m = row.querySelector('[data-field="marginPct"]');
+        if (m && document.activeElement !== m) {
+          m.value = line.marginPct === null || line.marginPct === undefined ? '' : Math.round((line.marginPct + Number.EPSILON) * 10) / 10;
+          m.placeholder = effM;
+        }
+      }
+    }
+
+    // Surgical row update for sundries.
+    function updateSundryRowComputedCells(row, sn, editedField, q) {
+      const cost = (Number(sn.qty) || 0) * (Number(sn.costPrice) || 0);
+      const m = (sn.marginPct !== null && sn.marginPct !== undefined && sn.marginPct !== '') ? Number(sn.marginPct) : MockState.effectiveMargin({ marginPct: null }, null, q);
+      const sell = MockState.sellFromCost(cost, m);
+      if (editedField !== 'sellTotal') {
+        const s = row.querySelector('[data-field="sellTotal"]');
+        if (s && document.activeElement !== s) s.value = Math.round(sell);
+      }
+      if (editedField !== 'marginPct') {
+        const mEl = row.querySelector('[data-field="marginPct"]');
+        if (mEl && document.activeElement !== mEl) {
+          mEl.value = sn.marginPct === null || sn.marginPct === undefined ? '' : Math.round((sn.marginPct + Number.EPSILON) * 10) / 10;
+        }
+      }
+    }
+
+    // Mirror a cables/sundry change back into the matching area-lines table row
+    // (since cables are area lines hidden from per-area, but still rendered when
+    // the cat doesn't match — defensive sync).
+    function syncAreaLineRow(areaId, lineId) {
+      const tableRow = document.querySelector(`[data-area-table="${areaId}"] [data-line-row="${lineId}"]`);
+      if (!tableRow) return;
+      const q = MockState.getCurrentQuote();
+      const area = q.areas.find(a => a.id === areaId);
+      const line = area && area.lines.find(l => l.id === lineId);
+      if (!line) return;
+      const t = MockState.lineTotals(line, area, q);
+      const sellIn = tableRow.querySelector('[data-field="sellTotal"]');
+      if (sellIn && document.activeElement !== sellIn) sellIn.value = Math.round(t.sellTotal);
+      const marginIn = tableRow.querySelector('[data-field="marginPct"]');
+      if (marginIn && document.activeElement !== marginIn) {
+        marginIn.value = line.marginPct === null || line.marginPct === undefined ? '' : Math.round((line.marginPct + Number.EPSILON) * 10) / 10;
+      }
+      const costIn = tableRow.querySelector('[data-field="costPrice"]');
+      if (costIn && document.activeElement !== costIn) costIn.value = line.costPrice;
+    }
+
     function renderCables() {
       const q = MockState.getCurrentQuote();
       const host = document.getElementById('cables-host');
@@ -1181,7 +1335,7 @@
             <td class="right"><input class="cell-input cell-num" type="number" min="0" step="1" value="${line.qty}" data-cbl-edit="${line.id}" data-area="${g.area.id}" data-field="qty"></td>
             <td>${line.unit}</td>
             <td class="right"><input class="cell-input cell-num cell-narrow" type="number" min="0" step="0.5" value="${line.costPrice}" data-cbl-edit="${line.id}" data-area="${g.area.id}" data-field="costPrice"></td>
-            <td class="right"><input class="cell-input cell-num cell-narrow" type="number" min="0" max="90" step="1" value="${line.marginPct === null || line.marginPct === undefined ? '' : Math.round((line.marginPct + Number.EPSILON) * 10) / 10}" placeholder="${effM}" data-cbl-edit="${line.id}" data-area="${g.area.id}" data-field="marginPct" title="Leave blank to inherit (${effM}%)"></td>
+            <td class="right ${line.marginPct !== null && line.marginPct !== undefined ? 'cell-overridden' : ''}"><input class="cell-input cell-num cell-narrow" type="number" min="0" max="90" step="1" value="${Math.round(((line.marginPct === null || line.marginPct === undefined ? effM : line.marginPct) + Number.EPSILON) * 10) / 10}" data-cbl-edit="${line.id}" data-area="${g.area.id}" data-field="marginPct" title="${line.marginPct === null || line.marginPct === undefined ? 'Inheriting (' + effM + '%) — type/spin to override' : 'Overridden — clear to inherit'}"></td>
             <td class="right"><input class="cell-input cell-num" type="number" min="0" step="1" value="${Math.round(t.sellTotal)}" data-cbl-edit="${line.id}" data-area="${g.area.id}" data-field="sellTotal" title="Edit Sell — back-calculates margin"></td>
           </tr>`;
         });
@@ -1209,7 +1363,7 @@
             <td class="right"><input class="cell-input cell-num" type="number" min="0" step="1" value="${sn.qty}" data-sn-edit="${sn.id}" data-field="qty"></td>
             <td><input class="cell-input" type="text" value="${sn.unit || 'lot'}" data-sn-edit="${sn.id}" data-field="unit" style="width:60px;"></td>
             <td class="right"><input class="cell-input cell-num" type="number" min="0" step="1" value="${sn.costPrice}" data-sn-edit="${sn.id}" data-field="costPrice"></td>
-            <td class="right"><input class="cell-input cell-num cell-narrow" type="number" min="0" max="80" step="1" value="${sn.marginPct === null || sn.marginPct === undefined ? '' : Math.round((sn.marginPct + Number.EPSILON) * 10) / 10}" placeholder="${q.materialsMarginPct ?? 25}" data-sn-edit="${sn.id}" data-field="marginPct"></td>
+            <td class="right ${sn.marginPct !== null && sn.marginPct !== undefined ? 'cell-overridden' : ''}"><input class="cell-input cell-num cell-narrow" type="number" min="0" max="80" step="1" value="${Math.round(((sn.marginPct === null || sn.marginPct === undefined ? (q.materialsMarginPct ?? 25) : sn.marginPct) + Number.EPSILON) * 10) / 10}" data-sn-edit="${sn.id}" data-field="marginPct" title="${sn.marginPct === null || sn.marginPct === undefined ? 'Inheriting global materials margin — spin/type to override' : 'Overridden — clear to inherit'}"></td>
             <td class="right"><input class="cell-input cell-num" type="number" min="0" step="1" value="${Math.round(sell)}" data-sn-edit="${sn.id}" data-field="sellTotal" title="Edit Sell — back-calculates margin"></td>
             <td class="right"><button class="icon-btn danger" data-sn-remove="${sn.id}"><span class="material-symbols-outlined">delete_outline</span></button></td>
           </tr>`;
@@ -1223,12 +1377,14 @@
       host.innerHTML = html;
 
       // Wire aggregated cable-line edits — these write back to the underlying
-      // area line so cost/margin/sell stay consistent everywhere.
+      // area line so cost/margin/sell stay consistent everywhere. Surgical
+      // updates to preserve focus (c_wvaydm).
       host.querySelectorAll('[data-cbl-edit]').forEach(input => {
         const lineId = input.getAttribute('data-cbl-edit');
         const areaId = input.getAttribute('data-area');
         const field  = input.getAttribute('data-field');
         input.addEventListener('input', () => {
+          if (input.value === '' && field !== 'sellTotal' && field !== 'marginPct') return;
           const cq = MockState.getCurrentQuote();
           const cArea = cq.areas.find(a => a.id === areaId);
           const cLine = cArea && cArea.lines.find(l => l.id === lineId);
@@ -1246,17 +1402,22 @@
             else val = parseFloat(input.value) || 0;
             MockState.updateLine(cq.id, areaId, lineId, { [field]: val });
           }
-          // Re-render cables + totals; also re-render areas to keep main table
-          // in sync (since cable rows are also area lines).
-          renderAreas(); renderCables(); renderTotals();
+          // Surgical refresh — sync the area-line input + this row's sibling cells
+          const row = input.closest('tr');
+          const cur = MockState.getCurrentQuote().areas.find(a => a.id === areaId).lines.find(l => l.id === lineId);
+          if (row && cur) updateCableRowComputedCells(row, cur, field, MockState.getCurrentQuote());
+          // Also sync the same line's row in the main area table (if rendered)
+          syncAreaLineRow(areaId, lineId);
+          renderTotals();
         });
       });
 
-      // Wire sundry edits — same Sell back-calc pattern
+      // Wire sundry edits — same Sell back-calc pattern, surgical
       host.querySelectorAll('[data-sn-edit]').forEach(input => {
         const id = input.getAttribute('data-sn-edit');
         const field = input.getAttribute('data-field');
         input.addEventListener('input', () => {
+          if (input.value === '' && field !== 'sellTotal' && field !== 'marginPct') return;
           const cq = MockState.getCurrentQuote();
           const cur = (cq.sundries || []).find(x => x.id === id);
           if (field === 'sellTotal') {
@@ -1272,7 +1433,11 @@
             else if (field === 'marginPct') val = input.value === '' ? null : parseFloat(input.value);
             MockState.updateSundry(cq.id, id, { [field]: val });
           }
-          renderCables(); renderTotals();
+          // Surgical: refresh this row's computed Sell cell only
+          const row = input.closest('tr');
+          const sn = MockState.getCurrentQuote().sundries.find(x => x.id === id);
+          if (row && sn) updateSundryRowComputedCells(row, sn, field, MockState.getCurrentQuote());
+          renderTotals();
         });
       });
       host.querySelectorAll('[data-sn-remove]').forEach(btn => {

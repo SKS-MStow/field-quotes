@@ -473,6 +473,22 @@ window.MockState = (function () {
   // schema as product lines so renderLinesForArea / lineTotals / updateLine
   // all work unmodified; productId:null + isManual:true identify these rows
   // so the render can swap Brand/Model/Description from read-only to inputs.
+  // Round-4: catalog product lines are also fully editable; this helper tells
+  // the render whether a field differs from the catalog default so the cell
+  // can show an override tint. (c_o67tl7)
+  const PRODUCT_DEFAULT_KEY = {
+    manufacturer: 'mfr', model: 'mpn', description: 'desc',
+    unit: 'unit', costPrice: 'cost'
+  };
+  function lineHasOverride(line, field) {
+    if (!line || !line.productId) return false;
+    const p = MockData.productById(line.productId);
+    if (!p) return false;
+    const pk = PRODUCT_DEFAULT_KEY[field];
+    if (!pk) return false;
+    return line[field] !== p[pk];
+  }
+
   function addManualLine(quoteId, areaId, patch) {
     const s = load();
     const q = s.quotes.find(q => q.id === quoteId);
@@ -1009,7 +1025,7 @@ window.MockState = (function () {
     newQuote, getCurrentQuote, setCurrentQuote, getQuote, getQuotes, updateQuote,
     // areas/lines
     addArea, removeArea, duplicateArea, updateArea, suggestAreaName,
-    addLineFromProduct, addManualLine, addPackageToArea, updateLine, removeLine,
+    addLineFromProduct, addManualLine, addPackageToArea, updateLine, removeLine, lineHasOverride,
     // per-area manual labour
     addAreaLabourLine, updateAreaLabourLine, removeAreaLabourLine,
     // quote-level cables/accessories sundries
