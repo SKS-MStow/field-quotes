@@ -924,7 +924,7 @@
           } else if (act === 'add-rule') {
             MockUI.toast('Mockup placeholder — would open a small wizard to add a new supplier + matching rule (wired in v2).');
           } else if (act === 'history') {
-            MockUI.toast('Mockup placeholder — would open the per-supplier revision timeline (wired in v2).');
+            window.location.href = '12-supplier-history.html#supplier=' + (entry?.id || '');
           }
         });
       });

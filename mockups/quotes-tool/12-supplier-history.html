@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Pricelist revision history</title>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Symbols+Outlined" rel="stylesheet">
+  <link rel="stylesheet" href="css/theme.css?v=20260516r1">
+  <link rel="stylesheet" href="css/mockups.css?v=20260516r1">
+  <style>
+    /* Header card (supplier picker) */
+    .sup-pick-card {
+      background: var(--surface-card); border: 1px solid var(--border);
+      border-radius: var(--radius-lg); padding: 12px 14px;
+      display: grid; grid-template-columns: 1fr auto; gap: 14px;
+      align-items: center; margin-bottom: 12px;
+    }
+    .sup-pick-card .form-row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+    .sup-pick-card .form-row label {
+      font-size: 11px; color: var(--text-muted); font-weight: 600;
+      text-transform: uppercase; letter-spacing: 0.04em;
+    }
+    .sup-pick-card .form-select { min-width: 280px; font-size: 13px; padding: 7px 10px; border: 1px solid var(--border-input); border-radius: var(--radius-md); background: var(--surface-white); font-family: var(--font-body); color: var(--text-primary); }
+    .sup-pick-card .meta {
+      font-size: 11.5px; color: var(--text-muted);
+      display: flex; gap: 12px; flex-wrap: wrap;
+    }
+    .sup-pick-card .meta b { color: var(--text-secondary); font-weight: 600; }
+
+    /* Timelines layout */
+    .timelines {
+      display: grid; gap: 12px;
+      grid-template-columns: 1fr;
+    }
+    .timelines.tiered {
+      grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+    }
+    @media (max-width: 900px) { .timelines.tiered { grid-template-columns: 1fr; } }
+
+    .timeline-card {
+      background: var(--surface-card); border: 1px solid var(--border);
+      border-radius: var(--radius-lg); overflow: hidden;
+      display: flex; flex-direction: column;
+    }
+    .timeline-head {
+      padding: 10px 14px; background: var(--surface-inset);
+      border-bottom: 1px solid var(--border-light);
+      display: flex; align-items: center; gap: 10px;
+    }
+    .timeline-head h3 {
+      font-family: var(--font-heading); font-size: 13px; font-weight: 600; color: var(--text-primary);
+      flex: 1;
+    }
+    .timeline-head .scope-pill {
+      font-size: 10px; padding: 2px 7px; border-radius: 10px;
+      background: var(--border-light); color: var(--text-secondary); font-weight: 600;
+      text-transform: uppercase; letter-spacing: 0.04em;
+    }
+    .timeline-head .count { font-size: 11px; color: var(--text-muted); }
+
+    .timeline-body { padding: 8px 0; }
+
+    /* Revision row */
+    .rev {
+      display: grid; grid-template-columns: 30px 1fr;
+      gap: 10px; padding: 10px 14px;
+      border-left: 3px solid transparent;
+    }
+    .rev + .rev { border-top: 1px solid var(--border-light); }
+    .rev.active { background: var(--status-success-bg); border-left-color: var(--status-success); }
+
+    .rev .dot {
+      width: 18px; height: 18px; border-radius: 50%;
+      background: var(--border); margin: 4px auto 0;
+      position: relative;
+    }
+    .rev .dot::after {
+      content: ''; position: absolute; left: 50%; top: 18px;
+      width: 1px; height: calc(100% + 14px);
+      background: var(--border); transform: translateX(-50%);
+    }
+    .rev:last-child .dot::after { display: none; }
+    .rev.active .dot { background: var(--status-success); }
+    .rev.active .dot::after { background: var(--status-success); opacity: 0.3; }
+
+    .rev .body { min-width: 0; }
+    .rev .body .top-line {
+      display: flex; gap: 8px; align-items: center; flex-wrap: wrap;
+      margin-bottom: 4px;
+    }
+    .rev .body .ver {
+      font-family: var(--font-heading); font-weight: 700; font-size: 13px;
+      color: var(--text-primary);
+    }
+    .rev .body .ver.active-ver { color: var(--status-success); }
+    .rev .body .file {
+      font-family: var(--font-heading); font-size: 12px; color: var(--text-secondary);
+      overflow: hidden; text-overflow: ellipsis;
+    }
+    .rev .body .meta-line {
+      font-size: 11px; color: var(--text-muted);
+      display: flex; gap: 10px; flex-wrap: wrap; align-items: center;
+    }
+    .rev .body .meta-line .dotsep { color: var(--border); }
+    .rev .body .diffs {
+      margin-top: 6px; display: inline-flex; gap: 8px; align-items: center;
+      font-size: 11.5px;
+    }
+    .rev .body .diffs .d { display: inline-flex; align-items: center; gap: 3px; }
+    .rev .body .diffs .d .material-symbols-outlined { font-size: 13px; }
+    .rev .body .diffs .d.add { color: var(--status-success); }
+    .rev .body .diffs .d.upd { color: var(--status-info); }
+    .rev .body .diffs .d.rm  { color: var(--status-danger); }
+    .rev .body .diffs .d b   { font-weight: 700; }
+    .rev .body .notes {
+      margin-top: 6px; font-size: 11.5px; color: var(--text-secondary);
+      font-style: italic;
+    }
+    .rev .body .row-actions {
+      display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap;
+    }
+    .rev .body .row-actions .btn { padding: 5px 10px; font-size: 11px; }
+
+    /* Rollback confirmation modal */
+    .modal-bg { position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 9000; display: flex; align-items: center; justify-content: center; padding: 20px; }
+    .modal-bg[hidden] { display: none; }
+    .modal-box { background: var(--surface-bg); border-radius: var(--radius-lg); max-width: 480px; width: 100%; box-shadow: 0 20px 60px rgba(0,0,0,0.25); overflow: hidden; }
+    .modal-head { padding: 12px 16px; border-bottom: 1px solid var(--border); background: var(--surface-card); display: flex; align-items: center; gap: 10px; }
+    .modal-head h3 { font-family: var(--font-heading); font-size: 14px; font-weight: 600; flex: 1; }
+    .modal-body { padding: 14px 18px; font-size: 12.5px; color: var(--text-primary); line-height: 1.6; }
+    .modal-body b { color: var(--text-primary); font-weight: 600; }
+    .modal-body .summary {
+      background: var(--surface-inset); border-radius: var(--radius-sm);
+      padding: 10px 12px; margin-top: 10px; font-size: 11.5px;
+      display: flex; gap: 14px; flex-wrap: wrap;
+    }
+    .modal-body .summary .s { display: flex; align-items: center; gap: 4px; }
+    .modal-body .summary .s b { font-family: var(--font-heading); }
+    .modal-foot { padding: 12px 16px; border-top: 1px solid var(--border); background: var(--surface-card); display: flex; justify-content: flex-end; gap: 8px; }
+    .btn-danger {
+      background: var(--status-danger); color: white;
+      padding: 8px 14px; border-radius: var(--radius-md);
+      font-size: 12px; font-weight: 500; border: none; cursor: pointer;
+      display: flex; align-items: center; gap: 5px; font-family: var(--font-body);
+    }
+    .btn-danger:hover { opacity: 0.9; }
+
+    [hidden] { display: none !important; }
+  </style>
+</head>
+<body data-page="admin-files">
+  <main id="content" class="content">
+
+    <!-- Supplier picker -->
+    <div class="sup-pick-card">
+      <div class="form-row">
+        <label>Revision history for</label>
+        <select id="sup-picker" class="form-select"></select>
+      </div>
+      <div class="meta" id="sup-meta"></div>
+    </div>
+
+    <div id="timelines-host"></div>
+
+  </main>
+
+  <!-- Rollback confirmation modal -->
+  <div class="modal-bg" id="rollback-modal" hidden>
+    <div class="modal-box">
+      <div class="modal-head">
+        <span class="material-symbols-outlined" style="color:var(--status-danger);">history</span>
+        <h3>Roll back to <span id="rb-version">V11</span>?</h3>
+      </div>
+      <div class="modal-body">
+        <div>This will set <b id="rb-supplier-label">Rutledge AV — Crestron</b>'s active pricelist back to <b id="rb-filename">crestron-pricelist-mar-2026.xlsx</b>. Any changes introduced by newer revisions will be undone.</div>
+        <div class="summary" id="rb-summary"></div>
+        <div style="margin-top:10px;font-size:11.5px;color:var(--status-warning);">
+          <span class="material-symbols-outlined" style="font-size:14px;vertical-align:-2px;">warning</span>
+          Active quotes referencing changed SKUs will be flagged for re-review.
+        </div>
+      </div>
+      <div class="modal-foot">
+        <button class="btn btn-secondary" id="rb-cancel">Cancel</button>
+        <button class="btn-danger" id="rb-confirm"><span class="material-symbols-outlined">history</span> Roll back</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/mock-data.js?v=20260516r1"></script>
+  <script src="js/mock-state.js?v=20260516r1"></script>
+  <script src="js/mock-ui.js?v=20260516r1"></script>
+  <script src="js/mock-shell.js?v=20260516r1"></script>
+  <script src="js/mock-expiry.js?v=20260516r1"></script>
+  <script src="../_shared/review-tools/mock-review.js?v=20260516r1"></script>
+  <script>
+    MockShell.mount({
+      title: 'Pricelist revision history',
+      subtitle: 'Inspect every previous import · roll back if a sheet was wrong',
+      actionsHtml: `<a class="btn btn-secondary" href="09-files.html"><span class="material-symbols-outlined">arrow_back</span> Back to files</a>`
+    });
+
+    // ============================================================
+    // Seed — suppliers + their per-scope revision history
+    // Each entry: scope label + chronological revisions (newest first)
+    // Active revision is marked. Single-pricelist suppliers have one
+    // entry; tiered ones (Madison, Sennheiser) have multiple.
+    // ============================================================
+    const today = '2026-05-16';
+
+    const histories = {
+      crestron: {
+        label: 'Rutledge AV — Crestron',
+        scopes: [
+          {
+            scope: 'Crestron',
+            revs: [
+              { ver:'V14', file:'1 JUNE 2026 Crestron Pricelist.xlsx',   date:'2026-06-01', by:'Steven Carmichael', add:7,  upd:64, rm:1, active:true,  notes:'Auto-imported via supersedes wizard'  },
+              { ver:'V13', file:'crestron-pricelist-may-2026.xlsx',      date:'2026-05-02', by:'Mark Stowell',      add:5,  upd:42, rm:0, active:false, notes:'Touch panel price update'             },
+              { ver:'V12', file:'crestron-pricelist-mar-2026.xlsx',      date:'2026-03-04', by:'Steven Carmichael', add:3,  upd:88, rm:1, active:false, notes:'Q1 increases (avg +1.8%)'             },
+              { ver:'V11', file:'crestron-pricelist-jan-2026.xlsx',      date:'2026-01-10', by:'Steven Carmichael', add:12, upd:0,  rm:0, active:false, notes:'Annual catalogue refresh'             },
+              { ver:'V10', file:'crestron-pricelist-oct-2025.xlsx',      date:'2025-10-14', by:'Mark Stowell',      add:2,  upd:24, rm:3, active:false, notes:'NVX 4K range additions'               },
+              { ver:'V9',  file:'crestron-pricelist-aug-2025.xlsx',      date:'2025-08-05', by:'Mark Stowell',      add:1,  upd:15, rm:0, active:false, notes:'Mid-cycle correction'                 },
+              { ver:'V8',  file:'crestron-pricelist-may-2025.xlsx',      date:'2025-05-12', by:'Steven Carmichael', add:8,  upd:60, rm:2, active:false, notes:''                                     },
+              { ver:'V7',  file:'crestron-pricelist-jan-2025.xlsx',      date:'2025-01-08', by:'Mark Stowell',      add:118,upd:0,  rm:0, active:false, notes:'First clean import (replaced manual catalogue)' }
+            ]
+          },
+          {
+            scope: 'Atlona',
+            revs: [
+              { ver:'V3', file:'rutledge-atlona-feb-2026.xlsx',     date:'2026-02-21', by:'Mark Stowell',      add:6,  upd:32, rm:0, active:true,  notes:''                  },
+              { ver:'V2', file:'rutledge-atlona-aug-2025.xlsx',     date:'2025-08-18', by:'Mark Stowell',      add:2,  upd:12, rm:1, active:false, notes:''                  },
+              { ver:'V1', file:'rutledge-atlona-mar-2025.xlsx',     date:'2025-03-06', by:'Steven Carmichael', add:24, upd:0,  rm:0, active:false, notes:'Initial Atlona import' }
+            ]
+          }
+        ]
+      },
+
+      madison: {
+        label: 'Madison Technologies',
+        scopes: [
+          {
+            scope: 'Diamond',
+            revs: [
+              { ver:'V5', file:'MADISONAV PRICE LIST - Diamond - April 2026.xlsx',  date:'2026-04-01', by:'Steven Carmichael', add:5,  upd:54, rm:0, active:true,  notes:'Samsung Q2 refresh' },
+              { ver:'V4', file:'MADISONAV PRICE LIST - Diamond - January 2026.xlsx',date:'2026-01-08', by:'Steven Carmichael', add:3,  upd:38, rm:0, active:false, notes:'' },
+              { ver:'V3', file:'MADISONAV PRICE LIST - Diamond - October 2025.xlsx',date:'2025-10-14', by:'Mark Stowell',      add:2,  upd:28, rm:1, active:false, notes:'' },
+              { ver:'V2', file:'madison-diamond-jul-2025.xlsx',                     date:'2025-07-09', by:'Mark Stowell',      add:0,  upd:18, rm:0, active:false, notes:'' },
+              { ver:'V1', file:'madison-diamond-feb-2025.xlsx',                     date:'2025-02-12', by:'Steven Carmichael', add:55, upd:0,  rm:0, active:false, notes:'Initial Madison import' }
+            ]
+          },
+          {
+            scope: 'Yealink Premium Partners',
+            revs: [
+              { ver:'V3', file:'MADISONAV PRICE LIST - Yealink Premium Partners - April 2026.xlsx', date:'2026-04-01', by:'Steven Carmichael', add:2,  upd:18, rm:0, active:true,  notes:'' },
+              { ver:'V2', file:'madison-yealink-jan-2026.xlsx',                                     date:'2026-01-08', by:'Mark Stowell',      add:1,  upd:9,  rm:0, active:false, notes:'' },
+              { ver:'V1', file:'madison-yealink-oct-2025.xlsx',                                     date:'2025-10-22', by:'Mark Stowell',      add:18, upd:0,  rm:0, active:false, notes:'First Yealink import' }
+            ]
+          }
+        ]
+      },
+
+      sennheiser: {
+        label: 'Sennheiser',
+        scopes: [
+          {
+            scope: 'AV Integration Specialist',
+            revs: [
+              { ver:'V4', file:'Sennheiser AV Integration Specialist - AU - 37%_march 2026.xlsx', date:'2026-03-01', by:'Steven Carmichael', add:3, upd:22, rm:0, active:true,  notes:'' },
+              { ver:'V3', file:'sennheiser-av-int-dec-2025.xlsx',                                 date:'2025-12-10', by:'Mark Stowell',      add:2, upd:14, rm:0, active:false, notes:'' },
+              { ver:'V2', file:'sennheiser-av-int-aug-2025.xlsx',                                 date:'2025-08-20', by:'Mark Stowell',      add:1, upd:8,  rm:0, active:false, notes:'' },
+              { ver:'V1', file:'sennheiser-av-int-mar-2025.xlsx',                                 date:'2025-03-15', by:'Steven Carmichael', add:32,upd:0,  rm:0, active:false, notes:'Initial Sennheiser import' }
+            ]
+          },
+          {
+            scope: 'Pro Audio',
+            revs: [
+              { ver:'V3', file:'Sennheiser Pro Audio - AU - 37% March 2026.xlsx', date:'2026-03-01', by:'Steven Carmichael', add:1,  upd:16, rm:0, active:true,  notes:'' },
+              { ver:'V2', file:'sennheiser-pro-audio-nov-2025.xlsx',              date:'2025-11-04', by:'Mark Stowell',      add:0,  upd:12, rm:1, active:false, notes:'' },
+              { ver:'V1', file:'sennheiser-pro-audio-may-2025.xlsx',              date:'2025-05-12', by:'Steven Carmichael', add:22, upd:0,  rm:0, active:false, notes:'Initial Pro Audio import' }
+            ]
+          }
+        ]
+      },
+
+      amber: {
+        label: 'Amber Technology',
+        scopes: [
+          {
+            scope: 'Trade list',
+            revs: [
+              { ver:'V4', file:'amber-tradelist-q2-2026.xlsx', date:'2026-05-08', by:'Steven Carmichael', add:42, upd:188, rm:6, active:true,  notes:'Q2 trade list — Biamp + Shure increases' },
+              { ver:'V3', file:'amber-tradelist-q1-2026.xlsx', date:'2026-02-14', by:'Steven Carmichael', add:30, upd:151, rm:2, active:false, notes:'Q1 trade list'                            },
+              { ver:'V2', file:'amber-tradelist-q4-2025.xlsx', date:'2025-11-02', by:'Mark Stowell',      add:18, upd:97,  rm:0, active:false, notes:'Q4 2025'                                  },
+              { ver:'V1', file:'amber-tradelist-q3-2025.xlsx', date:'2025-08-19', by:'Mark Stowell',      add:240,upd:0,   rm:0, active:false, notes:'First Amber import'                       }
+            ]
+          }
+        ]
+      },
+
+      cisco: {
+        label: 'Cisco',
+        scopes: [
+          {
+            scope: 'Pricelist',
+            revs: [
+              { ver:'V1', file:'Cisco Pricelist June_2025.xlsx', date:'2025-06-12', by:'Mark Stowell', add:74, upd:0, rm:0, active:true, notes:'Initial Cisco import — STALE, chase supplier for refresh' }
+            ]
+          }
+        ]
+      }
+    };
+
+    // ============================================================
+    // Helpers
+    // ============================================================
+    function fmtDate(iso) {
+      const d = new Date(iso);
+      return d.toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' });
+    }
+    function fmtAgo(iso) {
+      const days = Math.round((new Date(today) - new Date(iso)) / 86400000);
+      if (days < 0) return 'in the future';
+      if (days === 0) return 'today';
+      if (days === 1) return 'yesterday';
+      if (days < 30) return days + ' days ago';
+      if (days < 365) return Math.round(days / 30) + ' months ago';
+      const y = (days / 365).toFixed(1);
+      return y + ' years ago';
+    }
+
+    // ============================================================
+    // Renderers
+    // ============================================================
+    function renderSupplierPicker() {
+      const sel = document.getElementById('sup-picker');
+      sel.innerHTML = Object.entries(histories).map(([key, h]) => {
+        const totalRevs = h.scopes.reduce((acc, s) => acc + s.revs.length, 0);
+        const scopeCount = h.scopes.length;
+        const label = `${h.label}${scopeCount > 1 ? ' (' + scopeCount + ' scopes)' : ''} — ${totalRevs} revision${totalRevs===1?'':'s'}`;
+        return `<option value="${key}">${label}</option>`;
+      }).join('');
+      sel.addEventListener('change', () => showSupplier(sel.value));
+    }
+
+    function renderMeta(key) {
+      const h = histories[key];
+      const allRevs = h.scopes.flatMap(s => s.revs);
+      const newestActive = h.scopes
+        .map(s => s.revs.find(r => r.active))
+        .filter(Boolean)
+        .reduce((a, r) => !a || r.date > a.date ? r : a, null);
+      document.getElementById('sup-meta').innerHTML = `
+        <span><span class="material-symbols-outlined" style="font-size:13px;vertical-align:-2px;">verified</span> Active: <b>${newestActive ? fmtDate(newestActive.date) : '—'}</b></span>
+        <span><span class="material-symbols-outlined" style="font-size:13px;vertical-align:-2px;">history</span> Total: <b>${allRevs.length}</b> revision${allRevs.length===1?'':'s'} across <b>${h.scopes.length}</b> scope${h.scopes.length===1?'':'s'}</span>
+      `;
+    }
+
+    function renderRevision(scope, rev, supplierKey, scopeIdx) {
+      const diffs = `
+        <div class="diffs">
+          <div class="d add"><span class="material-symbols-outlined">add</span><b>+${rev.add}</b> new</div>
+          <div class="d upd"><span class="material-symbols-outlined">edit</span><b>~${rev.upd}</b> changed</div>
+          <div class="d rm"><span class="material-symbols-outlined">remove</span><b>−${rev.rm}</b> removed</div>
+        </div>`;
+      const verCls = rev.active ? 'active-ver' : '';
+      const actions = rev.active ? `
+        <div class="row-actions">
+          <button class="btn btn-secondary" data-act="diff-prev" data-key="${supplierKey}" data-scope="${scopeIdx}" data-ver="${rev.ver}"><span class="material-symbols-outlined">difference</span> Diff vs previous</button>
+          <button class="btn btn-secondary" data-act="open-excel" data-file="${rev.file}"><span class="material-symbols-outlined">visibility</span> Open in Excel</button>
+        </div>` : `
+        <div class="row-actions">
+          <button class="btn btn-secondary" data-act="diff-vs-active" data-key="${supplierKey}" data-scope="${scopeIdx}" data-ver="${rev.ver}"><span class="material-symbols-outlined">compare_arrows</span> Diff vs active</button>
+          <button class="btn btn-secondary" data-act="open-excel" data-file="${rev.file}"><span class="material-symbols-outlined">visibility</span> Open in Excel</button>
+          <button class="btn btn-secondary" data-act="rollback" data-key="${supplierKey}" data-scope="${scopeIdx}" data-ver="${rev.ver}" style="color:var(--status-danger);border-color:var(--status-danger);"><span class="material-symbols-outlined">history</span> Roll back to this</button>
+        </div>`;
+
+      return `
+        <div class="rev ${rev.active ? 'active' : ''}">
+          <div class="dot"></div>
+          <div class="body">
+            <div class="top-line">
+              <span class="ver ${verCls}">${rev.ver}</span>
+              ${rev.active ? '<span class="badge badge-success">Active</span>' : ''}
+              <span class="file">${rev.file}</span>
+            </div>
+            <div class="meta-line">
+              <span>${fmtDate(rev.date)} · ${fmtAgo(rev.date)}</span>
+              <span class="dotsep">·</span>
+              <span>imported by <b style="color:var(--text-secondary);">${rev.by}</b></span>
+            </div>
+            ${diffs}
+            ${rev.notes ? `<div class="notes">"${rev.notes}"</div>` : ''}
+            ${actions}
+          </div>
+        </div>
+      `;
+    }
+
+    function renderTimelines(key) {
+      const h = histories[key];
+      const tiered = h.scopes.length > 1;
+      const host = document.getElementById('timelines-host');
+      host.innerHTML = `
+        <div class="timelines ${tiered ? 'tiered' : ''}">
+          ${h.scopes.map((s, idx) => `
+            <div class="timeline-card">
+              <div class="timeline-head">
+                <h3>${h.label}</h3>
+                ${tiered || s.scope !== 'Pricelist' && s.scope !== 'Trade list' ? `<span class="scope-pill">${s.scope}</span>` : ''}
+                <span class="count">${s.revs.length} revision${s.revs.length===1?'':'s'}</span>
+              </div>
+              <div class="timeline-body">
+                ${s.revs.map(r => renderRevision(s, r, key, idx)).join('')}
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      `;
+      wireActions(key);
+    }
+
+    function showSupplier(key) {
+      document.getElementById('sup-picker').value = key;
+      renderMeta(key);
+      renderTimelines(key);
+      history.replaceState(null, '', '#supplier=' + key);
+    }
+
+    // ============================================================
+    // Wiring
+    // ============================================================
+    function wireActions(key) {
+      document.querySelectorAll('#timelines-host [data-act]').forEach(btn => {
+        const act = btn.getAttribute('data-act');
+        btn.addEventListener('click', () => {
+          if (act === 'diff-prev')        MockUI.toast('Mockup placeholder — would show the line-by-line diff between this revision and the one before it.');
+          else if (act === 'diff-vs-active') MockUI.toast('Mockup placeholder — would show what would change if you rolled back to this revision (inverse diff against active).');
+          else if (act === 'open-excel')  MockUI.toast('Mockup placeholder — would open ' + btn.getAttribute('data-file') + ' in Excel via the desktop helper.');
+          else if (act === 'rollback')    openRollbackModal(btn);
+        });
+      });
+    }
+
+    function openRollbackModal(btn) {
+      const key   = btn.getAttribute('data-key');
+      const sIdx  = parseInt(btn.getAttribute('data-scope'));
+      const ver   = btn.getAttribute('data-ver');
+      const h     = histories[key];
+      const scope = h.scopes[sIdx];
+      const rev   = scope.revs.find(r => r.ver === ver);
+      const active = scope.revs.find(r => r.active);
+      // Sum diffs introduced between this and the current active
+      let add = 0, upd = 0, rm = 0;
+      for (const r of scope.revs) {
+        if (r.date > rev.date && r.date <= active.date) {
+          add += r.add; upd += r.upd; rm += r.rm;
+        }
+      }
+      document.getElementById('rb-version').textContent = ver;
+      document.getElementById('rb-supplier-label').textContent = h.label + (h.scopes.length > 1 ? ' — ' + scope.scope : '');
+      document.getElementById('rb-filename').textContent = rev.file;
+      document.getElementById('rb-summary').innerHTML = `
+        <span class="s" style="color:var(--status-success);"><span class="material-symbols-outlined" style="font-size:14px;">add</span> <b>+${add}</b> new SKUs will be removed</span>
+        <span class="s" style="color:var(--status-info);"><span class="material-symbols-outlined" style="font-size:14px;">edit</span> <b>${upd}</b> price changes will revert</span>
+        <span class="s" style="color:var(--status-danger);"><span class="material-symbols-outlined" style="font-size:14px;">restore</span> <b>${rm}</b> discontinued SKUs come back</span>
+      `;
+      document.getElementById('rollback-modal').hidden = false;
+    }
+
+    function closeRollback() { document.getElementById('rollback-modal').hidden = true; }
+    document.getElementById('rb-cancel').addEventListener('click', closeRollback);
+    document.getElementById('rb-confirm').addEventListener('click', () => {
+      MockUI.toast('Mockup placeholder — would atomically replace the active pricelist with this revision and flag affected quotes for re-review.');
+      closeRollback();
+    });
+    document.getElementById('rollback-modal').addEventListener('click', e => { if (e.target.id === 'rollback-modal') closeRollback(); });
+
+    // ============================================================
+    // Init
+    // ============================================================
+    renderSupplierPicker();
+    const hash = (location.hash || '').replace('#', '');
+    const params = Object.fromEntries(hash.split('&').filter(Boolean).map(s => s.split('=')));
+    const initial = (params.supplier && histories[params.supplier]) ? params.supplier : 'crestron';
+    showSupplier(initial);
+  </script>
+</body>
+</html>
