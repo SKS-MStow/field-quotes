@@ -39,10 +39,12 @@ window.MockShell = (function () {
         ${navItem({ page: 'admin-pkgs',     href: '07-admin.html#packages',   icon: 'layers',      label: 'Packages' })}
 
         <div class="nav-group-label">Library</div>
-        ${navItem({ page: 'admin-services',  href: '07-admin.html#services',   icon: 'build', label: 'Services' })}
+        ${navItem({ page: 'admin-services',  href: '07-admin.html#services',   icon: 'build',       label: 'Services' })}
         ${navItem({ page: 'admin-labour',    href: '07-admin.html#labour',     icon: 'engineering', label: 'Labour Defaults' })}
-        ${navItem({ page: 'admin-exclusions',href: '07-admin.html#exclusions', icon: 'rule',  label: 'Exclusions' })}
-        ${navItem({ page: 'admin-terms',     href: '07-admin.html#terms',      icon: 'gavel', label: 'Terms' })}
+        ${navItem({ page: 'admin-exclusions',href: '07-admin.html#exclusions', icon: 'rule',        label: 'Exclusions' })}
+        ${navItem({ page: 'admin-terms',     href: '07-admin.html#terms',      icon: 'gavel',       label: 'Terms' })}
+        ${navItem({ page: 'admin-files',     href: '09-files.html',            icon: 'folder_managed', label: 'Supplier files' })}
+        ${navItem({ page: 'admin-history',   href: '12-supplier-history.html', icon: 'history',     label: 'Revision history' })}
 
         <div class="sidebar-bottom">
           ${navItem({ page: 'settings', href: '08-settings.html', icon: 'tune', label: 'Settings' })}
